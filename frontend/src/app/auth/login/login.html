@@ -1,0 +1,32 @@
+<div class="auth-page">
+  <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()">
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to your WasteZero account</p>
+
+    @if (error()) {
+      <div class="alert">{{ error() }}</div>
+    }
+
+    <label>
+      <span>Email</span>
+      <input type="email" formControlName="email" placeholder="you@example.com" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="field-error">Enter a valid email.</small>
+      }
+    </label>
+
+    <label>
+      <span>Password</span>
+      <input type="password" formControlName="password" placeholder="••••••••" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="field-error">Password must be at least 6 characters.</small>
+      }
+    </label>
+
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Signing in…' : 'Sign in' }}
+    </button>
+
+    <p class="switch">Don't have an account? <a routerLink="/register">Create one</a></p>
+  </form>
+</div>

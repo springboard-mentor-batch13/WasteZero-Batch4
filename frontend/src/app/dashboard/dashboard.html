@@ -1,0 +1,25 @@
+<section class="page">
+  <h1>Dashboard</h1>
+  @if (user(); as u) {
+    <p class="greeting">Welcome back, <strong>{{ u.name }}</strong> ({{ u.role }})</p>
+  }
+
+  <div class="cards">
+    <article class="card">
+      <h3>Schedule a pickup</h3>
+      <p>Book a waste pickup and choose a category. <em>(Milestone 3–4)</em></p>
+    </article>
+    <article class="card">
+      <h3>Opportunities</h3>
+      <p>Browse and manage pickup opportunities. <em>(Milestone 2)</em></p>
+    </article>
+    <article class="card">
+      <h3>Messages</h3>
+      <p>Real-time chat with agents/users. <em>(Milestone 3)</em></p>
+    </article>
+    <article class="card">
+      <h3>My statistics</h3>
+      <p>Track your recycling impact over time. <em>(Milestone 4)</em></p>
+    </article>
+  </div>
+</section>

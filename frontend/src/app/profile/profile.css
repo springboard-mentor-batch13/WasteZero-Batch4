@@ -1,0 +1,26 @@
+.profile-page {
+  max-width: 480px;
+}
+
+.profile-page .email {
+  color: var(--color-muted);
+  margin: 0 0 20px;
+}
+
+.profile-page .role {
+  text-transform: capitalize;
+}
+
+.profile-page .auth-card {
+  max-width: none;
+}
+
+.success {
+  background: #e8f5e9;
+  color: var(--color-primary-dark);
+  border: 1px solid #c8e6c9;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}

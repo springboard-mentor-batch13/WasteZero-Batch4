@@ -1,0 +1,41 @@
+<section class="page profile-page">
+  <h1>My Profile</h1>
+
+  @if (loading()) {
+    <p>Loading…</p>
+  } @else {
+    @if (account(); as u) {
+      <p class="email">{{ u.email }} · <span class="role">{{ u.role }}</span></p>
+    }
+
+    @if (error()) {
+      <div class="alert">{{ error() }}</div>
+    }
+    @if (saved()) {
+      <div class="success">Profile updated.</div>
+    }
+
+    <form class="auth-card" [formGroup]="form" (ngSubmit)="save()">
+      <label>
+        <span>Full name</span>
+        <input type="text" formControlName="name" />
+      </label>
+      <label>
+        <span>Location</span>
+        <input type="text" formControlName="location" />
+      </label>
+      <label>
+        <span>Skills / waste types (comma-separated)</span>
+        <input type="text" formControlName="skills" placeholder="plastic, organic, e-waste" />
+      </label>
+      <label>
+        <span>Bio</span>
+        <textarea formControlName="bio" rows="3"></textarea>
+      </label>
+
+      <button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save changes' }}
+      </button>
+    </form>
+  }
+</section>

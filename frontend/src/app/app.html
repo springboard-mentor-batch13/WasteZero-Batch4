@@ -1,0 +1,21 @@
+<nav class="navbar">
+  <a class="brand" routerLink="/">♻️ WasteZero</a>
+
+  <div class="links">
+    @if (isLoggedIn()) {
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/profile" routerLinkActive="active">Profile</a>
+      @if (user()?.role === 'admin') {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+      <button class="link-btn" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active">Sign up</a>
+    }
+  </div>
+</nav>
+
+<main>
+  <router-outlet />
+</main>
