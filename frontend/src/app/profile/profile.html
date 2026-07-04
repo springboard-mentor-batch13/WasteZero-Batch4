@@ -1,0 +1,50 @@
+<div class="profile-page">
+  @if (loading) {
+    <p class="loading">Loading…</p>
+  } @else {
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar">{{ initial }}</div>
+        <div class="who">
+          <h2>{{ user?.name }}</h2>
+          <span class="role-badge">{{ user?.role }}</span>
+          <p class="email">{{ user?.email }}</p>
+        </div>
+      </div>
+
+      @if (message) {
+        <div class="success">{{ message }}</div>
+      }
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+        <div class="field">
+          <label>Full name</label>
+          <input formControlName="name">
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input formControlName="email" readonly>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Location</label>
+            <input formControlName="location" placeholder="City / area">
+          </div>
+          <div class="field">
+            <label>Skills / waste types</label>
+            <input formControlName="skills" placeholder="plastic, organic, e-waste">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Bio</label>
+          <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself…"></textarea>
+        </div>
+
+        <button class="btn-primary" type="submit">Save changes</button>
+      </form>
+    </div>
+  }
+</div>

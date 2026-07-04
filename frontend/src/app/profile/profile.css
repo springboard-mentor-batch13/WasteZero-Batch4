@@ -1,0 +1,118 @@
+.profile-page {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.loading {
+  text-align: center;
+  color: var(--muted);
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 30px;
+  animation: rise 0.4s ease;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  flex-shrink: 0;
+}
+
+.who h2 {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+}
+.who .email {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.role-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.98rem;
+  font-family: inherit;
+  background: #fbfdfb;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+  background: #fff;
+}
+.field input[readonly] {
+  background: #f2f4f2;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  gap: 14px;
+}
+.row .field {
+  flex: 1;
+}
+
+.success {
+  background: var(--green-light);
+  color: var(--green-dark);
+  border: 1px solid #c8e6c9;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 520px) {
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

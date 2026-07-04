@@ -1,1 +1,49 @@
-<p>register works!</p>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo">♻️</div>
+      <h1>Create account</h1>
+      <p>Join WasteZero and recycle smarter</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+      @if (error) {
+        <div class="form-error">{{ error }}</div>
+      }
+
+      <div class="field">
+        <label>Full name</label>
+        <input formControlName="name" placeholder="Jane Doe">
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input formControlName="email" type="email" placeholder="you@example.com">
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input formControlName="password" type="password" placeholder="At least 6 characters">
+      </div>
+
+      <div class="field">
+        <label>I am a</label>
+        <select formControlName="role">
+          <option value="volunteer">Volunteer (Resident)</option>
+          <option value="ngo">NGO / Collector</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Location</label>
+        <input formControlName="location" placeholder="City / area">
+      </div>
+
+      <button class="btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Creating account…' : 'Sign up' }}
+      </button>
+    </form>
+
+    <p class="auth-alt">Already have an account? <a routerLink="/login">Sign in</a></p>
+  </div>
+</div>
