@@ -1,8 +1,33 @@
-<div class="login-container">
-  <h2>Login</h2>
-  <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-    <input formControlName="username" placeholder="Username" required>
-    <input formControlName="password" type="password" placeholder="Password" required>
-    <button type="submit">Login</button>
-  </form>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo">♻️</div>
+      <h1>Welcome back</h1>
+      <p>Sign in to your WasteZero account</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      @if (error) {
+        <div class="form-error">{{ error }}</div>
+      }
+
+      <div class="field">
+        <label>Email</label>
+        <input formControlName="email" type="email" placeholder="you@example.com">
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input formControlName="password" type="password" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" type="submit" [disabled]="loading">
+        {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="auth-alt">Don't have an account? <a routerLink="/register">Create one</a></p>
+  </div>
+
+  <p class="auth-tagline">🌱 Smarter pickups · cleaner cities · a greener tomorrow</p>
 </div>
