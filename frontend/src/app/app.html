@@ -1,0 +1,12 @@
+@if (auth.isLoggedIn()) {
+  <nav class="navbar">
+    <a class="nav-brand" routerLink="/dashboard">♻️ WasteZero</a>
+    <div class="nav-links">
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/profile" routerLinkActive="active">Profile</a>
+      <button (click)="logout()">Logout</button>
+    </div>
+  </nav>
+}
+
+<router-outlet></router-outlet>
