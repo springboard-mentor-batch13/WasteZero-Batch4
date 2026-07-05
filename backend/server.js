@@ -11,7 +11,7 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:4200' }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
