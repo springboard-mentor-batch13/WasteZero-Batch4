@@ -2,6 +2,15 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
+interface Stat {
+  label: string;
+  value: number;
+  icon: string;
+  tint: string;
+  change: string;
+  up: boolean;
+}
+
 interface QuickAction {
   label: string;
   icon: string;
@@ -20,8 +29,21 @@ export class Dashboard {
   user: any;
   role = 'volunteer';
   greeting = '';
-  stats: { label: string; value: number; icon: string; tint: string }[] = [];
+  stats: Stat[] = [];
   actions: QuickAction[] = [];
+
+  categories = [
+    { label: 'Plastic', icon: '🧴', pct: 72, color: '#43a047' },
+    { label: 'Organic', icon: '🌿', pct: 54, color: '#8bc34a' },
+    { label: 'E-waste', icon: '🔌', pct: 38, color: '#26a69a' },
+    { label: 'Paper', icon: '📄', pct: 61, color: '#66bb6a' },
+  ];
+
+  activity = [
+    { text: 'Plastic pickup completed', time: '2 days ago', dot: 'green' },
+    { text: 'New opportunity nearby', time: '4 days ago', dot: 'blue' },
+    { text: 'Profile updated', time: 'last week', dot: 'amber' },
+  ];
 
   constructor(auth: AuthService) {
     this.user = auth.getUser();
@@ -37,28 +59,28 @@ export class Dashboard {
     return "Here's your recycling overview.";
   }
 
-  private statsForRole(role: string) {
+  private statsForRole(role: string): Stat[] {
     if (role === 'admin') {
       return [
-        { label: 'Total Users', value: 42, icon: '👥', tint: '#e8f5e9' },
-        { label: 'Opportunities', value: 18, icon: '🌱', tint: '#e3f2fd' },
-        { label: 'Pickups Done', value: 96, icon: '🚚', tint: '#f1f8e9' },
-        { label: 'Reports', value: 7, icon: '📊', tint: '#fff3e0' },
+        { label: 'Total Users', value: 42, icon: '👥', tint: '#e8f5e9', change: '8%', up: true },
+        { label: 'Opportunities', value: 18, icon: '🌱', tint: '#e3f2fd', change: '12%', up: true },
+        { label: 'Pickups Done', value: 96, icon: '🚚', tint: '#f1f8e9', change: '5%', up: true },
+        { label: 'Open Reports', value: 7, icon: '📊', tint: '#fff3e0', change: '3%', up: false },
       ];
     }
     if (role === 'ngo') {
       return [
-        { label: 'My Opportunities', value: 6, icon: '🌱', tint: '#e8f5e9' },
-        { label: 'Applicants', value: 23, icon: '📨', tint: '#e3f2fd' },
-        { label: 'Pickups Done', value: 31, icon: '🚚', tint: '#f1f8e9' },
-        { label: 'Messages', value: 9, icon: '💬', tint: '#fff3e0' },
+        { label: 'My Opportunities', value: 6, icon: '🌱', tint: '#e8f5e9', change: '2', up: true },
+        { label: 'Applicants', value: 23, icon: '📨', tint: '#e3f2fd', change: '15%', up: true },
+        { label: 'Pickups Done', value: 31, icon: '🚚', tint: '#f1f8e9', change: '9%', up: true },
+        { label: 'Messages', value: 9, icon: '💬', tint: '#fff3e0', change: '4', up: true },
       ];
     }
     return [
-      { label: 'Total Pickups', value: 28, icon: '🚚', tint: '#e8f5e9' },
-      { label: 'Recycled Items', value: 635, icon: '♻️', tint: '#e3f2fd' },
-      { label: 'Open Opportunities', value: 12, icon: '🌱', tint: '#f1f8e9' },
-      { label: 'Messages', value: 5, icon: '💬', tint: '#fff3e0' },
+      { label: 'Total Pickups', value: 28, icon: '🚚', tint: '#e8f5e9', change: '7%', up: true },
+      { label: 'Recycled Items', value: 635, icon: '♻️', tint: '#e3f2fd', change: '12%', up: true },
+      { label: 'Open Opportunities', value: 12, icon: '🌱', tint: '#f1f8e9', change: '3', up: true },
+      { label: 'Messages', value: 5, icon: '💬', tint: '#fff3e0', change: '1', up: false },
     ];
   }
 
