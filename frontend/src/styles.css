@@ -26,7 +26,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ===== Auth: premium split screen ===== */
 .auth-split {
   min-height: 100vh;
   display: grid;
@@ -321,7 +320,6 @@ body {
   }
 }
 
-/* ===== Animations ===== */
 @keyframes fadeUp {
   from {
     opacity: 0;
