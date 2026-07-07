@@ -1,1 +1,45 @@
-<p>dashboard works!</p>
+<section class="dash">
+  <div class="dash-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="sub">Welcome back, <strong>{{ user?.name }}</strong> 👋 {{ greeting }}</p>
+    </div>
+    <span class="role-tag">{{ role }}</span>
+  </div>
+
+  <div class="stat-grid">
+    @for (s of stats; track s.label) {
+      <div class="stat-card">
+        <div class="stat-ic" [style.background]="s.tint">{{ s.icon }}</div>
+        <div class="stat-meta">
+          <strong>{{ s.value }}</strong>
+          <span>{{ s.label }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h2>Recent Activity</h2>
+      <ul class="activity">
+        <li><span class="dot green"></span> Plastic pickup completed · <em>2 days ago</em></li>
+        <li><span class="dot blue"></span> New opportunity nearby · <em>4 days ago</em></li>
+        <li><span class="dot amber"></span> Profile updated · <em>last week</em></li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Quick Actions</h2>
+      <div class="quick">
+        @for (a of actions; track a.label) {
+          @if (a.link) {
+            <a [routerLink]="a.link" class="q">{{ a.icon }} {{ a.label }}</a>
+          } @else {
+            <span class="q soon">{{ a.icon }} {{ a.label }}</span>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</section>

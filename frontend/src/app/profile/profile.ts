@@ -13,7 +13,9 @@ export class Profile implements OnInit {
   profileForm: FormGroup;
   user: any = null;
   message = '';
+  error = '';
   loading = true;
+  saving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -52,7 +54,12 @@ export class Profile implements OnInit {
   }
 
   onSave() {
-    const data = { ...this.profileForm.value };
+    this.saving = true;
+    this.message = '';
+    this.error = '';
+
+    const { email, ...rest } = this.profileForm.value;
+    const data = { ...rest };
     data.skills = data.skills
       ? data.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
       : [];
@@ -62,9 +69,11 @@ export class Profile implements OnInit {
         this.auth.saveAuth(res);
         this.user = res;
         this.message = 'Profile updated successfully';
+        this.saving = false;
       },
       error: (err) => {
-        this.message = err.error?.message || 'Update failed';
+        this.error = err.error?.message || 'Update failed';
+        this.saving = false;
       },
     });
   }

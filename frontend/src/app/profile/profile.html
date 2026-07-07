@@ -15,6 +15,9 @@
       @if (message) {
         <div class="success">{{ message }}</div>
       }
+      @if (error) {
+        <div class="form-error">{{ error }}</div>
+      }
 
       <form [formGroup]="profileForm" (ngSubmit)="onSave()">
         <div class="field">
@@ -43,7 +46,9 @@
           <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself…"></textarea>
         </div>
 
-        <button class="btn-primary" type="submit">Save changes</button>
+        <button class="btn-primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Save changes' }}
+        </button>
       </form>
     </div>
   }
