@@ -18,7 +18,12 @@
 
       <div class="field">
         <label>Password</label>
-        <input formControlName="password" type="password" placeholder="••••••••">
+        <div class="password-wrap">
+          <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••">
+          <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
       </div>
 
       <button class="btn-primary" type="submit" [disabled]="loading">

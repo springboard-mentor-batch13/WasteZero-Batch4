@@ -134,6 +134,29 @@ body {
   background: #fff;
 }
 
+.password-wrap {
+  position: relative;
+}
+.password-wrap input {
+  padding-right: 46px;
+}
+.toggle-pass {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 6px 8px;
+  line-height: 1;
+  border-radius: 8px;
+}
+.toggle-pass:hover {
+  background: rgba(46, 125, 50, 0.1);
+}
+
 .btn-primary {
   width: 100%;
   padding: 14px;

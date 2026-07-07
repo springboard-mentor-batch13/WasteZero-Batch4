@@ -1,0 +1,91 @@
+<div class="shell">
+  <aside class="sidebar" [class.open]="sidebarOpen">
+    <div class="brand">
+      <span class="brand-logo">♻️</span> WasteZero
+    </div>
+
+    <div class="user-card">
+      <div class="avatar">{{ initial }}</div>
+      <div class="user-meta">
+        <strong>{{ user?.name }}</strong>
+        <span class="role">{{ user?.role }}</span>
+      </div>
+    </div>
+
+    <p class="menu-label">Main Menu</p>
+    <nav class="menu">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="sidebarOpen = false">
+        <span class="ic">🏠</span>
+        <span class="label">Dashboard</span>
+      </a>
+      <span class="item soon">
+        <span class="ic">📅</span>
+        <span class="label">Schedule Pickup</span>
+        <em>soon</em>
+      </span>
+      <span class="item soon">
+        <span class="ic">🌱</span>
+        <span class="label">Opportunities</span>
+        <em>soon</em>
+      </span>
+      <span class="item soon">
+        <span class="ic">💬</span>
+        <span class="label">Messages</span>
+        <em>soon</em>
+      </span>
+      <span class="item soon">
+        <span class="ic">📈</span>
+        <span class="label">My Impact</span>
+        <em>soon</em>
+      </span>
+    </nav>
+
+    <p class="menu-label">Settings</p>
+    <nav class="menu">
+      <a routerLink="/profile" routerLinkActive="active" (click)="sidebarOpen = false">
+        <span class="ic">👤</span>
+        <span class="label">My Profile</span>
+      </a>
+      <span class="item soon">
+        <span class="ic">⚙️</span>
+        <span class="label">Settings</span>
+        <em>soon</em>
+      </span>
+      <span class="item soon">
+        <span class="ic">❓</span>
+        <span class="label">Help &amp; Support</span>
+        <em>soon</em>
+      </span>
+      <span class="item soon">
+        <span class="ic">🛡️</span>
+        <span class="label">Admin Panel</span>
+        <em>soon</em>
+      </span>
+    </nav>
+
+    <button class="logout" (click)="logout()">↩ Logout</button>
+  </aside>
+
+  <div class="backdrop" [class.show]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger" (click)="sidebarOpen = !sidebarOpen">☰</button>
+      <div class="search">
+        <span>🔍</span>
+        <input placeholder="Search pickups, opportunities…" />
+      </div>
+      <div class="top-right">
+        <button class="bell" aria-label="Notifications">🔔</button>
+        <div class="chip">
+          <div class="avatar sm">{{ initial }}</div>
+          <span class="chip-name">{{ user?.name }}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
