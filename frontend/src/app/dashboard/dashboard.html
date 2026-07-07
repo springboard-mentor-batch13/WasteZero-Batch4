@@ -1,45 +1,76 @@
 <section class="dash">
-  <div class="dash-head">
+  <header class="dash-head">
     <div>
-      <h1>Dashboard</h1>
-      <p class="sub">Welcome back, <strong>{{ user?.name }}</strong> 👋 {{ greeting }}</p>
+      <p class="eyebrow">Overview</p>
+      <h1>Welcome back, {{ user?.name }}</h1>
+      <p class="sub">{{ greeting }}</p>
     </div>
     <span class="role-tag">{{ role }}</span>
-  </div>
+  </header>
 
   <div class="stat-grid">
     @for (s of stats; track s.label) {
       <div class="stat-card">
-        <div class="stat-ic" [style.background]="s.tint">{{ s.icon }}</div>
-        <div class="stat-meta">
-          <strong>{{ s.value }}</strong>
-          <span>{{ s.label }}</span>
+        <div class="stat-top">
+          <div class="stat-ic" [style.background]="s.tint">{{ s.icon }}</div>
+          <span class="trend" [class.down]="!s.up">{{ s.up ? '↑' : '↓' }} {{ s.change }}</span>
         </div>
+        <strong class="stat-value">{{ s.value }}</strong>
+        <span class="stat-label">{{ s.label }}</span>
       </div>
     }
   </div>
 
   <div class="panels">
     <div class="panel">
-      <h2>Recent Activity</h2>
-      <ul class="activity">
-        <li><span class="dot green"></span> Plastic pickup completed · <em>2 days ago</em></li>
-        <li><span class="dot blue"></span> New opportunity nearby · <em>4 days ago</em></li>
-        <li><span class="dot amber"></span> Profile updated · <em>last week</em></li>
-      </ul>
+      <div class="panel-head">
+        <h2>Recycling progress</h2>
+        <span class="muted">This month</span>
+      </div>
+      <div class="bars">
+        @for (c of categories; track c.label) {
+          <div class="bar-row">
+            <div class="bar-label">
+              <span>{{ c.icon }} {{ c.label }}</span>
+              <span class="pct">{{ c.pct }}%</span>
+            </div>
+            <div class="bar">
+              <div class="bar-fill" [style.width.%]="c.pct" [style.background]="c.color"></div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
 
     <div class="panel">
-      <h2>Quick Actions</h2>
+      <div class="panel-head">
+        <h2>Quick actions</h2>
+      </div>
       <div class="quick">
         @for (a of actions; track a.label) {
           @if (a.link) {
-            <a [routerLink]="a.link" class="q">{{ a.icon }} {{ a.label }}</a>
+            <a [routerLink]="a.link" class="q"><span>{{ a.icon }}</span> {{ a.label }}</a>
           } @else {
-            <span class="q soon">{{ a.icon }} {{ a.label }}</span>
+            <span class="q soon"><span>{{ a.icon }}</span> {{ a.label }}</span>
           }
         }
       </div>
     </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Recent activity</h2>
+      <a class="link soon">View all</a>
+    </div>
+    <ul class="activity">
+      @for (a of activity; track a.text) {
+        <li>
+          <span class="dot" [class]="a.dot"></span>
+          <span class="a-text">{{ a.text }}</span>
+          <em>{{ a.time }}</em>
+        </li>
+      }
+    </ul>
   </div>
 </section>

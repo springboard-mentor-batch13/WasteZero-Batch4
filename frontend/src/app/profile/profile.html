@@ -3,53 +3,65 @@
     <p class="loading">Loading…</p>
   } @else {
     <div class="profile-card">
+      <div class="cover"></div>
+
       <div class="profile-header">
         <div class="avatar">{{ initial }}</div>
         <div class="who">
           <h2>{{ user?.name }}</h2>
-          <span class="role-badge">{{ user?.role }}</span>
           <p class="email">{{ user?.email }}</p>
         </div>
+        <span class="role-badge">{{ user?.role }}</span>
       </div>
 
-      @if (message) {
-        <div class="success">{{ message }}</div>
-      }
-      @if (error) {
-        <div class="form-error">{{ error }}</div>
-      }
-
-      <form [formGroup]="profileForm" (ngSubmit)="onSave()">
-        <div class="field">
-          <label>Full name</label>
-          <input formControlName="name">
+      <div class="body">
+        <div class="section-head">
+          <h3>Personal information</h3>
+          <p>Update your details and how others see you on WasteZero.</p>
         </div>
 
-        <div class="field">
-          <label>Email</label>
-          <input formControlName="email" readonly>
-        </div>
+        @if (message) {
+          <div class="success">{{ message }}</div>
+        }
+        @if (error) {
+          <div class="form-error">{{ error }}</div>
+        }
 
-        <div class="row">
-          <div class="field">
-            <label>Location</label>
-            <input formControlName="location" placeholder="City / area">
+        <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+          <div class="form-row">
+            <div class="field">
+              <label>Full name</label>
+              <input formControlName="name">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input formControlName="email" readonly>
+            </div>
           </div>
-          <div class="field">
-            <label>Skills / waste types</label>
-            <input formControlName="skills" placeholder="plastic, organic, e-waste">
+
+          <div class="form-row">
+            <div class="field">
+              <label>Location</label>
+              <input formControlName="location" placeholder="City / area">
+            </div>
+            <div class="field">
+              <label>Skills / waste types</label>
+              <input formControlName="skills" placeholder="plastic, organic, e-waste">
+            </div>
           </div>
-        </div>
 
-        <div class="field">
-          <label>Bio</label>
-          <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself…"></textarea>
-        </div>
+          <div class="field">
+            <label>Bio</label>
+            <textarea formControlName="bio" rows="3" placeholder="Tell us a little about yourself…"></textarea>
+          </div>
 
-        <button class="btn-primary" type="submit" [disabled]="saving">
-          {{ saving ? 'Saving…' : 'Save changes' }}
-        </button>
-      </form>
+          <div class="actions">
+            <button class="btn-primary" type="submit" [disabled]="saving">
+              {{ saving ? 'Saving…' : 'Save changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   }
 </div>

@@ -58,11 +58,15 @@ export class Profile implements OnInit {
     this.message = '';
     this.error = '';
 
-    const { email, ...rest } = this.profileForm.value;
-    const data = { ...rest };
-    data.skills = data.skills
-      ? data.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
-      : [];
+    const raw = this.profileForm.value;
+    const data = {
+      name: raw.name,
+      location: raw.location,
+      bio: raw.bio,
+      skills: raw.skills
+        ? raw.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [],
+    };
 
     this.auth.updateProfile(data).subscribe({
       next: (res) => {
@@ -72,7 +76,10 @@ export class Profile implements OnInit {
         this.saving = false;
       },
       error: (err) => {
-        this.error = err.error?.message || 'Update failed';
+        const e = err.error;
+        this.error = e?.errors?.length
+          ? e.errors.map((x: any) => x.message).join(', ')
+          : e?.message || 'Update failed';
         this.saving = false;
       },
     });

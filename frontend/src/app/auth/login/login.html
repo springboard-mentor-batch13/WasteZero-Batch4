@@ -1,38 +1,60 @@
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-brand">
-      <div class="logo">♻️</div>
-      <h1>Welcome back</h1>
-      <p>Sign in to your WasteZero account</p>
+<div class="auth-split">
+  <aside class="auth-hero">
+    <div class="hero-content">
+      <div class="hero-logo">♻️ WasteZero</div>
+      <h2>Welcome back to a cleaner tomorrow</h2>
+      <p class="lead">
+        Sign in to manage your pickups, track your recycling impact, and stay connected
+        with your community.
+      </p>
+      <ul class="hero-points">
+        <li><span class="tick">✓</span> Schedule &amp; track waste pickups</li>
+        <li><span class="tick">✓</span> Monitor your recycling stats</li>
+        <li><span class="tick">✓</span> Connect with local collectors &amp; NGOs</li>
+      </ul>
+
+      <div class="hero-stats">
+        <div><strong>12K+</strong><span>Pickups done</span></div>
+        <div><strong>850+</strong><span>Active agents</span></div>
+        <div><strong>4.9★</strong><span>User rating</span></div>
+      </div>
     </div>
+  </aside>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-      @if (error) {
-        <div class="form-error">{{ error }}</div>
-      }
-
-      <div class="field">
-        <label>Email</label>
-        <input formControlName="email" type="email" placeholder="you@example.com">
+  <div class="auth-form-side">
+    <div class="auth-form">
+      <div class="auth-head">
+        <span class="mini-logo">♻️ WasteZero</span>
+        <h1>Sign in</h1>
+        <p>Enter your details to access your account.</p>
       </div>
 
-      <div class="field">
-        <label>Password</label>
-        <div class="password-wrap">
-          <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••">
-          <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
-            {{ showPassword ? '🙈' : '👁️' }}
-          </button>
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        @if (error) {
+          <div class="form-error">{{ error }}</div>
+        }
+
+        <div class="field">
+          <label>Email address</label>
+          <input formControlName="email" type="email" placeholder="you@example.com">
         </div>
-      </div>
 
-      <button class="btn-primary" type="submit" [disabled]="loading">
-        {{ loading ? 'Signing in…' : 'Sign in' }}
-      </button>
-    </form>
+        <div class="field">
+          <label>Password</label>
+          <div class="password-wrap">
+            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••">
+            <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
+              {{ showPassword ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
 
-    <p class="auth-alt">Don't have an account? <a routerLink="/register">Create one</a></p>
+        <button class="btn-primary" type="submit" [disabled]="loading">
+          {{ loading ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+
+      <p class="auth-alt">Don't have an account? <a routerLink="/register">Create one</a></p>
+    </div>
   </div>
-
-  <p class="auth-tagline">🌱 Smarter pickups · cleaner cities · a greener tomorrow</p>
 </div>
