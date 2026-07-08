@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
+import { OtpService } from '../services/otp.service';
 
 @Component({
   selector: 'app-profile',
@@ -21,13 +22,19 @@ export class Profile implements OnInit {
   error = '';
   saving = false;
 
+  sendingOtp = false;
+  otpSent = false;
+  otpMessage = '';
+  otpError = '';
+
   pwMessage = '';
   pwError = '';
-  pwSaving = false;
+  changing = false;
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
+    private otp: OtpService,
   ) {
     this.profileForm = this.fb.group({
       name: [''],
@@ -37,9 +44,9 @@ export class Profile implements OnInit {
       bio: [''],
     });
     this.passwordForm = this.fb.group({
-      currentPassword: [''],
-      newPassword: [''],
-      confirmPassword: [''],
+      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
     });
   }
 
@@ -106,17 +113,31 @@ export class Profile implements OnInit {
     });
   }
 
+  requestOtp() {
+    this.sendingOtp = true;
+    this.otpMessage = '';
+    this.otpError = '';
+
+    this.otp.sendOtp().subscribe({
+      next: (res: any) => {
+        this.otpSent = true;
+        this.otpMessage = res?.message || 'OTP sent to your email';
+        this.sendingOtp = false;
+      },
+      error: (err: any) => {
+        this.otpError = err?.error?.message || 'Failed to send OTP';
+        this.sendingOtp = false;
+      },
+    });
+  }
+
   savePassword() {
     this.pwMessage = '';
     this.pwError = '';
-    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
+    const { otp, newPassword, confirmPassword } = this.passwordForm.value;
 
-    if (!currentPassword || !newPassword) {
+    if (this.passwordForm.invalid) {
       this.pwError = 'Please fill in all fields';
-      return;
-    }
-    if (newPassword.length < 6) {
-      this.pwError = 'New password must be at least 6 characters';
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -124,20 +145,27 @@ export class Profile implements OnInit {
       return;
     }
 
-    this.pwSaving = true;
-    this.auth.changePassword({ currentPassword, newPassword, confirmPassword }).subscribe({
-      next: () => {
-        this.pwMessage = 'Password changed successfully';
-        this.pwSaving = false;
+    this.changing = true;
+    this.otp.verifyAndChange({ otp, newPassword, confirmPassword }).subscribe({
+      next: (res: any) => {
+        this.pwMessage = res?.message || 'Password changed successfully';
+        this.changing = false;
+        this.otpSent = false;
         this.passwordForm.reset();
       },
       error: (err: any) => {
-        const e = err.error;
-        this.pwError = e?.errors?.length
-          ? e.errors.map((x: any) => x.message).join(', ')
-          : e?.message || 'Could not change password';
-        this.pwSaving = false;
+        this.pwError = err?.error?.message || 'Could not change password';
+        this.changing = false;
       },
     });
+  }
+
+  resendOtp() {
+    this.otpSent = false;
+    this.otpMessage = '';
+    this.otpError = '';
+    this.pwMessage = '';
+    this.pwError = '';
+    this.passwordForm.reset();
   }
 }

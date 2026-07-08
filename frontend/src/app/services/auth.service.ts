@@ -17,15 +17,13 @@ export class AuthService {
   }
 
   getProfile(): Observable<any> {
-    return this.http.get(`${this.api}/users/profile`);
+    return this.http.get(`${this.api}/users/profile`, {
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    });
   }
 
   updateProfile(data: any): Observable<any> {
     return this.http.put(`${this.api}/users/profile`, data);
-  }
-
-  changePassword(data: any): Observable<any> {
-    return this.http.put(`${this.api}/users/password`, data);
   }
 
   saveAuth(res: any) {

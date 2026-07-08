@@ -135,6 +135,47 @@
   margin-bottom: 16px;
 }
 
+.otp-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #f4f8f6;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+.otp-info p {
+  margin: 0;
+  color: #33443c;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.otp-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.btn-outline {
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  color: #33443c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.btn-outline:hover {
+  border-color: var(--green);
+  background: #f4f8f6;
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

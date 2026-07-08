@@ -72,31 +72,57 @@
         @if (pwMessage) {
           <div class="success">{{ pwMessage }}</div>
         }
-        @if (pwError) {
-          <div class="form-error">{{ pwError }}</div>
-        }
 
-        <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
-          <div class="field">
-            <label>Current Password</label>
-            <input type="password" formControlName="currentPassword">
+        @if (!otpSent) {
+          @if (otpError) {
+            <div class="form-error">{{ otpError }}</div>
+          }
+
+          <div class="otp-info">
+            <span class="otp-icon">📧</span>
+            <p>
+              We'll send a 6-digit code to <strong>{{ user?.email }}</strong> to verify
+              it's you before changing your password.
+            </p>
           </div>
 
-          <div class="field">
-            <label>New Password</label>
-            <input type="password" formControlName="newPassword">
-            <small class="hint">Password must be at least 6 characters long.</small>
-          </div>
-
-          <div class="field">
-            <label>Confirm New Password</label>
-            <input type="password" formControlName="confirmPassword">
-          </div>
-
-          <button class="btn-primary" type="submit" [disabled]="pwSaving">
-            {{ pwSaving ? 'Changing…' : 'Change Password' }}
+          <button class="btn-primary" type="button" (click)="requestOtp()" [disabled]="sendingOtp">
+            {{ sendingOtp ? 'Sending…' : 'Send OTP to My Email' }}
           </button>
-        </form>
+        } @else {
+          @if (otpMessage) {
+            <div class="success">{{ otpMessage }}</div>
+          }
+          @if (pwError) {
+            <div class="form-error">{{ pwError }}</div>
+          }
+
+          <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+            <div class="field">
+              <label>Enter OTP</label>
+              <input formControlName="otp" maxlength="6" inputmode="numeric" placeholder="6-digit code from your email">
+              <small class="hint">Check your inbox for the code. Valid for 10 minutes.</small>
+            </div>
+
+            <div class="field">
+              <label>New Password</label>
+              <input type="password" formControlName="newPassword">
+              <small class="hint">Password must be at least 6 characters long.</small>
+            </div>
+
+            <div class="field">
+              <label>Confirm New Password</label>
+              <input type="password" formControlName="confirmPassword">
+            </div>
+
+            <div class="btn-row">
+              <button class="btn-outline" type="button" (click)="resendOtp()">Resend OTP</button>
+              <button class="btn-primary" type="submit" [disabled]="changing">
+                {{ changing ? 'Changing…' : 'Change Password' }}
+              </button>
+            </div>
+          </form>
+        }
       </div>
     }
   }
