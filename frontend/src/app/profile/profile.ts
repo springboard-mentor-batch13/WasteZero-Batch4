@@ -48,21 +48,29 @@ export class Profile implements OnInit {
   }
 
   ngOnInit() {
+    const cached = this.auth.getUser();
+    if (cached) {
+      this.user = cached;
+      this.patchForm(cached);
+    }
+    this.loading = false;
+
     this.auth.getProfile().subscribe({
       next: (user) => {
         this.user = user;
-        this.profileForm.patchValue({
-          name: user.name,
-          email: user.email,
-          location: user.location,
-          skills: (user.skills || []).join(', '),
-          bio: user.bio,
-        });
-        this.loading = false;
+        this.patchForm(user);
       },
-      error: () => {
-        this.loading = false;
-      },
+      error: () => {},
+    });
+  }
+
+  private patchForm(user: any) {
+    this.profileForm.patchValue({
+      name: user?.name || '',
+      email: user?.email || '',
+      location: user?.location || '',
+      skills: Array.isArray(user?.skills) ? user.skills.join(', ') : '',
+      bio: user?.bio || '',
     });
   }
 
