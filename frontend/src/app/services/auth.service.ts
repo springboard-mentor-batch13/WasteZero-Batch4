@@ -24,6 +24,10 @@ export class AuthService {
     return this.http.put(`${this.api}/users/profile`, data);
   }
 
+  changePassword(data: any): Observable<any> {
+    return this.http.put(`${this.api}/users/password`, data);
+  }
+
   saveAuth(res: any) {
     localStorage.setItem('token', res.token);
     localStorage.setItem('user', JSON.stringify(res));

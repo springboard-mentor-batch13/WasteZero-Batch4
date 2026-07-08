@@ -25,23 +25,35 @@ export class Register {
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
       role: ['volunteer'],
       location: [''],
     });
   }
 
   onRegister() {
-    if (this.registerForm.invalid) return;
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+    if (this.registerForm.value.password !== this.registerForm.value.confirmPassword) {
+      this.error = 'Passwords do not match';
+      return;
+    }
     this.loading = true;
     this.error = '';
 
-    this.auth.register(this.registerForm.value).subscribe({
+    const { confirmPassword, ...data } = this.registerForm.value;
+    this.auth.register(data).subscribe({
       next: (res) => {
         this.auth.saveAuth(res);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.error = err.error?.message || 'Registration failed';
+        const e = err.error;
+        this.error = e?.errors?.length
+          ? e.errors.map((x: any) => x.message).join(', ')
+          : e?.message || 'Registration failed';
         this.loading = false;
       },
     });

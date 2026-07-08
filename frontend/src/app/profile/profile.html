@@ -1,23 +1,22 @@
-<div class="profile-page">
+<section class="page">
+  <header class="head">
+    <h1>My Profile</h1>
+    <p class="sub">Manage your account information and settings</p>
+  </header>
+
   @if (loading) {
-    <p class="loading">Loading…</p>
+    <p class="muted">Loading…</p>
   } @else {
-    <div class="profile-card">
-      <div class="cover"></div>
+    <div class="tabs">
+      <button class="tab" [class.active]="tab === 'profile'" (click)="tab = 'profile'">Profile</button>
+      <button class="tab" [class.active]="tab === 'password'" (click)="tab = 'password'">Password</button>
+    </div>
 
-      <div class="profile-header">
-        <div class="avatar">{{ initial }}</div>
-        <div class="who">
-          <h2>{{ user?.name }}</h2>
-          <p class="email">{{ user?.email }}</p>
-        </div>
-        <span class="role-badge">{{ user?.role }}</span>
-      </div>
-
-      <div class="body">
+    @if (tab === 'profile') {
+      <div class="card">
         <div class="section-head">
-          <h3>Personal information</h3>
-          <p>Update your details and how others see you on WasteZero.</p>
+          <h3>Personal Information</h3>
+          <p>Update your personal information and profile details</p>
         </div>
 
         @if (message) {
@@ -27,41 +26,78 @@
           <div class="form-error">{{ error }}</div>
         }
 
-        <form [formGroup]="profileForm" (ngSubmit)="onSave()">
-          <div class="form-row">
-            <div class="field">
-              <label>Full name</label>
-              <input formControlName="name">
-            </div>
-            <div class="field">
-              <label>Email</label>
-              <input formControlName="email" readonly>
-            </div>
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="field">
+            <label>Full Name</label>
+            <input formControlName="name">
           </div>
 
-          <div class="form-row">
-            <div class="field">
-              <label>Location</label>
-              <input formControlName="location" placeholder="City / area">
-            </div>
-            <div class="field">
-              <label>Skills / waste types</label>
-              <input formControlName="skills" placeholder="plastic, organic, e-waste">
-            </div>
+          <div class="field">
+            <label>Email</label>
+            <input formControlName="email" readonly>
+            <small class="hint">This is the email address used for account notifications.</small>
+          </div>
+
+          <div class="field">
+            <label>Location</label>
+            <input formControlName="location" placeholder="Your city or area">
+            <small class="hint">This helps match you with nearby opportunities.</small>
+          </div>
+
+          <div class="field">
+            <label>Skills</label>
+            <input formControlName="skills" placeholder="plastic, organic, e-waste">
+            <small class="hint">Separate skills with commas.</small>
           </div>
 
           <div class="field">
             <label>Bio</label>
-            <textarea formControlName="bio" rows="3" placeholder="Tell us a little about yourself…"></textarea>
+            <textarea formControlName="bio" rows="3" placeholder="Short biography or profile description"></textarea>
           </div>
 
-          <div class="actions">
-            <button class="btn-primary" type="submit" [disabled]="saving">
-              {{ saving ? 'Saving…' : 'Save changes' }}
-            </button>
-          </div>
+          <button class="btn-primary" type="submit" [disabled]="saving">
+            {{ saving ? 'Saving…' : 'Save Changes' }}
+          </button>
         </form>
       </div>
-    </div>
+    }
+
+    @if (tab === 'password') {
+      <div class="card">
+        <div class="section-head">
+          <h3>Change Password</h3>
+          <p>Update your password to secure your account</p>
+        </div>
+
+        @if (pwMessage) {
+          <div class="success">{{ pwMessage }}</div>
+        }
+        @if (pwError) {
+          <div class="form-error">{{ pwError }}</div>
+        }
+
+        <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+          <div class="field">
+            <label>Current Password</label>
+            <input type="password" formControlName="currentPassword">
+          </div>
+
+          <div class="field">
+            <label>New Password</label>
+            <input type="password" formControlName="newPassword">
+            <small class="hint">Password must be at least 6 characters long.</small>
+          </div>
+
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input type="password" formControlName="confirmPassword">
+          </div>
+
+          <button class="btn-primary" type="submit" [disabled]="pwSaving">
+            {{ pwSaving ? 'Changing…' : 'Change Password' }}
+          </button>
+        </form>
+      </div>
+    }
   }
-</div>
+</section>

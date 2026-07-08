@@ -10,12 +10,20 @@ import { AuthService } from '../services/auth.service';
   styleUrl: './profile.css',
 })
 export class Profile implements OnInit {
+  tab: 'profile' | 'password' = 'profile';
+
   profileForm: FormGroup;
+  passwordForm: FormGroup;
   user: any = null;
+  loading = true;
+
   message = '';
   error = '';
-  loading = true;
   saving = false;
+
+  pwMessage = '';
+  pwError = '';
+  pwSaving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -27,6 +35,11 @@ export class Profile implements OnInit {
       location: [''],
       skills: [''],
       bio: [''],
+    });
+    this.passwordForm = this.fb.group({
+      currentPassword: [''],
+      newPassword: [''],
+      confirmPassword: [''],
     });
   }
 
@@ -53,7 +66,7 @@ export class Profile implements OnInit {
     });
   }
 
-  onSave() {
+  saveProfile() {
     this.saving = true;
     this.message = '';
     this.error = '';
@@ -75,12 +88,47 @@ export class Profile implements OnInit {
         this.message = 'Profile updated successfully';
         this.saving = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         const e = err.error;
         this.error = e?.errors?.length
           ? e.errors.map((x: any) => x.message).join(', ')
           : e?.message || 'Update failed';
         this.saving = false;
+      },
+    });
+  }
+
+  savePassword() {
+    this.pwMessage = '';
+    this.pwError = '';
+    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
+
+    if (!currentPassword || !newPassword) {
+      this.pwError = 'Please fill in all fields';
+      return;
+    }
+    if (newPassword.length < 6) {
+      this.pwError = 'New password must be at least 6 characters';
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      this.pwError = 'New passwords do not match';
+      return;
+    }
+
+    this.pwSaving = true;
+    this.auth.changePassword({ currentPassword, newPassword, confirmPassword }).subscribe({
+      next: () => {
+        this.pwMessage = 'Password changed successfully';
+        this.pwSaving = false;
+        this.passwordForm.reset();
+      },
+      error: (err: any) => {
+        const e = err.error;
+        this.pwError = e?.errors?.length
+          ? e.errors.map((x: any) => x.message).join(', ')
+          : e?.message || 'Could not change password';
+        this.pwSaving = false;
       },
     });
   }
