@@ -92,7 +92,8 @@
             <div class="otp-info">
               <span class="otp-icon">📧</span>
               <p>
-                We will send a 6-digit OTP to <strong>{{ user?.email }}</strong> to verify it's you before changing your password.
+                We will send a 6-digit OTP to <strong>{{ user?.email }}</strong>
+                to verify it's you before changing your password.
               </p>
             </div>
 
@@ -101,7 +102,7 @@
             </button>
           }
 
-          <!-- STEP 2: Enter OTP + New Password -->
+          <!-- STEP 2: Enter OTP + Passwords -->
           @if (otpSent) {
             @if (otpMessage) {
               <div class="alert success">{{ otpMessage }}</div>
@@ -119,7 +120,16 @@
                   maxlength="6"
                   inputmode="numeric"
                 />
-                <small>Check your email inbox for the OTP. Valid for 10 minutes.</small>
+                <small>Check your email inbox. Valid for 10 minutes.</small>
+              </div>
+
+              <div class="field">
+                <label>Current Password</label>
+                <input
+                  formControlName="currentPassword"
+                  type="password"
+                  placeholder="Enter your current password"
+                />
               </div>
 
               <div class="field">
@@ -154,6 +164,7 @@
               </div>
             </form>
           }
+
         </div>
       }
 

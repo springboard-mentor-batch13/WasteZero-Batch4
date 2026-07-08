@@ -32,7 +32,7 @@ export class Profile implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private otpService: OtpService,
-    private cdr: ChangeDetectorRef,   // ← ADD THIS
+    private cdr: ChangeDetectorRef,   
   ) {
     this.profileForm = this.fb.group({
       name: ['', Validators.required],
@@ -44,6 +44,7 @@ export class Profile implements OnInit {
 
     this.passwordForm = this.fb.group({
       otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
+      currentPassword: ['', [Validators.required, Validators.minLength(6)]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
     });
@@ -78,14 +79,14 @@ export class Profile implements OnInit {
           bio: user.bio || '',
         });
         this.loading = false;
-        this.cdr.detectChanges();   // ← ADD THIS
+        this.cdr.detectChanges();   
       },
       error: () => {
         if (!this.user) {
           this.profileError = 'Failed to load profile. Please refresh.';
         }
         this.loading = false;
-        this.cdr.detectChanges();   // ← ADD THIS
+        this.cdr.detectChanges();   
       },
     });
   }
@@ -100,7 +101,7 @@ export class Profile implements OnInit {
     this.passwordMessage = '';
     this.passwordError = '';
     this.passwordForm.reset();
-    this.cdr.detectChanges();   // ← ADD THIS
+    this.cdr.detectChanges();   
   }
 
   onSave() {
@@ -121,12 +122,12 @@ export class Profile implements OnInit {
         this.user = res;
         this.profileMessage = 'Profile updated successfully!';
         this.saving = false;
-        this.cdr.detectChanges();   // ← ADD THIS
+        this.cdr.detectChanges();   
       },
       error: (err) => {
         this.profileError = err.error?.message || 'Update failed.';
         this.saving = false;
-        this.cdr.detectChanges();   // ← ADD THIS
+        this.cdr.detectChanges();   
       },
     });
   }
@@ -139,52 +140,54 @@ export class Profile implements OnInit {
 
     this.otpService.sendOtp().subscribe({
       next: (res: any) => {
-        this.otpSent = true;                          // ← sets to true
+        this.otpSent = true;                          
         this.otpMessage = res?.message || 'OTP sent!';
         this.sendingOtp = false;
-        this.cdr.detectChanges();   // ← FORCES UI UPDATE
+        this.cdr.detectChanges();   
       },
       error: (err: any) => {
         this.otpError = err?.error?.message || 'Failed to send OTP.';
         this.sendingOtp = false;
-        this.cdr.detectChanges();   // ← ADD THIS
+        this.cdr.detectChanges();   
       },
     });
   }
 
-  onChangePassword() {
-    if (this.passwordForm.invalid) return;
-    const { otp, newPassword, confirmPassword } = this.passwordForm.value;
-    if (newPassword !== confirmPassword) {
-      this.passwordError = 'Passwords do not match';
+onChangePassword() {
+  if (this.passwordForm.invalid) return;
+  const { otp, currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
+
+  if (newPassword !== confirmPassword) {
+    this.passwordError = 'Passwords do not match';
+    this.cdr.detectChanges();
+    return;
+  }
+
+  this.changingPassword = true;
+  this.passwordMessage = '';
+  this.passwordError = '';
+
+  this.otpService.verifyAndChange({ otp, currentPassword, newPassword, confirmPassword }).subscribe({
+    next: (res) => {
+      this.passwordMessage = res.message;
+      this.changingPassword = false;
+      this.otpSent = false;
+      this.passwordForm.reset();
       this.cdr.detectChanges();
-      return;
-    }
-    this.changingPassword = true;
-    this.passwordMessage = '';
-    this.passwordError = '';
-
-    this.otpService.verifyAndChange({ otp, newPassword, confirmPassword }).subscribe({
-      next: (res) => {
-        this.passwordMessage = res.message;
-        this.changingPassword = false;
-        this.otpSent = false;
-        this.passwordForm.reset();
-        this.cdr.detectChanges();   // ← ADD THIS
-      },
-      error: (err) => {
-        this.passwordError = err.error?.message || 'Failed to change password.';
-        this.changingPassword = false;
-        this.cdr.detectChanges();   // ← ADD THIS
-      },
-    });
-  }
+    },
+    error: (err) => {
+      this.passwordError = err.error?.message || 'Failed to change password.';
+      this.changingPassword = false;
+      this.cdr.detectChanges();
+    },
+  });
+}
 
   resendOtp() {
     this.otpSent = false;
     this.passwordForm.reset();
     this.passwordError = '';
     this.passwordMessage = '';
-    this.cdr.detectChanges();   // ← ADD THIS
+    this.cdr.detectChanges();   
   }
 }

@@ -44,10 +44,10 @@ export const sendOtp = async (req, res) => {
 // POST /api/otp/verify-and-change
 // Verifies OTP then changes the password
 export const verifyOtpAndChangePassword = async (req, res) => {
-  const { otp, newPassword, confirmPassword } = req.body;
+  const { otp, currentPassword, newPassword, confirmPassword } = req.body;
 
-  if (!otp || !newPassword || !confirmPassword)
-    return res.status(400).json({ message: 'OTP, new password and confirm password are required' });
+  if (!otp || !currentPassword || !newPassword || !confirmPassword)
+    return res.status(400).json({ message: 'All fields are required' });
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: 'Passwords do not match' });
@@ -59,26 +59,31 @@ export const verifyOtpAndChangePassword = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Find OTP record
-    const otpRecord = await Otp.findOne({ email: user.email });
-    if (!otpRecord) return res.status(400).json({ message: 'OTP not found. Please request a new one.' });
+    // Verify current password first
+    const isCurrentMatch = await user.matchPassword(currentPassword);
+    if (!isCurrentMatch)
+      return res.status(401).json({ message: 'Current password is incorrect' });
 
-    // Check if expired
+    // Verify OTP
+    const otpRecord = await Otp.findOne({ email: user.email });
+    if (!otpRecord)
+      return res.status(400).json({ message: 'OTP not found. Please request a new one.' });
+
     if (otpRecord.expiresAt < new Date())
       return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
 
-    // Compare OTP
-    const isMatch = await bcrypt.compare(otp, otpRecord.otp);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    const isOtpMatch = await bcrypt.compare(otp, otpRecord.otp);
+    if (!isOtpMatch)
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
 
-    // Update password — pre-save hook will hash it
+    // Update password
     user.password = newPassword;
     await user.save();
 
     // Delete used OTP
     await Otp.deleteMany({ email: user.email });
 
-    res.json({ message: 'Password changed successfully' });
+    res.json({ message: 'Password changed successfully!' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
