@@ -27,6 +27,9 @@ export class Profile implements OnInit {
   changingPassword = false;
   passwordMessage = '';
   passwordError = '';
+  showCurrentPassword = false;
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -100,6 +103,9 @@ export class Profile implements OnInit {
     this.otpError = '';
     this.passwordMessage = '';
     this.passwordError = '';
+    this.showCurrentPassword = false;
+    this.showNewPassword = false;
+    this.showConfirmPassword = false;
     this.passwordForm.reset();
     this.cdr.detectChanges();
   }
@@ -173,6 +179,9 @@ export class Profile implements OnInit {
         this.changingPassword = false;
         this.otpSent = false;
         this.passwordForm.reset();
+        this.showCurrentPassword = false;
+        this.showNewPassword = false;
+        this.showConfirmPassword = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -188,6 +197,13 @@ export class Profile implements OnInit {
     this.passwordForm.reset();
     this.passwordError = '';
     this.passwordMessage = '';
+    this.showCurrentPassword = false;
+    this.showNewPassword = false;
+    this.showConfirmPassword = false;
     this.cdr.detectChanges();
   }
+
+  toggleCurrentPassword() { this.showCurrentPassword = !this.showCurrentPassword; }
+  toggleNewPassword() { this.showNewPassword = !this.showNewPassword; }
+  toggleConfirmPassword() { this.showConfirmPassword = !this.showConfirmPassword; }
 }

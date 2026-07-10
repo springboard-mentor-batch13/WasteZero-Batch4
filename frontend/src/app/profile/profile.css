@@ -5,6 +5,12 @@
   box-sizing: border-box;
 }
 
+.loading {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 60px;
+}
+
 .profile-card {
   background: #fff;
   border-radius: 14px;
@@ -158,6 +164,36 @@
   color: var(--muted);
 }
 
+/* ── Eye Toggle ── */
+.input-eye {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-eye input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  line-height: 1;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+}
+
+.eye-btn:hover {
+  color: var(--ink);
+}
+
 /* ── Alerts ── */
 .alert {
   padding: 9px 12px;
@@ -253,10 +289,4 @@
 
 .btn-row .btn-primary {
   flex: 2;
-}
-
-.loading {
-  text-align: center;
-  color: var(--muted);
-  margin-top: 60px;
 }

@@ -1,6 +1,6 @@
 <div class="profile-page" style="width:100%">
   @if (loading) {
-    <p class="muted">Loading…</p>
+    <p class="loading">Loading…</p>
   } @else {
     <div class="profile-card">
 
@@ -125,29 +125,44 @@
 
               <div class="field">
                 <label>Current Password</label>
-                <input
-                  formControlName="currentPassword"
-                  type="password"
-                  placeholder="Enter your current password"
-                />
+                <div class="input-eye">
+                  <input
+                    formControlName="currentPassword"
+                    [type]="showCurrentPassword ? 'text' : 'password'"
+                    placeholder="Enter your current password"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleCurrentPassword()">
+                    {{ showCurrentPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
               </div>
 
               <div class="field">
                 <label>New Password</label>
-                <input
-                  formControlName="newPassword"
-                  type="password"
-                  placeholder="At least 6 characters"
-                />
+                <div class="input-eye">
+                  <input
+                    formControlName="newPassword"
+                    [type]="showNewPassword ? 'text' : 'password'"
+                    placeholder="At least 6 characters"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleNewPassword()">
+                    {{ showNewPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
               </div>
 
               <div class="field">
                 <label>Confirm New Password</label>
-                <input
-                  formControlName="confirmPassword"
-                  type="password"
-                  placeholder="Repeat new password"
-                />
+                <div class="input-eye">
+                  <input
+                    formControlName="confirmPassword"
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="Repeat new password"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleConfirmPassword()">
+                    {{ showConfirmPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
               </div>
 
               <div class="btn-row">
