@@ -1,8 +1,9 @@
 .shell {
   display: flex;
   min-height: 100vh;
+  height: 100vh;          
   background: #f4f7f5;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -234,8 +235,10 @@
 }
 
 .content {
-  padding: 26px;
+  padding: 24px;
   flex: 1;
+  overflow-y: auto;
+  height: calc(100vh - 64px);
 }
 
 .backdrop {

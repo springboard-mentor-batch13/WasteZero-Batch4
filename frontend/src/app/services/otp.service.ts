@@ -14,7 +14,12 @@ export class OtpService {
   });
 }
 
-  verifyAndChange(data: { otp: string; newPassword: string; confirmPassword: string }): Observable<any> {
-    return this.http.post(`${this.api}/verify-and-change`, data);
-  }
+verifyAndChange(data: {
+  otp: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Observable<any> {
+  return this.http.post(`${this.api}/verify-and-change`, data);
+}
 }
