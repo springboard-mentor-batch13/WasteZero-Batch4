@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import otpRoutes from "./routes/otpRoutes.js";
+import opportunityRoutes from "./routes/opportunityRoutes.js"
 
 dotenv.config();
 connectDB();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => res.send("WasteZero API running..."));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/otp", otpRoutes);
+app.use('/api/opportunities',opportunityRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
 
