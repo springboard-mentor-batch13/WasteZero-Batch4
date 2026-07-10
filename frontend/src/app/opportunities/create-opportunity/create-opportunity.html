@@ -1,0 +1,46 @@
+<div class="container">
+
+    <h2>Create Opportunity</h2>
+
+    <form (ngSubmit)="createOpportunity()">
+
+        <label>Title</label>
+        <input
+            type="text"
+            [(ngModel)]="title"
+            name="title"
+            required>
+
+        <label>Description</label>
+        <textarea
+            [(ngModel)]="description"
+            name="description"
+            rows="4"
+            required>
+        </textarea>
+
+        <label>Required Skills (comma separated)</label>
+        <input
+            type="text"
+            [(ngModel)]="requiredSkills"
+            name="requiredSkills">
+
+        <label>Duration</label>
+        <input
+            type="text"
+            [(ngModel)]="duration"
+            name="duration">
+
+        <label>Location</label>
+        <input
+            type="text"
+            [(ngModel)]="location"
+            name="location">
+
+        <button type="submit">
+            Create Opportunity
+        </button>
+
+    </form>
+
+</div>
