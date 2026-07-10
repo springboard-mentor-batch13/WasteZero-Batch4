@@ -14,6 +14,7 @@ import { OtpService } from '../services/otp.service';
 export class Profile implements OnInit {
   activeTab: 'profile' | 'password' = 'profile';
   profileForm: FormGroup;
+  passwordForm: FormGroup;
   user: any = null;
   loading = true;
   saving = false;
@@ -27,6 +28,15 @@ export class Profile implements OnInit {
   changingPassword = false;
   passwordMessage = '';
   passwordError = '';
+
+  sendingOtp = false;
+  otpSent = false;
+  otpMessage = '';
+  otpError = '';
+
+  pwMessage = '';
+  pwError = '';
+  changing = false;
 
   constructor(
     private fb: FormBuilder,
@@ -68,6 +78,13 @@ export class Profile implements OnInit {
   }
 
   ngOnInit() {
+    const cached = this.auth.getUser();
+    if (cached) {
+      this.user = cached;
+      this.patchForm(cached);
+    }
+    this.loading = false;
+
     this.auth.getProfile().subscribe({
       next: (user) => {
         this.user = user;
@@ -88,6 +105,7 @@ export class Profile implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();   
       },
+      error: () => {},
     });
   }
 

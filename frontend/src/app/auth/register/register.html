@@ -45,19 +45,25 @@
           <input formControlName="email" type="email" placeholder="you@example.com">
         </div>
 
-        <div class="field">
-          <label>Password</label>
-          <div class="password-wrap">
-            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="At least 6 characters">
-            <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
-              {{ showPassword ? '🙈' : '👁️' }}
-            </button>
+        <div class="form-row">
+          <div class="field">
+            <label>Create a password</label>
+            <div class="password-wrap">
+              <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="At least 6 characters">
+              <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Confirm password</label>
+            <input formControlName="confirmPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Re-enter password">
           </div>
         </div>
 
         <div class="form-row">
           <div class="field">
-            <label>I am a</label>
+            <label>Role</label>
             <select formControlName="role">
               <option value="volunteer">Volunteer</option>
               <option value="ngo">NGO</option>
