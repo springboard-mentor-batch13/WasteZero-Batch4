@@ -1,33 +1,107 @@
-import { RouterLink } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { Opportunity } from '../opportunity.model';
+import { RouterLink, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { OpportunityService } from '../opportunity.service';
+import { Opportunity } from '../opportunity.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-opportunity-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './opportunity-list.html',
   styleUrl: './opportunity-list.css',
 })
-export class OpportunityList {
-
+export class OpportunityList implements OnInit, OnDestroy {
   opportunities: Opportunity[] = [];
+  loading = true;
+  error = '';
+  search = '';
+  statusFilter = 'all';
+  applyingId = '';
+  appliedIds: Set<string> = new Set();
 
-  constructor(private opportunityService: OpportunityService) {
-    this.opportunities = this.opportunityService.getAll();
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private opportunityService: OpportunityService,
+    private auth: AuthService,
+    private router: Router
+  ) {}
+
+  get userRole() { return this.auth.getUser()?.role; }
+  get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+
+  ngOnInit() {
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.loadOpportunities();
+    });
+
+    this.loadOpportunities();
   }
 
-  deleteOpportunity(id: number) {
-
-  const ok = confirm('Are you sure you want to delete this opportunity?');
-
-  if (!ok) {
-    return;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  this.opportunityService.delete(id);
-  this.opportunities = this.opportunityService.getAll();
-}
+  loadOpportunities() {
+    this.loading = true;
+    this.error = '';
+    this.opportunityService.getAll({ status: this.statusFilter, search: this.search }).subscribe({
+      next: (data) => {
+        this.opportunities = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err.name === 'TimeoutError'
+          ? 'Request timed out. Please check if the backend is running.'
+          : err.error?.message || 'Failed to load opportunities';
+        this.loading = false;
+      },
+    });
+  }
+
+  onSearch() {
+    this.searchSubject.next(this.search);
+  }
+
+  onFilterChange() {
+    this.loadOpportunities();
+  }
+
+  deleteOpportunity(id: string) {
+    if (!confirm('Are you sure? This will permanently delete the opportunity and all applications.')) return;
+    this.opportunityService.delete(id).subscribe({
+      next: () => {
+        this.opportunities = this.opportunities.filter(o => o._id !== id);
+      },
+      error: () => alert('Failed to delete opportunity'),
+    });
+  }
+
+  applyForOpportunity(id: string) {
+    this.applyingId = id;
+    this.opportunityService.apply(id).subscribe({
+      next: () => {
+        this.appliedIds.add(id);
+        this.applyingId = '';
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Failed to apply');
+        this.applyingId = '';
+      },
+    });
+  }
+
+  statusColor(status: string): string {
+    return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
+  }
 }

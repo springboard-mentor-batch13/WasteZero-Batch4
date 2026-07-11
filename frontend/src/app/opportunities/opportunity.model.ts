@@ -1,9 +1,13 @@
 export interface Opportunity {
-  id: number;
+  _id: string;
+  ngo_id: any;
   title: string;
   description: string;
-  requiredSkills: string[];
+  required_skills: string[];
   duration: string;
   location: string;
-  status: string;
+  status: 'open' | 'closed' | 'in-progress';
+  image_url?: string;
+  date?: string;
+  createdAt?: string;
 }

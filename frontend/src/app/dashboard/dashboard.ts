@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { OpportunityService } from '../opportunities/opportunity.service';
 
 interface Stat {
   label: string;
-  value: number;
+  value: number | string;
   icon: string;
   tint: string;
   change: string;
@@ -21,11 +23,11 @@ interface QuickAction {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   user: any;
   role = 'volunteer';
   greeting = '';
@@ -45,12 +47,26 @@ export class Dashboard {
     { text: 'Profile updated', time: 'last week', dot: 'amber' },
   ];
 
-  constructor(auth: AuthService) {
+  constructor(
+    private auth: AuthService,
+    private opportunityService: OpportunityService,
+  ) {
     this.user = auth.getUser();
     this.role = this.user?.role || 'volunteer';
     this.greeting = this.greetingForRole(this.role);
-    this.stats = this.statsForRole(this.role);
     this.actions = this.actionsForRole(this.role);
+  }
+
+  ngOnInit() {
+    // Load real opportunity count from backend
+    this.opportunityService.getAll({ status: 'open' }).subscribe({
+      next: (opps) => {
+        this.stats = this.statsForRole(this.role, opps.length);
+      },
+      error: () => {
+        this.stats = this.statsForRole(this.role, 0);
+      },
+    });
   }
 
   private greetingForRole(role: string) {
@@ -59,18 +75,18 @@ export class Dashboard {
     return "Here's your recycling overview.";
   }
 
-  private statsForRole(role: string): Stat[] {
+  private statsForRole(role: string, openOpportunities: number = 0): Stat[] {
     if (role === 'admin') {
       return [
         { label: 'Total Users', value: 42, icon: '👥', tint: '#e8f5e9', change: '8%', up: true },
-        { label: 'Opportunities', value: 18, icon: '🌱', tint: '#e3f2fd', change: '12%', up: true },
+        { label: 'Opportunities', value: openOpportunities, icon: '🌱', tint: '#e3f2fd', change: '12%', up: true },
         { label: 'Pickups Done', value: 96, icon: '🚚', tint: '#f1f8e9', change: '5%', up: true },
         { label: 'Open Reports', value: 7, icon: '📊', tint: '#fff3e0', change: '3%', up: false },
       ];
     }
     if (role === 'ngo') {
       return [
-        { label: 'My Opportunities', value: 6, icon: '🌱', tint: '#e8f5e9', change: '2', up: true },
+        { label: 'My Opportunities', value: openOpportunities, icon: '🌱', tint: '#e8f5e9', change: '2', up: true },
         { label: 'Applicants', value: 23, icon: '📨', tint: '#e3f2fd', change: '15%', up: true },
         { label: 'Pickups Done', value: 31, icon: '🚚', tint: '#f1f8e9', change: '9%', up: true },
         { label: 'Messages', value: 9, icon: '💬', tint: '#fff3e0', change: '4', up: true },
@@ -79,16 +95,19 @@ export class Dashboard {
     return [
       { label: 'Total Pickups', value: 28, icon: '🚚', tint: '#e8f5e9', change: '7%', up: true },
       { label: 'Recycled Items', value: 635, icon: '♻️', tint: '#e3f2fd', change: '12%', up: true },
-      { label: 'Open Opportunities', value: 12, icon: '🌱', tint: '#f1f8e9', change: '3', up: true },
+      { label: 'Open Opportunities', value: openOpportunities, icon: '🌱', tint: '#f1f8e9', change: '3', up: true },
       { label: 'Messages', value: 5, icon: '💬', tint: '#fff3e0', change: '1', up: false },
     ];
   }
 
   private actionsForRole(role: string): QuickAction[] {
     const editProfile: QuickAction = { label: 'Edit my profile', icon: '👤', link: '/profile' };
+    const browseOpportunities: QuickAction = { label: 'Browse opportunities', icon: '🌱', link: '/opportunities' };
+
     if (role === 'admin') {
       return [
         editProfile,
+        browseOpportunities,
         { label: 'Manage users', icon: '🛡️', soon: true },
         { label: 'View reports', icon: '📊', soon: true },
       ];
@@ -96,14 +115,15 @@ export class Dashboard {
     if (role === 'ngo') {
       return [
         editProfile,
-        { label: 'Create opportunity', icon: '➕', soon: true },
+        { label: 'Create opportunity', icon: '➕', link: '/opportunities/create' },
+        browseOpportunities,
         { label: 'View applicants', icon: '📨', soon: true },
       ];
     }
     return [
       editProfile,
       { label: 'Schedule a pickup', icon: '📅', soon: true },
-      { label: 'Browse opportunities', icon: '🌱', soon: true },
+      browseOpportunities,
     ];
   }
 }

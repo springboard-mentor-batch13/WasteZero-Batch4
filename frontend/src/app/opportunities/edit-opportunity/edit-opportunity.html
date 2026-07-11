@@ -1,38 +1,59 @@
-<div class="container" *ngIf="opportunity">
+<div class="form-page">
+  <button class="back-btn" routerLink="/opportunities">← Back to Opportunities</button>
+  <h2 class="form-title">Edit Opportunity</h2>
+  <p class="form-sub">Update the details of this volunteer opportunity</p>
 
-    <h2>Edit Opportunity</h2>
+  @if (fetching) { <p class="state-msg">Loading...</p> }
+  @if (error) { <div class="alert error">{{ error }}</div> }
 
-    <form (ngSubmit)="updateOpportunity()">
-
-        <label>Title</label>
-        <input
-            type="text"
-            [(ngModel)]="opportunity.title"
-            name="title">
-
-        <label>Description</label>
-        <textarea
-            [(ngModel)]="opportunity.description"
-            name="description"
-            rows="4">
-        </textarea>
-
-        <label>Duration</label>
-        <input
-            type="text"
-            [(ngModel)]="opportunity.duration"
-            name="duration">
-
-        <label>Location</label>
-        <input
-            type="text"
-            [(ngModel)]="opportunity.location"
-            name="location">
-
-        <button type="submit">
-            Update Opportunity
-        </button>
-
-    </form>
-
+  @if (!fetching) {
+    <div class="form-card">
+      <form [formGroup]="form" (ngSubmit)="updateOpportunity()">
+        <div class="field">
+          <label>Title *</label>
+          <input formControlName="title" placeholder="E.g., Beach Cleanup Drive" />
+        </div>
+        <div class="field">
+          <label>Description *</label>
+          <textarea formControlName="description" rows="4" placeholder="Provide details about the opportunity"></textarea>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Date</label>
+            <input formControlName="date" type="date" />
+          </div>
+          <div class="field">
+            <label>Duration</label>
+            <input formControlName="duration" placeholder="E.g., 4 hours" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Location *</label>
+          <input formControlName="location" placeholder="E.g., Brighton Beach, Boston" />
+        </div>
+        <div class="field">
+          <label>Required Skills</label>
+          <input formControlName="required_skills" placeholder="teamwork, recycling (comma separated)" />
+        </div>
+        <div class="field">
+          <label>Image URL (Optional)</label>
+          <input formControlName="image_url" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select formControlName="status">
+            <option value="open">Open</option>
+            <option value="in-progress">In Progress</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" routerLink="/opportunities">Cancel</button>
+          <button type="submit" class="btn-submit" [disabled]="form.invalid || loading">
+            {{ loading ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 </div>

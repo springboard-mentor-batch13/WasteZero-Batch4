@@ -1,41 +1,56 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { OpportunityService } from '../opportunity.service';
 
 @Component({
   selector: 'app-create-opportunity',
   standalone: true,
-  imports: [FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './create-opportunity.html',
   styleUrl: './create-opportunity.css',
 })
 export class CreateOpportunity {
-
-  title = '';
-  description = '';
-  requiredSkills = '';
-  duration = '';
-  location = '';
+  form: FormGroup;
+  loading = false;
+  error = '';
 
   constructor(
+    private fb: FormBuilder,
     private opportunityService: OpportunityService,
     private router: Router
-  ) {}
+  ) {
+    this.form = this.fb.group({
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      required_skills: [''],
+      duration: [''],
+      location: ['', Validators.required],
+      date: [''],
+      image_url: [''],
+    });
+  }
 
   createOpportunity() {
-    this.opportunityService.add({
-      id: Date.now(),
-      title: this.title,
-      description: this.description,
-      requiredSkills: this.requiredSkills
-        .split(',')
-        .map(skill => skill.trim()),
-      duration: this.duration,
-      location: this.location,
-      status: 'Open'
-    });
+    if (this.form.invalid) return;
+    this.loading = true;
+    this.error = '';
 
-    this.router.navigate(['/opportunities']);
+    const val = this.form.value;
+    const payload = {
+      ...val,
+      required_skills: val.required_skills
+        ? val.required_skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [],
+    };
+
+    this.opportunityService.create(payload).subscribe({
+      next: () => this.router.navigate(['/opportunities']),
+      error: (err) => {
+        this.error = err.error?.message || 'Failed to create opportunity';
+        this.loading = false;
+      },
+    });
   }
 }
