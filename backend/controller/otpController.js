@@ -21,6 +21,7 @@ export const sendOtp = async (req, res) => {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
+    //Respond IMMEDIATELY — don't wait for email
     res.json({ message: `OTP sent to ${user.email}` });
 
     sendEmail({
