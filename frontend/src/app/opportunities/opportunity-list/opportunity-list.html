@@ -1,59 +1,60 @@
 <div class="container">
-
+  
   <div class="header">
     <h2>Volunteer Opportunities</h2>
-
     <button class="create-btn" routerLink="/opportunities/create">
       + Create Opportunity
     </button>
   </div>
 
-  <div class="card" *ngFor="let opportunity of opportunities">
+  <!-- Main list display -->
+  <div *ngIf="opportunities && opportunities.length > 0; else noData">
+    
+    <div class="card" *ngFor="let opportunity of opportunities">
+      
+      <!-- Image Display -->
+      <div *ngIf="opportunity.imageUrl">
+        <img [src]="opportunity.imageUrl" 
+             alt="Opportunity Image" 
+             style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+      </div>
 
-    <h3>{{ opportunity.title }}</h3>
+      <h3>{{ opportunity.title }}</h3>
+      
+      <p>{{ opportunity.description }}</p>
 
-    <p>{{ opportunity.description }}</p>
+      <p>
+        <strong>Skills:</strong> {{ opportunity.requiredSkills.join(', ') }}
+      </p>
 
-    <p>
-      <strong>Skills:</strong>
-      {{ opportunity.requiredSkills.join(', ') }}
-    </p>
+      <p>
+        <strong>Duration:</strong> {{ opportunity.duration }}
+      </p>
 
-    <p>
-      <strong>Duration:</strong>
-      {{ opportunity.duration }}
-    </p>
+      <p>
+        <strong>Location:</strong> {{ opportunity.location }}
+      </p>
 
-    <p>
-      <strong>Location:</strong>
-      {{ opportunity.location }}
-    </p>
+      <p>
+        <strong>Status:</strong> 
+        <span class="status">{{ opportunity.status }}</span>
+      </p>
 
-    <p>
-      <strong>Status:</strong>
-
-      <span class="status">
-        {{ opportunity.status }}
-      </span>
-
-    </p>
-
-    <div class="actions">
-
-      <button
-    class="edit-btn"
-    [routerLink]="['/opportunities/edit', opportunity.id]">
-    Edit
-</button>
-
-      <button
-        class="delete-btn"
-        (click)="deleteOpportunity(opportunity.id)">
-        Delete
-      </button>
+      <div class="actions">
+        <button class="edit-btn" [routerLink]="['/opportunities/edit', opportunity.id]">
+          Edit
+        </button>
+        <button class="delete-btn" (click)="deleteOpportunity(opportunity.id)">
+          Delete
+        </button>
+      </div>
 
     </div>
-
   </div>
+
+  <!-- Fallback if array is empty -->
+  <ng-template #noData>
+    <p>No opportunities found. Click "Create Opportunity" to add one!</p>
+  </ng-template>
 
 </div>

@@ -86,6 +86,7 @@ export class Dashboard {
 
   private actionsForRole(role: string): QuickAction[] {
     const editProfile: QuickAction = { label: 'Edit my profile', icon: '👤', link: '/profile' };
+    
     if (role === 'admin') {
       return [
         editProfile,
@@ -93,17 +94,19 @@ export class Dashboard {
         { label: 'View reports', icon: '📊', soon: true },
       ];
     }
+    
     if (role === 'ngo') {
       return [
         editProfile,
-        { label: 'Create opportunity', icon: '➕', soon: true },
+        { label: 'Create opportunity', icon: '➕', link: '/create-opportunity' },
         { label: 'View applicants', icon: '📨', soon: true },
       ];
     }
+    
     return [
       editProfile,
       { label: 'Schedule a pickup', icon: '📅', soon: true },
-      { label: 'Browse opportunities', icon: '🌱', soon: true },
+      { label: 'Browse opportunities', icon: '🌱', link: '/opportunities' },
     ];
   }
 }

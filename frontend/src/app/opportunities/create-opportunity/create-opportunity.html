@@ -37,7 +37,14 @@
             [(ngModel)]="location"
             name="location">
 
-        <button type="submit">
+       <label>Upload Image</label>
+  <input 
+      type="file" 
+      (change)="onFileSelected($event)" 
+      accept="image/*">
+      <img *ngIf="imageUrl" [src]="imageUrl" alt="Preview" style="max-height: 150px; margin-top: 10px; border-radius: 8px;">
+       
+      <button type="submit">
             Create Opportunity
         </button>
 

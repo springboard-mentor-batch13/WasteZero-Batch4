@@ -1,53 +1,35 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { Opportunity } from './opportunity.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OpportunityService {
+  // Points to your Node.js backend port and route
+  private apiUrl = 'http://localhost:5000/api/opportunities'; 
 
-  private opportunities: Opportunity[] = [
-    {
-      id: 1,
-      title: 'Plastic Cleanup Drive',
-      description: 'Help clean plastic waste from nearby parks.',
-      requiredSkills: ['Teamwork', 'Cleaning'],
-      duration: '3 Hours',
-      location: 'Dehradun',
-      status: 'Open'
-    },
-    {
-      id: 2,
-      title: 'E-Waste Collection',
-      description: 'Collect electronic waste from residential areas.',
-      requiredSkills: ['Communication'],
-      duration: '5 Hours',
-      location: 'Haridwar',
-      status: 'Open'
-    }
-  ];
+  constructor(private http: HttpClient) {}
 
-  getAll(): Opportunity[] {
-    return this.opportunities;
+  getAll(): Observable<Opportunity[]> {
+    return this.http.get<Opportunity[]>(this.apiUrl);
   }
 
-  getById(id: number): Opportunity | undefined {
-    return this.opportunities.find(o => o.id === id);
+  // Changed id type from number to string to match MongoDB IDs
+  getById(id: string): Observable<Opportunity> {
+    return this.http.get<Opportunity>(`${this.apiUrl}/${id}`);
   }
 
-  add(opportunity: Opportunity): void {
-    this.opportunities.push(opportunity);
+  create(opportunity: Opportunity): Observable<Opportunity> {
+    return this.http.post<Opportunity>(this.apiUrl, opportunity);
   }
 
-  update(updated: Opportunity): void {
-    const index = this.opportunities.findIndex(o => o.id === updated.id);
-
-    if (index !== -1) {
-      this.opportunities[index] = updated;
-    }
+  update(updated: Opportunity): Observable<Opportunity> {
+    return this.http.put<Opportunity>(`${this.apiUrl}/${updated.id}`, updated);
   }
 
-  delete(id: number): void {
-    this.opportunities = this.opportunities.filter(o => o.id !== id);
+  delete(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }
