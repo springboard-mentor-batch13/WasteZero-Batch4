@@ -25,7 +25,7 @@ export class CreateOpportunity {
     private router: Router
   ) {}
 
-  // THIS IS THE METHOD ANGULAR IS LOOKING FOR
+  
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
