@@ -33,19 +33,25 @@ export class OpportunityList implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  get userRole() { return this.auth.getUser()?.role; }
-  get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+  get userRole() {
+    return this.auth.getUser()?.role;
+  }
+  get canManage() {
+    return this.userRole === 'admin' || this.userRole === 'ngo';
+  }
 
   ngOnInit() {
-    this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.loadOpportunities();
-    });
+    this.searchSubject
+      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadOpportunities();
+      });
 
     this.loadOpportunities();
+
+    if (!this.canManage) {
+      this.loadMyApplications();
+    }
   }
 
   ngOnDestroy() {
@@ -58,21 +64,41 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.error = '';
     this.cdr.detectChanges();
 
-    this.opportunityService.getAll({
-      status: this.statusFilter,
-      search: this.search
-    }).subscribe({
-      next: (data) => {
-        this.opportunities = data;
-        this.loading = false;
+    this.opportunityService
+      .getAll({
+        status: this.statusFilter,
+        search: this.search,
+      })
+      .subscribe({
+        next: (data) => {
+          this.opportunities = data;
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.error =
+            err.name === 'TimeoutError'
+              ? 'Request timed out. Please check if the backend is running.'
+              : err.error?.message || 'Failed to load opportunities';
+          this.loading = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  loadMyApplications() {
+    this.opportunityService.getMyApplications().subscribe({
+      next: (applications: any[]) => {
+        this.appliedIds.clear();
+
+        applications.forEach((app) => {
+          this.appliedIds.add(app.opportunity_id._id);
+        });
+
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = err.name === 'TimeoutError'
-          ? 'Request timed out. Please check if the backend is running.'
-          : err.error?.message || 'Failed to load opportunities';
-        this.loading = false;
-        this.cdr.detectChanges();
+        console.error('Failed to load applications', err);
       },
     });
   }
@@ -86,10 +112,13 @@ export class OpportunityList implements OnInit, OnDestroy {
   }
 
   deleteOpportunity(id: string) {
-    if (!confirm('Are you sure? This will permanently delete the opportunity and all applications.')) return;
+    if (
+      !confirm('Are you sure? This will permanently delete the opportunity and all applications.')
+    )
+      return;
     this.opportunityService.delete(id).subscribe({
       next: () => {
-        this.opportunities = this.opportunities.filter(o => o._id !== id);
+        this.opportunities = this.opportunities.filter((o) => o._id !== id);
         this.cdr.detectChanges();
       },
       error: () => alert('Failed to delete opportunity'),
@@ -114,10 +143,6 @@ export class OpportunityList implements OnInit, OnDestroy {
   }
 
   statusColor(status: string): string {
-    return status === 'open'
-      ? '#2e7d32'
-      : status === 'closed'
-      ? '#c62828'
-      : '#e65100';
+    return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
   }
 }
