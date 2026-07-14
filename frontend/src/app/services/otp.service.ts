@@ -22,4 +22,17 @@ verifyAndChange(data: {
 }): Observable<any> {
   return this.http.post(`${this.api}/verify-and-change`, data);
 }
+
+sendForgotPasswordOtp(email: string): Observable<any> {
+  return this.http.post(`${this.api}/forgot-password/send`, { email });
+}
+
+resetForgotPassword(data: {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Observable<any> {
+  return this.http.post(`${this.api}/forgot-password/reset`, data);
+}
 }

@@ -273,6 +273,21 @@ body {
 .auth-alt a:hover {
   text-decoration: underline;
 }
+.forgot-link {
+  color: var(--green);
+  display: inline-block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 9px;
+  text-decoration: none;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+}
+.auth-separator {
+  color: #b9c7c0;
+  margin: 0 8px;
+}
 
 .form-error {
   background: #fdecea;
