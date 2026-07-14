@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -23,6 +23,7 @@ export class EditOpportunity implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private opportunityService: OpportunityService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.form = this.fb.group({
       title: ['', Validators.required],
@@ -52,7 +53,7 @@ export class EditOpportunity implements OnInit {
         });
         this.fetching = false;
       },
-      error: () => { this.error = 'Failed to load opportunity'; this.fetching = false; },
+      error: () => { this.error = 'Failed to load opportunity'; this.fetching = false; this.cdr.detectChanges();},
     });
   }
 
