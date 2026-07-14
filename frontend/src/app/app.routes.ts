@@ -6,6 +6,9 @@ import { Shell } from './layout/shell';
 import { Dashboard } from './dashboard/dashboard';
 import { Profile } from './profile/profile';
 import { authGuard } from './guards/auth.guard';
+import { OpportunityList } from './opportunities/opportunity-list/opportunity-list';
+import { CreateOpportunity } from './opportunities/create-opportunity/create-opportunity';
+import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -18,6 +21,12 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: Dashboard },
       { path: 'profile', component: Profile },
+
+      //Opportunity routes
+      { path: 'opportunities', component: OpportunityList },
+      { path: 'opportunities/create', component: CreateOpportunity },
+      { path: 'opportunities/edit/:id', component: EditOpportunity },
+
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

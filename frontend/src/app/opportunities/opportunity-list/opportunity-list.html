@@ -7,7 +7,9 @@
       <p class="opp-sub">Browse and join recycling and waste management initiatives</p>
     </div>
     @if (canManage) {
-      <button class="btn-create" routerLink="/opportunities/create">+ Create Opportunity</button>
+      <button class="btn-create" [routerLink]="['/opportunities/create']">
+        + Create Opportunity
+      </button>
     }
   </div>
 
@@ -19,7 +21,11 @@
       [(ngModel)]="search"
       (input)="onSearch()"
     />
-    <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
+    <select
+      class="filter-select"
+      [(ngModel)]="statusFilter"
+      (change)="onFilterChange()"
+    >
       <option value="all">All Statuses</option>
       <option value="open">Open</option>
       <option value="closed">Closed</option>
@@ -29,12 +35,16 @@
 
   <!-- Loading -->
   @if (loading) {
-    <p class="state-msg">Loading opportunities...</p>
+    <div class="state-center">
+      <p class="state-msg">Loading opportunities...</p>
+    </div>
   }
 
   <!-- Error -->
-  @if (error) {
-    <p class="state-msg error">{{ error }}</p>
+  @if (!loading && error) {
+    <div class="state-center">
+      <p class="state-msg error">{{ error }}</p>
+    </div>
   }
 
   <!-- Empty -->
@@ -46,7 +56,7 @@
   }
 
   <!-- Cards Grid -->
-  @if (!loading && opportunities.length > 0) {
+  @if (!loading && !error && opportunities.length > 0) {
     <div class="grid">
       @for (opp of opportunities; track opp._id) {
         <div class="card">
@@ -93,19 +103,29 @@
                 [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
                 (click)="applyForOpportunity(opp._id)"
               >
-                @if (appliedIds.has(opp._id)) { ✓ Applied }
-                @else if (applyingId === opp._id) { Applying... }
-                @else { Apply Now }
+                @if (appliedIds.has(opp._id)) {
+                  ✓ Applied
+                } @else if (applyingId === opp._id) {
+                  Applying...
+                } @else {
+                  Apply Now
+                }
               </button>
             }
 
             <!-- Edit + Delete (admin/ngo only) -->
             @if (canManage) {
               <div class="manage-btns">
-                <button class="btn-edit" [routerLink]="['/opportunities/edit', opp._id]">
+                <button
+                  class="btn-edit"
+                  [routerLink]="['/opportunities/edit', opp._id]"
+                >
                   ✏️ Edit
                 </button>
-                <button class="btn-delete" (click)="deleteOpportunity(opp._id)">
+                <button
+                  class="btn-delete"
+                  (click)="deleteOpportunity(opp._id)"
+                >
                   🗑️ Delete
                 </button>
               </div>

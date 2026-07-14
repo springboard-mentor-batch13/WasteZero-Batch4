@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -29,7 +29,8 @@ export class OpportunityList implements OnInit, OnDestroy {
   constructor(
     private opportunityService: OpportunityService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   get userRole() { return this.auth.getUser()?.role; }
@@ -55,16 +56,23 @@ export class OpportunityList implements OnInit, OnDestroy {
   loadOpportunities() {
     this.loading = true;
     this.error = '';
-    this.opportunityService.getAll({ status: this.statusFilter, search: this.search }).subscribe({
+    this.cdr.detectChanges();
+
+    this.opportunityService.getAll({
+      status: this.statusFilter,
+      search: this.search
+    }).subscribe({
       next: (data) => {
         this.opportunities = data;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.error = err.name === 'TimeoutError'
           ? 'Request timed out. Please check if the backend is running.'
           : err.error?.message || 'Failed to load opportunities';
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -82,6 +90,7 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.opportunityService.delete(id).subscribe({
       next: () => {
         this.opportunities = this.opportunities.filter(o => o._id !== id);
+        this.cdr.detectChanges();
       },
       error: () => alert('Failed to delete opportunity'),
     });
@@ -89,19 +98,26 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   applyForOpportunity(id: string) {
     this.applyingId = id;
+    this.cdr.detectChanges();
     this.opportunityService.apply(id).subscribe({
       next: () => {
         this.appliedIds.add(id);
         this.applyingId = '';
+        this.cdr.detectChanges();
       },
       error: (err) => {
         alert(err.error?.message || 'Failed to apply');
         this.applyingId = '';
+        this.cdr.detectChanges();
       },
     });
   }
 
   statusColor(status: string): string {
-    return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
+    return status === 'open'
+      ? '#2e7d32'
+      : status === 'closed'
+      ? '#c62828'
+      : '#e65100';
   }
 }
