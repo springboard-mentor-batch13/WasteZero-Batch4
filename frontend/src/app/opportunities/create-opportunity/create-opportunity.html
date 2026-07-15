@@ -34,8 +34,15 @@
         <input formControlName="required_skills" placeholder="teamwork, recycling (comma separated)" />
       </div>
       <div class="field">
-        <label>Image URL (Optional)</label>
-        <input formControlName="image_url" placeholder="https://..." />
+        <label>Opportunity Image (Optional)</label>
+
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+
+        @if (selectedFile) {
+        <small class="file-name">
+          Selected: {{ selectedFile.name }}
+        </small>
+        }
       </div>
       <div class="form-actions">
         <button type="button" class="btn-cancel" routerLink="/opportunities">Cancel</button>

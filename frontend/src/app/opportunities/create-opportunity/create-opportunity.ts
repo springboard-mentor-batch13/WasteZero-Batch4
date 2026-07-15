@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component ,ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -15,11 +15,13 @@ export class CreateOpportunity {
   form: FormGroup;
   loading = false;
   error = '';
+  selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
     private opportunityService: OpportunityService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {
     this.form = this.fb.group({
       title: ['', Validators.required],
@@ -28,8 +30,15 @@ export class CreateOpportunity {
       duration: [''],
       location: ['', Validators.required],
       date: [''],
-      image_url: [''],
     });
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+    }
   }
 
   createOpportunity() {
@@ -38,18 +47,36 @@ export class CreateOpportunity {
     this.error = '';
 
     const val = this.form.value;
-    const payload = {
-      ...val,
-      required_skills: val.required_skills
-        ? val.required_skills.split(',').map((s: string) => s.trim()).filter(Boolean)
-        : [],
-    };
+    const formData = new FormData();
 
-    this.opportunityService.create(payload).subscribe({
+    formData.append('title', val.title);
+    formData.append('description', val.description);
+    formData.append('location', val.location);
+    formData.append('duration', val.duration || '');
+    formData.append('date', val.date || '');
+
+    formData.append(
+      'required_skills',
+      JSON.stringify(
+        val.required_skills
+          ? val.required_skills
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean)
+          : [],
+      ),
+    );
+
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile);
+    }
+
+    this.opportunityService.create(formData).subscribe({
       next: () => this.router.navigate(['/opportunities']),
       error: (err) => {
         this.error = err.error?.message || 'Failed to create opportunity';
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }
