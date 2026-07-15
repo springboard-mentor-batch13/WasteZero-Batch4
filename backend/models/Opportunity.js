@@ -27,7 +27,11 @@ const opportunitySchema = new mongoose.Schema(
       type: String,
       enum: ['open', 'closed', 'in-progress'],
       default: 'open'
-    }
+    },
+    image_url: {
+    type: String,
+    default: ""
+  },
   },
   { timestamps: true }
 );
