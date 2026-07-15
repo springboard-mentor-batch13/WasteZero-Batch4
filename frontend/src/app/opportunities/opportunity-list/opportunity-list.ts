@@ -87,22 +87,27 @@ export class OpportunityList implements OnInit, OnDestroy {
       });
   }
 
-  loadMyApplications() {
-    this.opportunityService.getMyApplications().subscribe({
-      next: (applications: any[]) => {
-        this.appliedIds.clear();
+loadMyApplications() {
+  this.opportunityService.getMyApplications().subscribe({
+    next: (applications: any[]) => {
+      this.appliedIds.clear();
 
-        applications.forEach((app) => {
-          this.appliedIds.add(app.opportunity_id._id);
-        });
+      applications.forEach(app => {
+        const opportunityId =
+          typeof app.opportunity_id === 'object'
+            ? app.opportunity_id._id
+            : app.opportunity_id;
 
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to load applications', err);
-      },
-    });
-  }
+        this.appliedIds.add(opportunityId);
+      });
+
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Failed to load applications', err);
+    }
+  });
+}
 
   onSearch() {
     this.searchSubject.next(this.search);
@@ -133,7 +138,8 @@ export class OpportunityList implements OnInit, OnDestroy {
       next: () => {
         this.appliedIds.add(id);
         this.applyingId = '';
-        this.cdr.detectChanges();
+        // this.cdr.detectChanges();
+        this.loadMyApplications();
       },
       error: (err) => {
         alert(err.error?.message || 'Failed to apply');
