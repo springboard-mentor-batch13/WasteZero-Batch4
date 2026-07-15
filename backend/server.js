@@ -1,13 +1,13 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import otpRoutes from "./routes/otpRoutes.js";
-import opportunityRoutes from "./routes/opportunityRoutes.js"
+import './config/env.js';  // ← MUST be first — loads .env before everything else
 
-dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import otpRoutes from './routes/otpRoutes.js';
+import opportunityRoutes from './routes/opportunityRoutes.js';
+
 connectDB();
 
 const app = express();
@@ -15,12 +15,12 @@ const app = express();
 app.use(cors({ origin: 'http://localhost:4200' }));
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("WasteZero API running..."));
+app.get('/', (req, res) => res.send('WasteZero API running...'));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/otp", otpRoutes);
-app.use('/api/opportunities',opportunityRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/opportunities', opportunityRoutes);
 
 app.use((req, res) => res.status(404).json({ message: 'Route not found' }));
 

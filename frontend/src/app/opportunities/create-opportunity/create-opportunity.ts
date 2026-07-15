@@ -1,4 +1,4 @@
-import { Component ,ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -72,7 +72,11 @@ export class CreateOpportunity {
     }
 
     this.opportunityService.create(formData).subscribe({
-      next: () => this.router.navigate(['/opportunities']),
+      next: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+        this.router.navigate(['/opportunities']);
+      },
       error: (err) => {
         this.error = err.error?.message || 'Failed to create opportunity';
         this.loading = false;

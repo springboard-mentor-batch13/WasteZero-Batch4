@@ -46,10 +46,11 @@ export class OpportunityList implements OnInit, OnDestroy {
       .subscribe(() => {
         this.loadOpportunities();
       });
-
+    //Load everything once — not separately
     this.loadOpportunities();
 
-    if (!this.canManage) {
+    //Only load applications if volunteer
+    if (this.auth.getUser()?.role === 'volunteer') {
       this.loadMyApplications();
     }
   }

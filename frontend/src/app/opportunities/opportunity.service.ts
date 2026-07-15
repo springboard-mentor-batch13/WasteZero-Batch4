@@ -20,11 +20,11 @@ export class OpportunityService {
     return this.http.get<Opportunity>(`${this.api}/${id}`);
   }
 
-  create(data: any): Observable<Opportunity> {
+  create(data: FormData | any): Observable<Opportunity> {
     return this.http.post<Opportunity>(this.api, data);
   }
 
-  update(id: string, data: any): Observable<Opportunity> {
+  update(id: string, data: FormData | any): Observable<Opportunity> {
     return this.http.put<Opportunity>(`${this.api}/${id}`, data);
   }
 

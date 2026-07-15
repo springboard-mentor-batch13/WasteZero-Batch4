@@ -134,3 +134,29 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.current-img {
+  margin-bottom: 10px;
+}
+
+.current-img img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+}
+
+.current-img small {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.file-name {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.76rem;
+  color: var(--green-dark);
+}

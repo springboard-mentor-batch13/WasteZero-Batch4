@@ -18,6 +18,7 @@ export class EditOpportunity implements OnInit {
   error = '';
   id = '';
   selectedFile: File | null = null;
+  currentImageUrl = '';
 
   constructor(
     private fb: FormBuilder,
@@ -39,7 +40,6 @@ export class EditOpportunity implements OnInit {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
     }
@@ -49,6 +49,7 @@ export class EditOpportunity implements OnInit {
     this.id = this.route.snapshot.paramMap.get('id') || '';
     this.opportunityService.getById(this.id).subscribe({
       next: (opp) => {
+        this.currentImageUrl = opp.image_url || '';
         this.form.patchValue({
           title: opp.title,
           description: opp.description,
@@ -59,6 +60,7 @@ export class EditOpportunity implements OnInit {
           status: opp.status,
         });
         this.fetching = false;
+        this.cdr.detectChanges(); 
       },
       error: () => {
         this.error = 'Failed to load opportunity';
@@ -72,9 +74,9 @@ export class EditOpportunity implements OnInit {
     if (this.form.invalid) return;
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges();
 
     const val = this.form.value;
-
     const formData = new FormData();
 
     formData.append('title', val.title || '');
@@ -83,15 +85,11 @@ export class EditOpportunity implements OnInit {
     formData.append('duration', val.duration || '');
     formData.append('date', val.date || '');
     formData.append('status', val.status || '');
-
     formData.append(
       'required_skills',
       JSON.stringify(
         val.required_skills
-          ? val.required_skills
-              .split(',')
-              .map((s: string) => s.trim())
-              .filter(Boolean)
+          ? val.required_skills.split(',').map((s: string) => s.trim()).filter(Boolean)
           : [],
       ),
     );
@@ -103,13 +101,13 @@ export class EditOpportunity implements OnInit {
     this.opportunityService.update(this.id, formData).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/opportunities']);
         this.cdr.detectChanges();
+        this.router.navigate(['/opportunities']);
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to update opportunity';
         this.loading = false;
-         this.cdr.detectChanges();
+        this.cdr.detectChanges();
       },
     });
   }
