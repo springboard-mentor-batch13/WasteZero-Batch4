@@ -152,4 +152,17 @@ loadMyApplications() {
   statusColor(status: string): string {
     return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
   }
+
+  imageFor(opp: Opportunity): string {
+    if (opp.image_url) return opp.image_url;
+
+    const text = `${opp.title} ${opp.description}`.toLowerCase();
+    if (text.includes('e-waste') || text.includes('electronics')) {
+      return '/demo-ewaste.svg';
+    }
+    if (text.includes('plastic') || text.includes('cleanup') || text.includes('clean')) {
+      return '/demo-cleanup.svg';
+    }
+    return '/demo-opportunity.svg';
+  }
 }

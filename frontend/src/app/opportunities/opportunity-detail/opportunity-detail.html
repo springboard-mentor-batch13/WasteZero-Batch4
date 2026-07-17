@@ -1,0 +1,99 @@
+<div class="detail-page">
+  <button class="back-link" routerLink="/opportunities">Back to Opportunities</button>
+
+  @if (loading) {
+    <div class="state-card">Loading opportunity...</div>
+  }
+
+  @if (!loading && error) {
+    <div class="state-card error">{{ error }}</div>
+  }
+
+  @if (!loading && opportunity) {
+    <section class="detail-head">
+      <div>
+        <h1>{{ opportunity.title }}</h1>
+        <p>Volunteer opportunity details</p>
+      </div>
+      <span [class]="statusClass(opportunity.status)">{{ opportunity.status }}</span>
+    </section>
+
+    <section class="detail-grid">
+      <div class="main-column">
+        <img class="hero-image" [src]="imageFor(opportunity)" [alt]="opportunity.title" />
+
+        <article class="panel">
+          <h2>Description</h2>
+          <p>{{ opportunity.description }}</p>
+        </article>
+
+        <article class="panel">
+          <h2>Required Skills</h2>
+          @if (opportunity.required_skills.length) {
+            <div class="skill-list">
+              @for (skill of opportunity.required_skills; track skill) {
+                <span>{{ skill }}</span>
+              }
+            </div>
+          } @else {
+            <p class="muted">No specific skills required.</p>
+          }
+        </article>
+      </div>
+
+      <aside class="details-card">
+        <h2>Opportunity Details</h2>
+
+        <div class="detail-item">
+          <span class="meta-icon">D</span>
+          <div>
+            <strong>Date</strong>
+            <p>{{ opportunity.date ? (opportunity.date | date: 'yyyy-MM-dd') : (opportunity.createdAt | date: 'yyyy-MM-dd') }}</p>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="meta-icon">T</span>
+          <div>
+            <strong>Duration</strong>
+            <p>{{ opportunity.duration || 'Flexible' }}</p>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="meta-icon">L</span>
+          <div>
+            <strong>Location</strong>
+            <p>{{ opportunity.location }}</p>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="meta-icon">P</span>
+          <div>
+            <strong>Posted by</strong>
+            <p>{{ postedBy }}</p>
+            <small>NGO ID: {{ postedId }}</small>
+          </div>
+        </div>
+
+        @if (canManage) {
+          <div class="action-row">
+            <button class="btn-edit" [routerLink]="['/opportunities/edit', opportunity._id]">Edit</button>
+            <button class="btn-delete" [disabled]="deleting" (click)="deleteOpportunity()">
+              {{ deleting ? 'Deleting...' : 'Delete' }}
+            </button>
+          </div>
+        } @else {
+          <button class="btn-apply" [disabled]="applying || applied" (click)="applyForOpportunity()">
+            @if (applied) {
+              Applied
+            } @else {
+              {{ applying ? 'Applying...' : 'Apply Now' }}
+            }
+          </button>
+        }
+      </aside>
+    </section>
+  }
+</div>

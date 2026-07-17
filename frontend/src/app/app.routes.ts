@@ -9,6 +9,7 @@ import { authGuard } from './guards/auth.guard';
 import { OpportunityList } from './opportunities/opportunity-list/opportunity-list';
 import { CreateOpportunity } from './opportunities/create-opportunity/create-opportunity';
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
+import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -26,6 +27,7 @@ export const routes: Routes = [
       { path: 'opportunities', component: OpportunityList },
       { path: 'opportunities/create', component: CreateOpportunity },
       { path: 'opportunities/edit/:id', component: EditOpportunity },
+      { path: 'opportunities/:id', component: OpportunityDetail },
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],

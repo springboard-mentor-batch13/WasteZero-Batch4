@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">WasteZero volunteer opportunity demo image</title>
+  <desc id="desc">Illustration of a community recycling opportunity.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8f5e9"/>
+      <stop offset="1" stop-color="#97d8ad"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="620" fill="url(#bg)"/>
+  <circle cx="950" cy="210" r="170" fill="#2e7d32" opacity=".16"/>
+  <circle cx="280" cy="500" r="230" fill="#16341f" opacity=".1"/>
+  <g transform="translate(440 165)">
+    <path d="M160 0 L300 245 H20 Z" fill="#2e7d32" opacity=".95"/>
+    <path d="M160 55 L244 205 H75 Z" fill="#e8f5e9"/>
+    <path d="M144 104 H94 L120 58 Z" fill="#2e7d32"/>
+    <path d="M185 102 L215 152 H160 Z" fill="#2e7d32"/>
+    <path d="M136 172 H86 L112 218 Z" fill="#2e7d32"/>
+  </g>
+  <g fill="#16341f">
+    <text x="78" y="100" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="800">Volunteer Opportunity</text>
+    <text x="80" y="154" font-family="Segoe UI, Arial, sans-serif" font-size="28" opacity=".72">Join a local action and make measurable impact</text>
+  </g>
+</svg>
