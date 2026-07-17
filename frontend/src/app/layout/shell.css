@@ -1,0 +1,271 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;          
+  background: #f4f7f5;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--border);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 18px;
+}
+.brand-logo {
+  font-size: 1.4rem;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--green-light);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.user-meta strong {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-meta .role {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+  flex-shrink: 0;
+}
+.avatar.sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.85rem;
+}
+
+.menu-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 6px 10px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 14px;
+}
+.menu a,
+.menu .item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.menu a:hover {
+  background: #f0f5f1;
+}
+.menu a.active {
+  background: var(--green-light);
+  color: var(--green-dark);
+  font-weight: 600;
+}
+.menu .ic {
+  font-size: 1.05rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.menu .label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu .item.soon {
+  color: #9aa8a0;
+  cursor: default;
+}
+.menu .item em {
+  flex-shrink: 0;
+  font-style: normal;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #b26a00;
+  background: #fff3e0;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.logout {
+  margin-top: auto;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 500;
+  cursor: pointer;
+}
+.logout:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.topbar {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 22px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.hamburger {
+  display: none;
+  border: none;
+  background: transparent;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f4f7f5;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  flex: 1;
+  max-width: 420px;
+}
+.search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.top-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bell {
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+.chip-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  height: calc(100vh - 64px);
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    z-index: 20;
+    left: -270px;
+    transition: left 0.25s ease;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .hamburger {
+    display: block;
+  }
+  .backdrop.show {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 15;
+  }
+  .chip-name {
+    display: none;
+  }
+}

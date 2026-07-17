@@ -1,0 +1,128 @@
+.form-page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 0;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--green-dark);
+    cursor: pointer;
+    font-size: 0.88rem;
+    padding: 0;
+    margin-bottom: 16px;
+    font-family: inherit;
+}
+
+.form-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--ink);
+}
+
+.form-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0 0 20px;
+}
+
+.alert.error {
+    background: #fdecea;
+    color: var(--danger);
+    border: 1px solid #f5c6c2;
+    padding: 10px 14px;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+}
+
+.form-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 28px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.field {
+    margin-bottom: 16px;
+}
+
+.field label {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    background: #f9fcf9;
+    box-sizing: border-box;
+}
+
+.field input:focus,
+.field textarea:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+    background: #fff;
+}
+
+.field textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+
+.row .field {
+    flex: 1;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.btn-cancel {
+    padding: 10px 22px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.btn-submit {
+    padding: 10px 24px;
+    background: var(--green-dark);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

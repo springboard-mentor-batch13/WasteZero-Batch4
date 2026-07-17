@@ -1,0 +1,55 @@
+<div class="form-page">
+  <button class="back-btn" [routerLink]="['/opportunities']">← Back</button>
+  <h2 class="form-title">Create New Opportunity</h2>
+  <p class="form-sub">Post a volunteer opportunity for waste management and recycling</p>
+
+  @if (error) { <div class="alert error">{{ error }}</div> }
+
+  <div class="form-card">
+    <form [formGroup]="form" (ngSubmit)="createOpportunity()">
+      <div class="field">
+        <label>Title *</label>
+        <input formControlName="title" placeholder="E.g., Beach Cleanup Drive" />
+      </div>
+      <div class="field">
+        <label>Description *</label>
+        <textarea formControlName="description" rows="4" placeholder="Provide details about the opportunity"></textarea>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Date</label>
+          <input formControlName="date" type="date" />
+        </div>
+        <div class="field">
+          <label>Duration</label>
+          <input formControlName="duration" placeholder="E.g., 4 hours" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Location *</label>
+        <input formControlName="location" placeholder="E.g., Brighton Beach, Boston" />
+      </div>
+      <div class="field">
+        <label>Required Skills</label>
+        <input formControlName="required_skills" placeholder="teamwork, recycling (comma separated)" />
+      </div>
+      <div class="field">
+        <label>Opportunity Image (Optional)</label>
+
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+
+        @if (selectedFile) {
+        <small class="file-name">
+          Selected: {{ selectedFile.name }}
+        </small>
+        }
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" routerLink="/opportunities">Cancel</button>
+        <button type="submit" class="btn-submit" [disabled]="form.invalid || loading">
+          {{ loading ? 'Creating...' : 'Create Opportunity' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

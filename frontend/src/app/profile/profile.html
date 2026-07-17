@@ -1,0 +1,188 @@
+<div class="profile-page" style="width:100%">
+  @if (loading) {
+    <p class="loading">Loading…</p>
+  } @else {
+    <div class="profile-card">
+
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="avatar">{{ initial }}</div>
+        <div class="who">
+          <h2>{{ user?.name }}</h2>
+          <span class="role-badge">{{ user?.role }}</span>
+          <p class="email-text">{{ user?.email }}</p>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
+          Profile
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'password'" (click)="setTab('password')">
+          Password
+        </button>
+      </div>
+
+      <!-- ── PROFILE TAB ── -->
+      @if (activeTab === 'profile') {
+        <div class="tab-content">
+          <h3 class="section-title">Personal Information</h3>
+          <p class="section-sub">Update your personal information and profile details</p>
+
+          @if (profileMessage) {
+            <div class="alert success">{{ profileMessage }}</div>
+          }
+          @if (profileError) {
+            <div class="alert error">{{ profileError }}</div>
+          }
+
+          <form [formGroup]="profileForm" (ngSubmit)="onSave()">
+            <div class="field">
+              <label>Full Name</label>
+              <input formControlName="name" placeholder="Your full name" />
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <input formControlName="email" readonly />
+              <small>This email is used for account notifications.</small>
+            </div>
+
+            <div class="field">
+              <label>Location</label>
+              <input formControlName="location" placeholder="Your city or area" />
+              <small>This helps match you with nearby opportunities.</small>
+            </div>
+
+            <div class="field">
+              <label>Skills</label>
+              <input formControlName="skills" placeholder="e.g. teamwork, recycling, driving" />
+              <small>Separate skills with commas.</small>
+            </div>
+
+            <div class="field">
+              <label>Bio</label>
+              <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself…"></textarea>
+            </div>
+
+            <button class="btn-primary" type="submit" [disabled]="saving || profileForm.invalid">
+              {{ saving ? 'Saving…' : 'Save Changes' }}
+            </button>
+          </form>
+        </div>
+      }
+
+      <!-- ── PASSWORD TAB ── -->
+      @if (activeTab === 'password') {
+        <div class="tab-content">
+          <h3 class="section-title">Change Password</h3>
+          <p class="section-sub">Update your password to secure your account</p>
+
+          @if (passwordMessage) {
+            <div class="alert success">{{ passwordMessage }}</div>
+          }
+
+          <!-- STEP 1: Request OTP -->
+          @if (!otpSent) {
+            @if (otpError) {
+              <div class="alert error">{{ otpError }}</div>
+            }
+
+            <div class="otp-info">
+              <span class="otp-icon">📧</span>
+              <p>
+                We will send a 6-digit OTP to <strong>{{ user?.email }}</strong>
+                to verify it's you before changing your password.
+              </p>
+            </div>
+
+            <button class="btn-primary" (click)="requestOtp()" [disabled]="sendingOtp">
+              {{ sendingOtp ? 'Sending OTP…' : 'Send OTP to My Email' }}
+            </button>
+          }
+
+          <!-- STEP 2: Enter OTP + Passwords -->
+          @if (otpSent) {
+            @if (otpMessage) {
+              <div class="alert success">{{ otpMessage }}</div>
+            }
+            @if (passwordError) {
+              <div class="alert error">{{ passwordError }}</div>
+            }
+
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <div class="field">
+                <label>Enter OTP</label>
+                <input
+                  formControlName="otp"
+                  placeholder="6-digit OTP from your email"
+                  maxlength="6"
+                  inputmode="numeric"
+                />
+                <small>Check your email inbox. Valid for 10 minutes.</small>
+              </div>
+
+              <div class="field">
+                <label>Current Password</label>
+                <div class="input-eye">
+                  <input
+                    formControlName="currentPassword"
+                    [type]="showCurrentPassword ? 'text' : 'password'"
+                    placeholder="Enter your current password"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleCurrentPassword()">
+                    {{ showCurrentPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>New Password</label>
+                <div class="input-eye">
+                  <input
+                    formControlName="newPassword"
+                    [type]="showNewPassword ? 'text' : 'password'"
+                    placeholder="At least 6 characters"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleNewPassword()">
+                    {{ showNewPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Confirm New Password</label>
+                <div class="input-eye">
+                  <input
+                    formControlName="confirmPassword"
+                    [type]="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="Repeat new password"
+                  />
+                  <button type="button" class="eye-btn" (click)="toggleConfirmPassword()">
+                    {{ showConfirmPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="btn-row">
+                <button type="button" class="btn-outline" (click)="resendOtp()">
+                  Resend OTP
+                </button>
+                <button
+                  type="submit"
+                  class="btn-primary"
+                  [disabled]="changingPassword || passwordForm.invalid"
+                >
+                  {{ changingPassword ? 'Changing…' : 'Change Password' }}
+                </button>
+              </div>
+            </form>
+          }
+
+        </div>
+      }
+
+    </div>
+  }
+</div>

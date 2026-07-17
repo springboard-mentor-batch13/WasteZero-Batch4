@@ -1,1 +1,434 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --green: #2e7d32;
+  --green-dark: #16341f;
+  --green-mid: #2f7d46;
+  --green-light: #e8f5e9;
+  --ink: #16211c;
+  --muted: #64766c;
+  --border: #e6ece8;
+  --danger: #c62828;
+  --radius: 16px;
+  --shadow-sm: 0 1px 2px rgba(20, 50, 35, 0.05);
+  --shadow: 0 12px 40px rgba(16, 45, 28, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: #f5f8f6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+
+.auth-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  color: #fff;
+  background:
+    linear-gradient(150deg, rgba(11, 48, 27, 0.92) 0%, rgba(24, 88, 48, 0.78) 52%, rgba(35, 115, 63, 0.68) 100%),
+    url('/recycle-hero.jpg') center / cover no-repeat;
+  overflow: hidden;
+}
+.auth-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 25%, transparent 40%, rgba(0, 0, 0, 0.22) 100%);
+}
+.auth-hero::after {
+  content: '';
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  right: -160px;
+  top: -140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 62%);
+}
+.hero-content {
+  position: relative;
+  max-width: 460px;
+  z-index: 1;
+}
+.hero-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.32rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  margin-bottom: 44px;
+}
+.hero-content h2 {
+  font-size: 2.5rem;
+  line-height: 1.14;
+  margin: 0 0 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.hero-content .lead {
+  opacity: 0.9;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin: 0 0 34px;
+}
+.hero-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.hero-points li {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-weight: 500;
+  font-size: 0.98rem;
+}
+.hero-points .tick {
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+}
+.hero-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 14px;
+  max-width: 460px;
+  margin-top: 6px;
+}
+.hero-stats div {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 16px 14px;
+  backdrop-filter: blur(6px);
+}
+.hero-stats strong {
+  display: block;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+.hero-stats span {
+  font-size: 0.78rem;
+  opacity: 0.82;
+}
+
+.auth-form-side {
+  display: grid;
+  place-items: center;
+  padding: 48px 30px;
+  background: #fff;
+}
+.auth-form {
+  width: 100%;
+  max-width: 400px;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.auth-head {
+  margin-bottom: 28px;
+}
+.auth-head .mini-logo {
+  display: none;
+}
+.auth-head h1 {
+  margin: 0 0 7px;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+}
+.auth-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.field {
+  margin-bottom: 17px;
+}
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #33443c;
+  margin-bottom: 7px;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 0.97rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: #f9fbfa;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #9fb0a7;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12);
+  background: #fff;
+}
+
+.password-wrap {
+  position: relative;
+}
+.password-wrap input {
+  padding-right: 48px;
+}
+.toggle-pass {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 7px 9px;
+  line-height: 1;
+  border-radius: 9px;
+}
+.toggle-pass:hover {
+  background: rgba(46, 125, 50, 0.1);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3aa053 0%, #1f6b3a 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.2s, opacity 0.2s;
+  box-shadow: 0 10px 24px rgba(31, 107, 58, 0.32);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(31, 107, 58, 0.4);
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-alt {
+  text-align: center;
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.auth-alt a {
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-alt a:hover {
+  text-decoration: underline;
+}
+.forgot-link {
+  color: var(--green);
+  display: inline-block;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 9px;
+  text-decoration: none;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+}
+.auth-separator {
+  color: #b9c7c0;
+  margin: 0 8px;
+}
+
+.form-error {
+  background: #fdecea;
+  color: var(--danger);
+  border: 1px solid #f5c6c2;
+  padding: 11px 13px;
+  border-radius: 11px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row .field {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .auth-split {
+    grid-template-columns: 1fr;
+  }
+  .auth-hero {
+    display: none;
+  }
+  .auth-form-side {
+    min-height: 100vh;
+    background: #f5f8f6;
+  }
+  .auth-form {
+    background: #fff;
+    padding: 36px 26px;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .auth-head .mini-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 18px;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.12);
+  }
+}
+
+.auth-hero::after {
+  animation: glowPulse 7s ease-in-out infinite;
+}
+.hero-logo {
+  animation: fadeUp 0.6s ease both;
+}
+.hero-content h2 {
+  animation: fadeUp 0.6s ease 0.08s both;
+}
+.hero-content .lead {
+  animation: fadeUp 0.6s ease 0.16s both;
+}
+.hero-points li {
+  animation: fadeUp 0.55s ease both;
+}
+.hero-points li:nth-child(1) {
+  animation-delay: 0.24s;
+}
+.hero-points li:nth-child(2) {
+  animation-delay: 0.32s;
+}
+.hero-points li:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.hero-points li:nth-child(4) {
+  animation-delay: 0.48s;
+}
+.hero-stats {
+  animation: fadeUp 0.6s ease 0.56s both;
+}
+.hero-stats div {
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.hero-stats div:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.auth-head {
+  animation: fadeUp 0.5s ease both;
+}
+.auth-form form > * {
+  animation: fadeUp 0.5s ease both;
+}
+.auth-form form > *:nth-child(1) {
+  animation-delay: 0.08s;
+}
+.auth-form form > *:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.auth-form form > *:nth-child(3) {
+  animation-delay: 0.22s;
+}
+.auth-form form > *:nth-child(4) {
+  animation-delay: 0.29s;
+}
+.auth-form form > *:nth-child(5) {
+  animation-delay: 0.36s;
+}
+.auth-form form > *:nth-child(6) {
+  animation-delay: 0.43s;
+}
+.auth-form .auth-alt {
+  animation: fadeUp 0.5s ease 0.5s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+

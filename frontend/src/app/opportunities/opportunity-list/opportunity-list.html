@@ -1,0 +1,137 @@
+<div class="opp-page">
+
+  <!-- Header -->
+  <div class="opp-header">
+    <div>
+      <h2 class="opp-title">Volunteer Opportunities</h2>
+      <p class="opp-sub">Browse and join recycling and waste management initiatives</p>
+    </div>
+    @if (canManage) {
+      <button class="btn-create" [routerLink]="['/opportunities/create']">
+        + Create Opportunity
+      </button>
+    }
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input
+      class="search-input"
+      placeholder="🔍 Search opportunities..."
+      [(ngModel)]="search"
+      (input)="onSearch()"
+    />
+    <select
+      class="filter-select"
+      [(ngModel)]="statusFilter"
+      (change)="onFilterChange()"
+    >
+      <option value="all">All Statuses</option>
+      <option value="open">Open</option>
+      <option value="closed">Closed</option>
+      <option value="in-progress">In Progress</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="state-center">
+      <p class="state-msg">Loading opportunities...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!loading && error) {
+    <div class="state-center">
+      <p class="state-msg error">{{ error }}</p>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading && !error && opportunities.length === 0) {
+    <div class="empty">
+      <p>No opportunities found matching your criteria.</p>
+      <small>Check back later for new opportunities.</small>
+    </div>
+  }
+
+  <!-- Cards Grid -->
+  @if (!loading && !error && opportunities.length > 0) {
+    <div class="grid">
+      @for (opp of opportunities; track opp._id) {
+        <div class="card" [routerLink]="['/opportunities', opp._id]">
+
+          <!-- Image -->
+          <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
+
+          <div class="card-body">
+
+            <!-- Title + Badge -->
+            <div class="card-title-row">
+              <span class="card-title">{{ opp.title }}</span>
+              <span class="badge" [style.background]="statusColor(opp.status)">
+                {{ opp.status }}
+              </span>
+            </div>
+
+            <!-- Description -->
+            <p class="card-desc">
+              {{ opp.description.substring(0, 80) }}...
+            </p>
+
+            <!-- Meta -->
+            <div class="card-meta">
+              @if (opp.location) {
+                <span>📍 {{ opp.location }}</span>
+              }
+              @if (opp.duration) {
+                <span>⏱ {{ opp.duration }}</span>
+              }
+              @if (opp.required_skills.length) {
+                <span>🛠 {{ opp.required_skills.join(', ') }}</span>
+              }
+            </div>
+
+            <!-- Apply Button (volunteer only) -->
+            @if (!canManage) {
+              <button
+                class="btn-apply"
+                [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
+                (click)="applyForOpportunity(opp._id); $event.stopPropagation()"
+              >
+                @if (appliedIds.has(opp._id)) {
+                  ✓ Applied
+                } @else if (applyingId === opp._id) {
+                  Applying...
+                } @else {
+                  Apply Now
+                }
+              </button>
+            }
+
+            <!-- Edit + Delete (admin/ngo only) -->
+            @if (canManage) {
+              <div class="manage-btns">
+                <button
+                  class="btn-edit"
+                  [routerLink]="['/opportunities/edit', opp._id]"
+                  (click)="$event.stopPropagation()"
+                >
+                  ✏️ Edit
+                </button>
+                <button
+                  class="btn-delete"
+                  (click)="deleteOpportunity(opp._id); $event.stopPropagation()"
+                >
+                  🗑️ Delete
+                </button>
+              </div>
+            }
+
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>
