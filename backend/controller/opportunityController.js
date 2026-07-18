@@ -3,6 +3,13 @@ import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 
+const hasCloudinaryConfig = () =>
+  Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET,
+  );
+
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -31,7 +38,7 @@ const createOpportunity = async (req, res) => {
 
   try {
     let image_url = "";
-    if (req.file) {
+    if (req.file && hasCloudinaryConfig()) {
       const uploaded = await uploadToCloudinary(req.file.buffer);
       image_url = uploaded.secure_url;
     }
@@ -60,17 +67,14 @@ const getOpportunities = async (req, res) => {
     const { status, search, city } = req.query;
     let query = {};
 
-    // Filter by status
     if (status && status !== 'all') {
       query.status = status;
     }
 
-    // Filter by city
     if (city && city !== 'all') {
       query.location = { $regex: city, $options: 'i' };
     }
 
-    // Search across title, description, location and skills
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -132,7 +136,7 @@ const updateOpportunity = async (req, res) => {
         : JSON.parse(req.body.required_skills);
     }
 
-    if (req.file) {
+    if (req.file && hasCloudinaryConfig()) {
       const uploaded = await uploadToCloudinary(req.file.buffer);
       opportunity.image_url = uploaded.secure_url;
     }
