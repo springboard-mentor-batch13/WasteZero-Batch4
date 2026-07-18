@@ -1,3 +1,4 @@
+import escapeRegex from "../utils/escapeRegex.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
@@ -61,17 +62,22 @@ const getOpportunities = async (req, res) => {
 
     // Filter by city
     if (city && city !== 'all') {
-      query.location = { $regex: city, $options: 'i' };
+      query.location = {
+  $regex: escapeRegex(city),
+  $options: "i",
+};
     }
 
     // Search across title, description, location and skills
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
-        { required_skills: { $regex: search, $options: 'i' } },
-      ];
+      const escapedSearch = escapeRegex(search);
+
+query.$or = [
+  { title: { $regex: escapedSearch, $options: "i" } },
+{ description: { $regex: escapedSearch, $options: "i" } },
+{ location: { $regex: escapedSearch, $options: "i" } },
+{ required_skills: { $regex: escapedSearch, $options: "i" } },
+];
     }
 
     const opportunities = await Opportunity.find(query)
