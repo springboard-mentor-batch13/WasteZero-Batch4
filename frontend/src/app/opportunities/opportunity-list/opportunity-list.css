@@ -275,3 +275,37 @@
     grid-template-columns: 1fr;
   }
 }
+
+.search-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-hint strong {
+  color: var(--ink);
+}
+
+.clear-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.clear-btn:hover {
+  background: #f5f5f5;
+  color: var(--danger);
+}
+
+.state-center {
+  text-align: center;
+  margin: 48px 0;
+}

@@ -51,13 +51,33 @@ const createOpportunity = async (req, res) => {
 
 const getOpportunities = async (req, res) => {
   try {
-    const { status, search } = req.query;
+    const { status, search, city } = req.query;
     let query = {};
-    if (status && status !== "all") query.status = status;
-    if (search) query.title = { $regex: search, $options: "i" };
+
+    // Filter by status
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    // Filter by city
+    if (city && city !== 'all') {
+      query.location = { $regex: city, $options: 'i' };
+    }
+
+    // Search across title, description, location and skills
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } },
+        { required_skills: { $regex: search, $options: 'i' } },
+      ];
+    }
+
     const opportunities = await Opportunity.find(query)
-      .populate("ngo_id", "name email")
+      .populate('ngo_id', 'name email')
       .sort({ createdAt: -1 });
+
     res.json(opportunities);
   } catch (error) {
     res.status(500).json({ message: error.message });
