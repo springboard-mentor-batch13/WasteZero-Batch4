@@ -9,10 +9,11 @@ export class OpportunityService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(filters?: { status?: string; search?: string }): Observable<Opportunity[]> {
+  getAll(filters?: { status?: string; search?: string; city?: string }): Observable<Opportunity[]> {
     let params = new HttpParams();
     if (filters?.status && filters.status !== 'all') params = params.set('status', filters.status);
     if (filters?.search) params = params.set('search', filters.search);
+    if (filters?.city && filters.city !== 'all') params = params.set('city', filters.city);
     return this.http.get<Opportunity[]>(this.api, { params });
   }
 
@@ -20,11 +21,11 @@ export class OpportunityService {
     return this.http.get<Opportunity>(`${this.api}/${id}`);
   }
 
-  create(data: FormData | any): Observable<Opportunity> {
+  create(data: any): Observable<Opportunity> {
     return this.http.post<Opportunity>(this.api, data);
   }
 
-  update(id: string, data: FormData | any): Observable<Opportunity> {
+  update(id: string, data: any): Observable<Opportunity> {
     return this.http.put<Opportunity>(`${this.api}/${id}`, data);
   }
 

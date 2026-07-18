@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { OpportunityService } from '../opportunity.service';
@@ -20,6 +20,8 @@ export class OpportunityList implements OnInit, OnDestroy {
   error = '';
   search = '';
   statusFilter = 'all';
+  cityFilter = 'all';
+  cities: string[] = [];
   applyingId = '';
   appliedIds: Set<string> = new Set();
 
@@ -30,26 +32,28 @@ export class OpportunityList implements OnInit, OnDestroy {
     private opportunityService: OpportunityService,
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,  
     private cdr: ChangeDetectorRef,
   ) {}
 
-  get userRole() {
-    return this.auth.getUser()?.role;
-  }
-  get canManage() {
-    return this.userRole === 'admin' || this.userRole === 'ngo';
-  }
+  get userRole() { return this.auth.getUser()?.role; }
+  get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
 
   ngOnInit() {
+    // reads ?search= from navbar and pre-fills search box
+    this.route.queryParams.subscribe(params => {
+      if (params['search']) {
+        this.search = params['search'];
+      }
+      this.loadOpportunities();
+    });
+
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
         this.loadOpportunities();
       });
-    //Load everything once — not separately
-    this.loadOpportunities();
 
-    //Only load applications if volunteer
     if (this.auth.getUser()?.role === 'volunteer') {
       this.loadMyApplications();
     }
@@ -65,66 +69,62 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.error = '';
     this.cdr.detectChanges();
 
-    this.opportunityService
-      .getAll({
-        status: this.statusFilter,
-        search: this.search,
-      })
-      .subscribe({
-        next: (data) => {
-          this.opportunities = data;
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.error =
-            err.name === 'TimeoutError'
-              ? 'Request timed out. Please check if the backend is running.'
-              : err.error?.message || 'Failed to load opportunities';
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-      });
+    this.opportunityService.getAll({
+      status: this.statusFilter,
+      search: this.search,
+      city: this.cityFilter,
+    }).subscribe({
+      next: (data) => {
+        this.opportunities = data;
+
+        const allCities = data
+          .map(o => o.location?.trim())
+          .filter(Boolean) as string[];
+        this.cities = [...new Set(allCities)].sort();
+
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = err.name === 'TimeoutError'
+          ? 'Request timed out. Please check if the backend is running.'
+          : err.error?.message || 'Failed to load opportunities';
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-loadMyApplications() {
-  this.opportunityService.getMyApplications().subscribe({
-    next: (applications: any[]) => {
-      this.appliedIds.clear();
-
-      applications.forEach(app => {
-        const opportunityId =
-          typeof app.opportunity_id === 'object'
+  loadMyApplications() {
+    this.opportunityService.getMyApplications().subscribe({
+      next: (applications: any[]) => {
+        this.appliedIds.clear();
+        applications.forEach(app => {
+          const opportunityId = typeof app.opportunity_id === 'object'
             ? app.opportunity_id._id
             : app.opportunity_id;
-
-        this.appliedIds.add(opportunityId);
-      });
-
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error('Failed to load applications', err);
-    }
-  });
-}
-
-  onSearch() {
-    this.searchSubject.next(this.search);
+          this.appliedIds.add(opportunityId);
+        });
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Failed to load applications', err),
+    });
   }
 
-  onFilterChange() {
-    this.loadOpportunities();
+  onSearch() { this.searchSubject.next(this.search); }
+  onFilterChange() { this.loadOpportunities(); }
+  onCityChange() { this.loadOpportunities(); }
+
+  clearSearch() {
+    this.search = '';
+    this.router.navigate(['/opportunities']);  //clears query param too
   }
 
   deleteOpportunity(id: string) {
-    if (
-      !confirm('Are you sure? This will permanently delete the opportunity and all applications.')
-    )
-      return;
+    if (!confirm('Are you sure? This will permanently delete the opportunity and all applications.')) return;
     this.opportunityService.delete(id).subscribe({
       next: () => {
-        this.opportunities = this.opportunities.filter((o) => o._id !== id);
+        this.opportunities = this.opportunities.filter(o => o._id !== id);
         this.cdr.detectChanges();
       },
       error: () => alert('Failed to delete opportunity'),
@@ -138,7 +138,6 @@ loadMyApplications() {
       next: () => {
         this.appliedIds.add(id);
         this.applyingId = '';
-        // this.cdr.detectChanges();
         this.loadMyApplications();
       },
       error: (err) => {
@@ -155,14 +154,9 @@ loadMyApplications() {
 
   imageFor(opp: Opportunity): string {
     if (opp.image_url) return opp.image_url;
-
     const text = `${opp.title} ${opp.description}`.toLowerCase();
-    if (text.includes('e-waste') || text.includes('electronics')) {
-      return '/demo-ewaste.svg';
-    }
-    if (text.includes('plastic') || text.includes('cleanup') || text.includes('clean')) {
-      return '/demo-cleanup.svg';
-    }
+    if (text.includes('e-waste') || text.includes('electronics')) return '/demo-ewaste.svg';
+    if (text.includes('plastic') || text.includes('cleanup') || text.includes('clean')) return '/demo-cleanup.svg';
     return '/demo-opportunity.svg';
   }
 }
