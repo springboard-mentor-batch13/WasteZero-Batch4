@@ -40,7 +40,6 @@ export class OpportunityList implements OnInit, OnDestroy {
   get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
 
   ngOnInit() {
-    // reads ?search= from navbar and pre-fills search box
     this.route.queryParams.subscribe(params => {
       if (params['search']) {
         this.search = params['search'];
@@ -117,7 +116,7 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   clearSearch() {
     this.search = '';
-    this.router.navigate(['/opportunities']);  //clears query param too
+    this.router.navigate(['/opportunities']);
   }
 
   deleteOpportunity(id: string) {

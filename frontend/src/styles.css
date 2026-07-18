@@ -7,9 +7,36 @@
   --muted: #64766c;
   --border: #e6ece8;
   --danger: #c62828;
+  --app-bg: #f4f7f5;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-hover: #f0f5f1;
+  --input-bg: #f9fbfa;
+  --input-muted: #f0f3f0;
+  --warning-bg: #fff3e0;
   --radius: 16px;
   --shadow-sm: 0 1px 2px rgba(20, 50, 35, 0.05);
   --shadow: 0 12px 40px rgba(16, 45, 28, 0.1);
+}
+
+:root[data-theme='dark'] {
+  --green: #54c273;
+  --green-dark: #b7f3c7;
+  --green-mid: #73d48b;
+  --green-light: rgba(84, 194, 115, 0.16);
+  --ink: #eef8f1;
+  --muted: #a8b8ae;
+  --border: #294337;
+  --danger: #ff8a80;
+  --app-bg: #0f1712;
+  --surface: #15221a;
+  --surface-raised: #1a2a21;
+  --surface-hover: #203529;
+  --input-bg: #101b15;
+  --input-muted: #1d2c23;
+  --warning-bg: rgba(255, 180, 80, 0.13);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28);
+  --shadow: 0 16px 42px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -22,7 +49,7 @@ body {
   min-height: 100%;
   font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
   color: var(--ink);
-  background: #f5f8f6;
+  background: var(--app-bg);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -143,7 +170,7 @@ body {
   display: grid;
   place-items: center;
   padding: 48px 30px;
-  background: #fff;
+  background: var(--surface);
 }
 .auth-form {
   width: 100%;
@@ -183,7 +210,7 @@ body {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #33443c;
+  color: var(--ink);
   margin-bottom: 7px;
 }
 .field input,
@@ -196,7 +223,7 @@ body {
   font-size: 0.97rem;
   font-family: inherit;
   color: var(--ink);
-  background: #f9fbfa;
+  background: var(--input-bg);
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
 .field input::placeholder,
@@ -209,7 +236,7 @@ body {
   outline: none;
   border-color: var(--green);
   box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12);
-  background: #fff;
+  background: var(--surface);
 }
 
 .password-wrap {
@@ -316,10 +343,10 @@ body {
   }
   .auth-form-side {
     min-height: 100vh;
-    background: #f5f8f6;
+  background: var(--app-bg);
   }
   .auth-form {
-    background: #fff;
+    background: var(--surface);
     padding: 36px 26px;
     border-radius: 18px;
     box-shadow: var(--shadow);
@@ -430,5 +457,68 @@ body {
     animation: none !important;
     transition: none !important;
   }
+}
+
+:root[data-theme='dark'] .profile-card,
+:root[data-theme='dark'] .form-card,
+:root[data-theme='dark'] .card,
+:root[data-theme='dark'] .panel,
+:root[data-theme='dark'] .details-card,
+:root[data-theme='dark'] .state-card,
+:root[data-theme='dark'] .empty,
+:root[data-theme='dark'] .stat-card,
+:root[data-theme='dark'] .impact-card,
+:root[data-theme='dark'] .action-card,
+:root[data-theme='dark'] .summary-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--ink) !important;
+}
+
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] textarea {
+  background: var(--input-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--ink) !important;
+}
+
+:root[data-theme='dark'] input[readonly] {
+  background: var(--input-muted) !important;
+}
+
+:root[data-theme='dark'] input::placeholder,
+:root[data-theme='dark'] textarea::placeholder {
+  color: #7d9286 !important;
+}
+
+:root[data-theme='dark'] .btn-outline,
+:root[data-theme='dark'] .btn-edit,
+:root[data-theme='dark'] .btn-cancel {
+  background: var(--surface-raised) !important;
+  border-color: var(--border) !important;
+  color: var(--ink) !important;
+}
+
+:root[data-theme='dark'] .otp-info,
+:root[data-theme='dark'] .role-badge,
+:root[data-theme='dark'] .skill-list span {
+  background: var(--green-light) !important;
+  border-color: var(--border) !important;
+  color: var(--ink) !important;
+}
+
+:root[data-theme='dark'] .alert.success,
+:root[data-theme='dark'] .form-success {
+  background: rgba(84, 194, 115, 0.16) !important;
+  border-color: rgba(84, 194, 115, 0.35) !important;
+  color: #b7f3c7 !important;
+}
+
+:root[data-theme='dark'] .alert.error,
+:root[data-theme='dark'] .form-error {
+  background: rgba(255, 138, 128, 0.12) !important;
+  border-color: rgba(255, 138, 128, 0.35) !important;
+  color: #ffb5ae !important;
 }
 

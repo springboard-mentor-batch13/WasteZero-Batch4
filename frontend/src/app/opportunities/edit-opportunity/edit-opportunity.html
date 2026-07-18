@@ -1,5 +1,5 @@
 <div class="form-page">
-  <button class="back-btn" [routerLink]="['/opportunities']">← Back to Opportunities</button>
+  <button class="back-btn" [routerLink]="['/opportunities']">Back to Opportunities</button>
   <h2 class="form-title">Edit Opportunity</h2>
   <p class="form-sub">Update the details of this volunteer opportunity</p>
 
@@ -60,11 +60,10 @@
         <div class="field">
           <label>Opportunity Image</label>
 
-          <!-- Show current image if exists -->
           @if (currentImageUrl && !selectedFile) {
             <div class="current-img">
               <img [src]="currentImageUrl" alt="Current image" />
-              <small>Current image — upload a new one to replace it</small>
+              <small>Current image - upload a new one to replace it</small>
             </div>
           }
 

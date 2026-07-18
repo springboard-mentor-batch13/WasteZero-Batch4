@@ -15,12 +15,16 @@ export class Shell {
   user: any;
   sidebarOpen = false;
   searchQuery = '';
+  theme: 'light' | 'dark' = 'light';
 
   constructor(
     public auth: AuthService,
     private router: Router,
   ) {
     this.user = this.auth.getUser();
+    const savedTheme = localStorage.getItem('theme');
+    this.theme = savedTheme === 'dark' ? 'dark' : 'light';
+    this.applyTheme();
   }
 
   get initial() {
@@ -41,6 +45,16 @@ export class Shell {
       });
       this.searchQuery = '';
     }
+  }
+
+  toggleTheme() {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', this.theme);
+    this.applyTheme();
+  }
+
+  private applyTheme() {
+    document.documentElement.dataset['theme'] = this.theme;
   }
 
   logout() {

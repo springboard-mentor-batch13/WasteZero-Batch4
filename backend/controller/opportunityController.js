@@ -3,6 +3,13 @@ import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 
+const hasCloudinaryConfig = () =>
+  Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET,
+  );
+
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -19,13 +26,19 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
+const canManageOpportunity = (opportunity, user) => {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  return opportunity.ngo_id.toString() === user._id.toString();
+};
+
 const createOpportunity = async (req, res) => {
   const { title, description, required_skills, duration, location, date } =
     req.body;
 
   try {
     let image_url = "";
-    if (req.file) {
+    if (req.file && hasCloudinaryConfig()) {
       const uploaded = await uploadToCloudinary(req.file.buffer);
       image_url = uploaded.secure_url;
     }
@@ -54,17 +67,14 @@ const getOpportunities = async (req, res) => {
     const { status, search, city } = req.query;
     let query = {};
 
-    // Filter by status
     if (status && status !== 'all') {
       query.status = status;
     }
 
-    // Filter by city
     if (city && city !== 'all') {
       query.location = { $regex: city, $options: 'i' };
     }
 
-    // Search across title, description, location and skills
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -103,6 +113,11 @@ const updateOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     if (req.body.title) opportunity.title = req.body.title;
 
     if (req.body.description) opportunity.description = req.body.description;
@@ -121,7 +136,7 @@ const updateOpportunity = async (req, res) => {
         : JSON.parse(req.body.required_skills);
     }
 
-    if (req.file) {
+    if (req.file && hasCloudinaryConfig()) {
       const uploaded = await uploadToCloudinary(req.file.buffer);
       opportunity.image_url = uploaded.secure_url;
     }
@@ -137,6 +152,11 @@ const deleteOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     await Application.deleteMany({ opportunity_id: req.params.id });
     await opportunity.deleteOne();
     res.json({ message: "Opportunity and related applications deleted" });

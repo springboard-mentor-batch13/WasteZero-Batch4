@@ -29,7 +29,7 @@ export class ForgotPassword {
 
     this.resetForm = this.fb.group({
       otp: ['', [Validators.required, Validators.minLength(6)]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6), Validators.pattern(/\d/)]],
       confirmPassword: ['', Validators.required],
     });
   }
@@ -66,6 +66,11 @@ export class ForgotPassword {
 
     if (this.resetForm.value.newPassword !== this.resetForm.value.confirmPassword) {
       this.error = 'Passwords do not match';
+      return;
+    }
+
+    if (!/\d/.test(this.resetForm.value.newPassword)) {
+      this.error = 'Password must contain at least one number';
       return;
     }
 
