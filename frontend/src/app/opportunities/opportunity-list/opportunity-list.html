@@ -15,23 +15,39 @@
 
   <!-- Filters -->
   <div class="filters">
+    <!-- Search box -->
     <input
       class="search-input"
-      placeholder="🔍 Search opportunities..."
+      placeholder="🔍 Search by title, skills, location..."
       [(ngModel)]="search"
       (input)="onSearch()"
     />
-    <select
-      class="filter-select"
-      [(ngModel)]="statusFilter"
-      (change)="onFilterChange()"
-    >
+
+    <!-- Status filter -->
+    <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
       <option value="all">All Statuses</option>
       <option value="open">Open</option>
       <option value="closed">Closed</option>
       <option value="in-progress">In Progress</option>
     </select>
+
+    <!-- City filter -->
+    <select class="filter-select" [(ngModel)]="cityFilter" (change)="onCityChange()">
+      <option value="all">All Cities</option>
+      @for (city of cities; track city) {
+        <option [value]="city">{{ city }}</option>
+      }
+    </select>
   </div>
+
+  <!-- Search hint -->
+  @if (search) {
+    <p class="search-hint">
+      Showing results for <strong>"{{ search }}"</strong>
+      — searched in title, description, location and skills
+      <button class="clear-btn" (click)="search = ''; onSearch()">✕ Clear</button>
+    </p>
+  }
 
   <!-- Loading -->
   @if (loading) {
@@ -51,7 +67,7 @@
   @if (!loading && !error && opportunities.length === 0) {
     <div class="empty">
       <p>No opportunities found matching your criteria.</p>
-      <small>Check back later for new opportunities.</small>
+      <small>Try a different search term or clear the filters.</small>
     </div>
   }
 
@@ -59,14 +75,15 @@
   @if (!loading && !error && opportunities.length > 0) {
     <div class="grid">
       @for (opp of opportunities; track opp._id) {
-        <div class="card" [routerLink]="['/opportunities', opp._id]">
+        <div class="card">
 
-          <!-- Image -->
-          <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
+          @if (opp.image_url) {
+            <img [src]="opp.image_url" [alt]="opp.title" class="card-img" />
+          } @else {
+            <div class="card-img-placeholder">📷 No image</div>
+          }
 
           <div class="card-body">
-
-            <!-- Title + Badge -->
             <div class="card-title-row">
               <span class="card-title">{{ opp.title }}</span>
               <span class="badge" [style.background]="statusColor(opp.status)">
@@ -74,12 +91,8 @@
               </span>
             </div>
 
-            <!-- Description -->
-            <p class="card-desc">
-              {{ opp.description.substring(0, 80) }}...
-            </p>
+            <p class="card-desc">{{ opp.description?.substring(0, 80) }}...</p>
 
-            <!-- Meta -->
             <div class="card-meta">
               @if (opp.location) {
                 <span>📍 {{ opp.location }}</span>
@@ -87,42 +100,29 @@
               @if (opp.duration) {
                 <span>⏱ {{ opp.duration }}</span>
               }
-              @if (opp.required_skills.length) {
+              @if (opp.required_skills?.length) {
                 <span>🛠 {{ opp.required_skills.join(', ') }}</span>
               }
             </div>
 
-            <!-- Apply Button (volunteer only) -->
             @if (!canManage) {
               <button
                 class="btn-apply"
                 [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
-                (click)="applyForOpportunity(opp._id); $event.stopPropagation()"
+                (click)="applyForOpportunity(opp._id)"
               >
-                @if (appliedIds.has(opp._id)) {
-                  ✓ Applied
-                } @else if (applyingId === opp._id) {
-                  Applying...
-                } @else {
-                  Apply Now
-                }
+                @if (appliedIds.has(opp._id)) { ✓ Applied }
+                @else if (applyingId === opp._id) { Applying... }
+                @else { Apply Now }
               </button>
             }
 
-            <!-- Edit + Delete (admin/ngo only) -->
             @if (canManage) {
               <div class="manage-btns">
-                <button
-                  class="btn-edit"
-                  [routerLink]="['/opportunities/edit', opp._id]"
-                  (click)="$event.stopPropagation()"
-                >
+                <button class="btn-edit" [routerLink]="['/opportunities/edit', opp._id]">
                   ✏️ Edit
                 </button>
-                <button
-                  class="btn-delete"
-                  (click)="deleteOpportunity(opp._id); $event.stopPropagation()"
-                >
+                <button class="btn-delete" (click)="deleteOpportunity(opp._id)">
                   🗑️ Delete
                 </button>
               </div>

@@ -23,7 +23,7 @@
         <span class="label">Schedule Pickup</span>
         <em>soon</em>
       </span>
-      <!-- ✅ Opportunities is now active -->
+      
       <a routerLink="/opportunities" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic">🌱</span>
         <span class="label">Opportunities</span>
@@ -73,7 +73,7 @@
       <button class="hamburger" (click)="sidebarOpen = !sidebarOpen">☰</button>
       <div class="search">
         <span>🔍</span>
-        <input placeholder="Search pickups, opportunities…" />
+        <input placeholder="Search pickups, opportunities…" [(ngModel)]="searchQuery" (keyup.enter)="onNavSearch()" />
       </div>
       <div class="top-right">
         <button class="bell" aria-label="Notifications">🔔</button>
