@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { OpportunityService } from '../opportunity.service';
@@ -32,6 +32,7 @@ export class OpportunityList implements OnInit, OnDestroy {
     private opportunityService: OpportunityService,
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,  
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -39,13 +40,19 @@ export class OpportunityList implements OnInit, OnDestroy {
   get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
 
   ngOnInit() {
+    // reads ?search= from navbar and pre-fills search box
+    this.route.queryParams.subscribe(params => {
+      if (params['search']) {
+        this.search = params['search'];
+      }
+      this.loadOpportunities();
+    });
+
     this.searchSubject
       .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe(() => {
         this.loadOpportunities();
       });
-
-    this.loadOpportunities();
 
     if (this.auth.getUser()?.role === 'volunteer') {
       this.loadMyApplications();
@@ -70,7 +77,6 @@ export class OpportunityList implements OnInit, OnDestroy {
       next: (data) => {
         this.opportunities = data;
 
-        // Build unique city list from results for dropdown
         const allCities = data
           .map(o => o.location?.trim())
           .filter(Boolean) as string[];
@@ -111,7 +117,7 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   clearSearch() {
     this.search = '';
-    this.loadOpportunities();
+    this.router.navigate(['/opportunities']);  //clears query param too
   }
 
   deleteOpportunity(id: string) {
