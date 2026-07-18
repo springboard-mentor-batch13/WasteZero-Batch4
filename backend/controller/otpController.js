@@ -3,6 +3,8 @@ import User from '../models/User.js';
 import sendEmail from '../utils/sendEmail.js';
 import bcrypt from 'bcryptjs';
 
+const isStrongPassword = (password) => password.length >= 6 && /\d/.test(password);
+
 const createOtpForEmail = async (email) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -27,8 +29,16 @@ export const sendOtp = async (req, res) => {
 
     const otp = await createOtpForEmail(user.email);
 
-    //Respond IMMEDIATELY — don't wait for email
-    res.json({ message: `OTP sent to ${user.email}` });
+    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+
+    // Respond immediately; email is sent in the background when configured.
+    res.json({
+      message: canSendEmail
+        ? `OTP sent to ${user.email}`
+        : `Email is not configured. Development OTP: ${otp}`,
+    });
+
+    if (!canSendEmail) return;
 
     sendEmail({
       to: user.email,
@@ -54,7 +64,15 @@ export const sendForgotPasswordOtp = async (req, res) => {
 
     const otp = await createOtpForEmail(user.email);
 
-    res.json({ message: `OTP sent to ${user.email}` });
+    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+
+    res.json({
+      message: canSendEmail
+        ? `OTP sent to ${user.email}`
+        : `Email is not configured. Development OTP: ${otp}`,
+    });
+
+    if (!canSendEmail) return;
 
     sendEmail({
       to: user.email,
@@ -75,8 +93,8 @@ export const resetForgotPassword = async (req, res) => {
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: 'Passwords do not match' });
 
-  if (newPassword.length < 6)
-    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  if (!isStrongPassword(newPassword))
+    return res.status(400).json({ message: 'Password must be at least 6 characters and contain one number' });
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
@@ -114,8 +132,8 @@ export const verifyOtpAndChangePassword = async (req, res) => {
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: 'Passwords do not match' });
 
-  if (newPassword.length < 6)
-    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  if (!isStrongPassword(newPassword))
+    return res.status(400).json({ message: 'Password must be at least 6 characters and contain one number' });
 
   try {
     const user = await User.findById(req.user._id);

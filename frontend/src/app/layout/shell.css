@@ -2,14 +2,14 @@
   display: flex;
   min-height: 100vh;
   height: 100vh;          
-  background: #f4f7f5;
+  background: var(--app-bg);
   overflow: hidden;
 }
 
 .sidebar {
   width: 250px;
   flex-shrink: 0;
-  background: #fff;
+  background: var(--surface);
   border-right: 1px solid var(--border);
   padding: 22px 16px;
   display: flex;
@@ -106,7 +106,7 @@
   overflow: hidden;
 }
 .menu a:hover {
-  background: #f0f5f1;
+  background: var(--surface-hover);
 }
 .menu a.active {
   background: var(--green-light);
@@ -136,7 +136,7 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: #b26a00;
-  background: #fff3e0;
+  background: var(--warning-bg);
   padding: 2px 6px;
   border-radius: 6px;
 }
@@ -146,7 +146,7 @@
   padding: 11px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   font-weight: 500;
   cursor: pointer;
@@ -166,7 +166,7 @@
 
 .topbar {
   height: 64px;
-  background: #fff;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -189,7 +189,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f4f7f5;
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 14px;
@@ -214,8 +214,27 @@
 .bell {
   border: none;
   background: transparent;
+  color: var(--ink);
   font-size: 1.2rem;
   cursor: pointer;
+}
+.theme-toggle {
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 12px;
+}
+.theme-toggle:hover {
+  background: var(--surface-hover);
+}
+.theme-toggle strong {
+  font-size: 0.8rem;
 }
 .chip {
   display: flex;
@@ -266,6 +285,9 @@
     z-index: 15;
   }
   .chip-name {
+    display: none;
+  }
+  .theme-toggle strong {
     display: none;
   }
 }

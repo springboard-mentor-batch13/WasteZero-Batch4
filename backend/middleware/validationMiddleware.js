@@ -34,10 +34,6 @@ const validateRegister = [
     .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     .matches(/\d/).withMessage('Password must contain at least one number'),
 
-  body('role')
-    .optional()
-    .isIn(['volunteer', 'ngo', 'admin']).withMessage('Role must be volunteer, ngo, or admin'),
-
   handleValidationErrors, 
 ];
 

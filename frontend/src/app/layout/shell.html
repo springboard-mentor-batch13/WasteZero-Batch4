@@ -76,6 +76,10 @@
         <input placeholder="Search pickups, opportunities…" [(ngModel)]="searchQuery" (keyup.enter)="onNavSearch()" />
       </div>
       <div class="top-right">
+        <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
+          <span>{{ theme === 'dark' ? '☀️' : '🌙' }}</span>
+          <strong>{{ theme === 'dark' ? 'Light' : 'Dark' }}</strong>
+        </button>
         <button class="bell" aria-label="Notifications">🔔</button>
         <div class="chip">
           <div class="avatar sm">{{ initial }}</div>

@@ -48,7 +48,7 @@ export class Profile implements OnInit {
     this.passwordForm = this.fb.group({
       otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
       currentPassword: ['', [Validators.required, Validators.minLength(6)]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6), Validators.pattern(/\d/)]],
       confirmPassword: ['', Validators.required],
     });
 
@@ -165,6 +165,12 @@ export class Profile implements OnInit {
 
     if (newPassword !== confirmPassword) {
       this.passwordError = 'Passwords do not match';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (!/\d/.test(newPassword)) {
+      this.passwordError = 'New password must contain at least one number';
       this.cdr.detectChanges();
       return;
     }

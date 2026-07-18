@@ -19,6 +19,12 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
+const canManageOpportunity = (opportunity, user) => {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  return opportunity.ngo_id.toString() === user._id.toString();
+};
+
 const createOpportunity = async (req, res) => {
   const { title, description, required_skills, duration, location, date } =
     req.body;
@@ -103,6 +109,11 @@ const updateOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     if (req.body.title) opportunity.title = req.body.title;
 
     if (req.body.description) opportunity.description = req.body.description;
@@ -137,6 +148,11 @@ const deleteOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     await Application.deleteMany({ opportunity_id: req.params.id });
     await opportunity.deleteOne();
     res.json({ message: "Opportunity and related applications deleted" });

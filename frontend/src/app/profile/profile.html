@@ -143,12 +143,13 @@
                   <input
                     formControlName="newPassword"
                     [type]="showNewPassword ? 'text' : 'password'"
-                    placeholder="At least 6 characters"
+                    placeholder="At least 6 characters and 1 number"
                   />
                   <button type="button" class="eye-btn" (click)="toggleNewPassword()">
                     {{ showNewPassword ? '🙈' : '👁️' }}
                   </button>
                 </div>
+                <small>Use at least 6 characters and include one number.</small>
               </div>
 
               <div class="field">
