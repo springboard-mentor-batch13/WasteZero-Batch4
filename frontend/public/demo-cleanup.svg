@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
+  <title id="title">Cleanup drive demo image</title>
+  <desc id="desc">Illustration of volunteers cleaning plastic waste from a park.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bdebd1"/>
+      <stop offset=".62" stop-color="#eaf8ef"/>
+      <stop offset="1" stop-color="#d9eadf"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="620" fill="url(#sky)"/>
+  <path d="M0 420 C170 365 295 438 460 390 C650 335 790 430 1200 352 L1200 620 L0 620 Z" fill="#2f7d46"/>
+  <path d="M0 480 C240 420 410 510 620 450 C850 385 970 460 1200 430 L1200 620 L0 620 Z" fill="#1f6b3a"/>
+  <g transform="translate(690 188)">
+    <circle cx="80" cy="48" r="32" fill="#20372a"/>
+    <rect x="50" y="82" width="64" height="145" rx="28" fill="#f6fbf7"/>
+    <path d="M55 115 L0 190" stroke="#20372a" stroke-width="18" stroke-linecap="round"/>
+    <path d="M108 118 L178 178" stroke="#20372a" stroke-width="18" stroke-linecap="round"/>
+    <path d="M72 220 L40 305" stroke="#20372a" stroke-width="20" stroke-linecap="round"/>
+    <path d="M98 220 L150 305" stroke="#20372a" stroke-width="20" stroke-linecap="round"/>
+    <rect x="164" y="155" width="92" height="120" rx="14" fill="#f04444"/>
+    <rect x="184" y="130" width="52" height="35" rx="8" fill="#efefef"/>
+  </g>
+  <g transform="translate(195 312)" fill="#eef5ef">
+    <rect x="0" y="80" width="92" height="28" rx="14"/>
+    <rect x="135" y="120" width="120" height="28" rx="14"/>
+    <rect x="295" y="68" width="80" height="28" rx="14"/>
+    <circle cx="430" cy="118" r="20"/>
+    <rect x="520" y="86" width="110" height="28" rx="14"/>
+  </g>
+  <g fill="#16341f">
+    <text x="78" y="100" font-family="Segoe UI, Arial, sans-serif" font-size="56" font-weight="800">Plastic Cleanup Drive</text>
+    <text x="80" y="154" font-family="Segoe UI, Arial, sans-serif" font-size="28" opacity=".72">Clear public spaces and protect local ecosystems</text>
+  </g>
+</svg>

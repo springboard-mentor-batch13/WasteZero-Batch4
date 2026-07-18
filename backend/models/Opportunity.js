@@ -29,9 +29,12 @@ const opportunitySchema = new mongoose.Schema(
       default: 'open'
     },
     image_url: {
-    type: String,
-    default: ""
-  },
+      type: String,
+      default: ''
+    },
+    date: {
+      type: Date
+    },
   },
   { timestamps: true }
 );

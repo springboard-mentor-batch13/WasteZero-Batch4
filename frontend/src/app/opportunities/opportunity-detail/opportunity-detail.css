@@ -1,0 +1,268 @@
+.detail-page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.back-link {
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--green-dark);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 7px;
+  margin-bottom: 18px;
+  padding: 0;
+}
+
+.back-link::before {
+  content: "<";
+  font-size: 1rem;
+}
+
+.detail-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.detail-head h1 {
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  margin: 0 0 4px;
+}
+
+.detail-head p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+.status {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  text-transform: capitalize;
+}
+
+.status.open {
+  background: #e6f6ed;
+  color: #167a3c;
+}
+
+.status.closed {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.status.in-progress {
+  background: #fff4df;
+  color: #aa5a00;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.hero-image {
+  aspect-ratio: 16 / 5;
+  background: #dde7e1;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+  object-fit: cover;
+  overflow: hidden;
+  width: 100%;
+}
+
+.hero-image.placeholder {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(22, 52, 31, 0.78), rgba(46, 125, 50, 0.5)),
+    url('/recycle-hero.jpg') center / cover no-repeat;
+  color: #fff;
+  display: flex;
+  font-size: 1.2rem;
+  font-weight: 800;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.panel,
+.details-card,
+.state-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.panel {
+  padding: 22px 24px;
+}
+
+.panel h2,
+.details-card h2 {
+  color: var(--ink);
+  font-size: 1.02rem;
+  margin: 0 0 14px;
+}
+
+.panel p {
+  color: #33443c;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted) !important;
+}
+
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.skill-list span {
+  background: #f1f6f2;
+  border: 1px solid #dde9e0;
+  border-radius: 999px;
+  color: #284235;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 10px;
+}
+
+.details-card {
+  align-self: start;
+  padding: 22px;
+}
+
+.detail-item {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 28px 1fr;
+  margin-bottom: 18px;
+}
+
+.meta-icon {
+  align-items: center;
+  background: #f2f6f4;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--green-dark);
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.detail-item strong {
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 2px;
+}
+
+.detail-item p,
+.detail-item small {
+  color: var(--muted);
+  display: block;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.action-row {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  padding-top: 16px;
+}
+
+.btn-edit,
+.btn-delete,
+.btn-apply {
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.btn-edit {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.btn-delete {
+  background: #ef4444;
+  border: 1px solid #ef4444;
+  color: #fff;
+}
+
+.btn-apply {
+  background: var(--green-dark);
+  border: none;
+  color: #fff;
+  width: 100%;
+}
+
+.btn-delete:disabled,
+.btn-apply:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.state-card {
+  color: var(--muted);
+  padding: 42px 24px;
+  text-align: center;
+}
+
+.state-card.error {
+  color: var(--danger);
+}
+
+@media (max-width: 920px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-image {
+    aspect-ratio: 16 / 8;
+  }
+}
+
+@media (max-width: 560px) {
+  .detail-head {
+    flex-direction: column;
+  }
+
+  .panel,
+  .details-card {
+    padding: 18px;
+  }
+}

@@ -59,14 +59,10 @@
   @if (!loading && !error && opportunities.length > 0) {
     <div class="grid">
       @for (opp of opportunities; track opp._id) {
-        <div class="card">
+        <div class="card" [routerLink]="['/opportunities', opp._id]">
 
           <!-- Image -->
-          @if (opp.image_url) {
-            <img [src]="opp.image_url" [alt]="opp.title" class="card-img" />
-          } @else {
-            <div class="card-img-placeholder">No image available</div>
-          }
+          <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
 
           <div class="card-body">
 
@@ -80,7 +76,7 @@
 
             <!-- Description -->
             <p class="card-desc">
-              {{ opp.description?.substring(0, 80) }}...
+              {{ opp.description.substring(0, 80) }}...
             </p>
 
             <!-- Meta -->
@@ -91,7 +87,7 @@
               @if (opp.duration) {
                 <span>⏱ {{ opp.duration }}</span>
               }
-              @if (opp.required_skills?.length) {
+              @if (opp.required_skills.length) {
                 <span>🛠 {{ opp.required_skills.join(', ') }}</span>
               }
             </div>
@@ -101,7 +97,7 @@
               <button
                 class="btn-apply"
                 [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
-                (click)="applyForOpportunity(opp._id)"
+                (click)="applyForOpportunity(opp._id); $event.stopPropagation()"
               >
                 @if (appliedIds.has(opp._id)) {
                   ✓ Applied
@@ -119,12 +115,13 @@
                 <button
                   class="btn-edit"
                   [routerLink]="['/opportunities/edit', opp._id]"
+                  (click)="$event.stopPropagation()"
                 >
                   ✏️ Edit
                 </button>
                 <button
                   class="btn-delete"
-                  (click)="deleteOpportunity(opp._id)"
+                  (click)="deleteOpportunity(opp._id); $event.stopPropagation()"
                 >
                   🗑️ Delete
                 </button>
