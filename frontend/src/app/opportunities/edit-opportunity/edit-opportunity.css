@@ -1,5 +1,5 @@
 .form-page {
-    max-width: 680px;
+    max-width: 820px;
     margin: 0 auto;
     padding: 8px 0;
 }
@@ -16,7 +16,7 @@
 }
 
 .form-title {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     margin: 0 0 4px;
     color: var(--ink);
@@ -45,10 +45,11 @@
 }
 
 .form-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 24px 28px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: var(--shadow-sm);
 }
 
 .field {
@@ -74,7 +75,7 @@
     border-radius: 9px;
     font-size: 0.92rem;
     font-family: inherit;
-    background: #f9fcf9;
+    background: var(--input-bg);
     box-sizing: border-box;
 }
 
@@ -84,7 +85,7 @@
     outline: none;
     border-color: var(--green);
     box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
-    background: #fff;
+    background: var(--surface);
 }
 
 .field textarea {
@@ -112,7 +113,7 @@
     padding: 10px 22px;
     border: 1px solid var(--border);
     border-radius: 9px;
-    background: #fff;
+    background: var(--surface);
     cursor: pointer;
     font-size: 0.9rem;
     font-family: inherit;
@@ -120,7 +121,7 @@
 
 .btn-submit {
     padding: 10px 24px;
-    background: var(--green-dark);
+    background: linear-gradient(135deg, #3da35b, #175d35);
     color: #fff;
     border: none;
     border-radius: 9px;
@@ -159,4 +160,11 @@
   margin-top: 5px;
   font-size: 0.76rem;
   color: var(--green-dark);
+}
+
+@media (max-width: 680px) {
+    .row,
+    .form-actions {
+        flex-direction: column;
+    }
 }

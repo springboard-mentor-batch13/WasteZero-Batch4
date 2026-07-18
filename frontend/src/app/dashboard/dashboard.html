@@ -5,7 +5,10 @@
       <h1>Welcome back, {{ user?.name }}</h1>
       <p class="sub">{{ greeting }}</p>
     </div>
-    <span class="role-tag">{{ role }}</span>
+    <div class="head-actions">
+      <a routerLink="/opportunities" class="head-link">View opportunities</a>
+      <span class="role-tag">{{ role }}</span>
+    </div>
   </header>
 
   <div class="stat-grid">

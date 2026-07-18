@@ -1,5 +1,5 @@
 .detail-page {
-  max-width: 1120px;
+  max-width: 1180px;
   margin: 0 auto;
 }
 
@@ -24,16 +24,21 @@
 }
 
 .detail-head {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
   align-items: flex-start;
   display: flex;
   gap: 16px;
   justify-content: space-between;
   margin-bottom: 18px;
+  padding: 20px;
 }
 
 .detail-head h1 {
   color: var(--ink);
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   line-height: 1.2;
   margin: 0 0 4px;
 }
@@ -70,7 +75,7 @@
 .detail-grid {
   display: grid;
   gap: 22px;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 340px;
 }
 
 .main-column {
@@ -81,9 +86,9 @@
 }
 
 .hero-image {
-  aspect-ratio: 16 / 5;
+  aspect-ratio: 16 / 6;
   background: #dde7e1;
-  border-radius: 8px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   display: block;
   object-fit: cover;
@@ -110,12 +115,12 @@
 .state-card {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 14px;
   box-shadow: var(--shadow-sm);
 }
 
 .panel {
-  padding: 22px 24px;
+  padding: 24px;
 }
 
 .panel h2,
@@ -154,7 +159,9 @@
 
 .details-card {
   align-self: start;
-  padding: 22px;
+  padding: 24px;
+  position: sticky;
+  top: 86px;
 }
 
 .detail-item {
@@ -203,7 +210,7 @@
 .btn-edit,
 .btn-delete,
 .btn-apply {
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-family: inherit;
   font-size: 0.86rem;
@@ -224,7 +231,7 @@
 }
 
 .btn-apply {
-  background: var(--green-dark);
+  background: linear-gradient(135deg, #3da35b, #175d35);
   border: none;
   color: #fff;
   width: 100%;
@@ -249,6 +256,9 @@
 @media (max-width: 920px) {
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+  .details-card {
+    position: static;
   }
 
   .hero-image {

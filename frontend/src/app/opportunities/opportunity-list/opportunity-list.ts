@@ -38,6 +38,9 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   get userRole() { return this.auth.getUser()?.role; }
   get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+  get totalCount() { return this.opportunities.length; }
+  get openCount() { return this.opportunities.filter(opp => opp.status === 'open').length; }
+  get cityCount() { return this.cities.length; }
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -149,6 +152,11 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   statusColor(status: string): string {
     return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
+  }
+
+  excerpt(text: string): string {
+    if (!text) return '';
+    return text.length > 110 ? `${text.slice(0, 110)}...` : text;
   }
 
   imageFor(opp: Opportunity): string {

@@ -1,18 +1,34 @@
 <div class="opp-page">
 
-  <div class="opp-header">
+  <section class="opp-hero">
     <div>
-      <h2 class="opp-title">Volunteer Opportunities</h2>
-      <p class="opp-sub">Browse and join recycling and waste management initiatives</p>
+      <p class="eyebrow">Community workboard</p>
+      <h1 class="opp-title">Volunteer Opportunities</h1>
+      <p class="opp-sub">Find active recycling drives, cleanup events, and local waste management initiatives.</p>
     </div>
     @if (canManage) {
       <button class="btn-create" [routerLink]="['/opportunities/create']">
-        + Create Opportunity
+        Create Opportunity
       </button>
     }
-  </div>
+  </section>
 
-  <div class="filters">
+  <section class="summary-row">
+    <div class="summary-card">
+      <span>Total</span>
+      <strong>{{ totalCount }}</strong>
+    </div>
+    <div class="summary-card accent-green">
+      <span>Open</span>
+      <strong>{{ openCount }}</strong>
+    </div>
+    <div class="summary-card accent-blue">
+      <span>Cities</span>
+      <strong>{{ cityCount }}</strong>
+    </div>
+  </section>
+
+  <section class="filters">
     <input
       class="search-input"
       placeholder="Search by title, skills, location..."
@@ -33,7 +49,7 @@
         <option [value]="city">{{ city }}</option>
       }
     </select>
-  </div>
+  </section>
 
   @if (search) {
     <p class="search-hint">
@@ -65,46 +81,50 @@
   @if (!loading && !error && opportunities.length > 0) {
     <div class="grid">
       @for (opp of opportunities; track opp._id) {
-        <div class="card">
+        <article class="card">
 
-          <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
+          <div class="card-media">
+            <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
+            <span class="badge" [style.background]="statusColor(opp.status)">
+              {{ opp.status }}
+            </span>
+          </div>
 
           <div class="card-body">
-            <div class="card-title-row">
-              <span class="card-title">{{ opp.title }}</span>
-              <span class="badge" [style.background]="statusColor(opp.status)">
-                {{ opp.status }}
-              </span>
-            </div>
+            <h2 class="card-title">{{ opp.title }}</h2>
 
-            <p class="card-desc">{{ opp.description.substring(0, 80) }}...</p>
+            <p class="card-desc">{{ excerpt(opp.description) }}</p>
 
             <div class="card-meta">
               @if (opp.location) {
-                <span>Location: {{ opp.location }}</span>
+                <span><strong>Location</strong>{{ opp.location }}</span>
               }
               @if (opp.duration) {
-                <span>Duration: {{ opp.duration }}</span>
+                <span><strong>Duration</strong>{{ opp.duration }}</span>
               }
               @if (opp.required_skills.length) {
-                <span>Skills: {{ opp.required_skills.join(', ') }}</span>
+                <span><strong>Skills</strong>{{ opp.required_skills.join(', ') }}</span>
               }
             </div>
 
             @if (!canManage) {
-              <button
-                class="btn-apply"
-                [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
-                (click)="applyForOpportunity(opp._id)"
-              >
-                @if (appliedIds.has(opp._id)) { Applied }
-                @else if (applyingId === opp._id) { Applying... }
-                @else { Apply Now }
-              </button>
+              <div class="card-actions">
+                <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">View Details</a>
+                <button
+                  class="btn-apply"
+                  [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
+                  (click)="applyForOpportunity(opp._id)"
+                >
+                  @if (appliedIds.has(opp._id)) { Applied }
+                  @else if (applyingId === opp._id) { Applying... }
+                  @else { Apply Now }
+                </button>
+              </div>
             }
 
             @if (canManage) {
               <div class="manage-btns">
+                <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">Details</a>
                 <button class="btn-edit" [routerLink]="['/opportunities/edit', opp._id]">
                   Edit
                 </button>
@@ -115,7 +135,7 @@
             }
 
           </div>
-        </div>
+        </article>
       }
     </div>
   }

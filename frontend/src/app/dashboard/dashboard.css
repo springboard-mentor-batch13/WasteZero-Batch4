@@ -1,13 +1,15 @@
-.dash {
-  max-width: 1120px;
-}
+.dash { max-width: 1180px; }
 
 .dash-head {
+  background: linear-gradient(135deg, #123924, #278a49);
+  border-radius: 18px;
+  color: #fff;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 26px;
+  margin-bottom: 20px;
+  padding: 28px;
 }
 .eyebrow {
   margin: 0 0 4px;
@@ -15,19 +17,31 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--green);
+  color: rgba(255, 255, 255, 0.72);
 }
 .dash-head h1 {
   margin: 0 0 5px;
-  font-size: 1.7rem;
+  font-size: 2rem;
 }
 .dash-head .sub {
   margin: 0;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.78);
+}
+.head-actions { display: flex; gap: 10px; align-items: center; }
+.head-link {
+  background: #fff;
+  border-radius: 10px;
+  color: #17462b;
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 9px 13px;
+  text-decoration: none;
+  white-space: nowrap;
 }
 .role-tag {
-  background: var(--green-light);
-  color: var(--green-dark);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
   padding: 6px 15px;
   border-radius: 999px;
   font-size: 0.78rem;
@@ -43,16 +57,15 @@
   margin-bottom: 22px;
 }
 .stat-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 20px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.12s, box-shadow 0.2s;
 }
 .stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
+  border-color: rgba(39, 138, 73, 0.32);
 }
 .stat-top {
   display: flex;
@@ -61,9 +74,9 @@
   margin-bottom: 14px;
 }
 .stat-ic {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   font-size: 1.4rem;
@@ -97,9 +110,9 @@
   margin-bottom: 18px;
 }
 .panel {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 22px 24px;
   box-shadow: var(--shadow-sm);
 }
@@ -166,8 +179,8 @@
   align-items: center;
   gap: 12px;
   padding: 13px 15px;
-  border-radius: 11px;
-  background: #f5f8f6;
+  border-radius: 10px;
+  background: var(--input-bg);
   color: var(--ink);
   text-decoration: none;
   font-weight: 500;
@@ -225,6 +238,10 @@ a.q:hover {
 }
 
 @media (max-width: 820px) {
+  .dash-head,
+  .head-actions {
+    flex-direction: column;
+  }
   .panels {
     grid-template-columns: 1fr;
   }
