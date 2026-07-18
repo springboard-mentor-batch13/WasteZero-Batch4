@@ -35,14 +35,15 @@ export const sendOtp = async (req, res) => {
     res.json({
       message: canSendEmail
         ? `OTP sent to ${user.email}`
-        : `Email is not configured. Development OTP: ${otp}`,
+        : 'Email is not configured. Use the returned OTP to continue.',
+      otp: canSendEmail ? undefined : otp,
     });
 
     if (!canSendEmail) return;
 
     sendEmail({
       to: user.email,
-      subject: 'WasteZero — Your OTP for Password Change',
+      subject: 'WasteZero - Your OTP for Password Change',
       text: `Your OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
     }).catch(err => console.error('Email error:', err));
   } catch (error) {
@@ -69,7 +70,8 @@ export const sendForgotPasswordOtp = async (req, res) => {
     res.json({
       message: canSendEmail
         ? `OTP sent to ${user.email}`
-        : `Email is not configured. Development OTP: ${otp}`,
+        : 'Email is not configured. Use the returned OTP to continue.',
+      otp: canSendEmail ? undefined : otp,
     });
 
     if (!canSendEmail) return;
