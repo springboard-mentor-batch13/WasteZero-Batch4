@@ -61,7 +61,7 @@ ng version
 
 # Project Structure
 
-
+```
 WasteZero/
 │
 ├── frontend/
@@ -82,7 +82,7 @@ WasteZero/
 │
 ├── .env.example
 └── README.md
-
+```
 
 <hr>
 
