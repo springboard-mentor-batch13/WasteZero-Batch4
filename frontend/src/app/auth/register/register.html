@@ -1,23 +1,23 @@
 <div class="auth-split">
   <aside class="auth-hero">
     <div class="hero-content">
-      <div class="hero-logo">♻️ WasteZero</div>
+      <div class="hero-logo">WasteZero</div>
       <h2>Join the movement for a cleaner planet</h2>
       <p class="lead">
         Create your account to schedule smart waste pickups, track your recycling impact,
         and connect with collectors and NGOs near you.
       </p>
       <ul class="hero-points">
-        <li><span class="tick">✓</span> Schedule pickups in seconds</li>
-        <li><span class="tick">✓</span> Categorize plastic, organic &amp; e-waste</li>
-        <li><span class="tick">✓</span> Get matched with agents by location</li>
-        <li><span class="tick">✓</span> Track your personal recycling stats</li>
+        <li><span class="tick">OK</span> Schedule pickups in seconds</li>
+        <li><span class="tick">OK</span> Categorize plastic, organic &amp; e-waste</li>
+        <li><span class="tick">OK</span> Get matched with agents by location</li>
+        <li><span class="tick">OK</span> Track your personal recycling stats</li>
       </ul>
 
       <div class="hero-stats">
         <div><strong>12K+</strong><span>Pickups done</span></div>
         <div><strong>850+</strong><span>Active agents</span></div>
-        <div><strong>4.9★</strong><span>User rating</span></div>
+        <div><strong>4.9/5</strong><span>User rating</span></div>
       </div>
     </div>
   </aside>
@@ -25,7 +25,7 @@
   <div class="auth-form-side">
     <div class="auth-form">
       <div class="auth-head">
-        <span class="mini-logo">♻️ WasteZero</span>
+        <span class="mini-logo">WasteZero</span>
         <h1>Create your account</h1>
         <p>It's free and takes less than a minute.</p>
       </div>
@@ -51,7 +51,7 @@
             <div class="password-wrap">
               <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="At least 6 characters and 1 number">
               <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
-                {{ showPassword ? '🙈' : '👁️' }}
+                {{ showPassword ? 'Hide' : 'Show' }}
               </button>
             </div>
             <small>Use at least 6 characters and include one number.</small>
@@ -68,7 +68,6 @@
             <select formControlName="role">
               <option value="volunteer">Volunteer</option>
               <option value="ngo">NGO</option>
-              <option value="admin">Admin</option>   
             </select>
           </div>
           <div class="field">
@@ -78,7 +77,7 @@
         </div>
 
         <button class="btn-primary" type="submit" [disabled]="loading">
-          {{ loading ? 'Creating account…' : 'Create account' }}
+          {{ loading ? 'Creating account...' : 'Create account' }}
         </button>
       </form>
 

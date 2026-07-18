@@ -1,7 +1,7 @@
 <div class="shell">
   <aside class="sidebar" [class.open]="sidebarOpen">
     <div class="brand">
-      <span class="brand-logo">♻️</span> WasteZero
+      <span class="brand-logo">WZ</span> WasteZero
     </div>
 
     <div class="user-card">
@@ -15,26 +15,26 @@
     <p class="menu-label">Main Menu</p>
     <nav class="menu">
       <a routerLink="/dashboard" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">🏠</span>
+        <span class="ic">DB</span>
         <span class="label">Dashboard</span>
       </a>
       <span class="item soon">
-        <span class="ic">📅</span>
+        <span class="ic">PK</span>
         <span class="label">Schedule Pickup</span>
         <em>soon</em>
       </span>
       
       <a routerLink="/opportunities" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">🌱</span>
+        <span class="ic">OP</span>
         <span class="label">Opportunities</span>
       </a>
       <span class="item soon">
-        <span class="ic">💬</span>
+        <span class="ic">MS</span>
         <span class="label">Messages</span>
         <em>soon</em>
       </span>
       <span class="item soon">
-        <span class="ic">📈</span>
+        <span class="ic">IM</span>
         <span class="label">My Impact</span>
         <em>soon</em>
       </span>
@@ -43,44 +43,43 @@
     <p class="menu-label">Settings</p>
     <nav class="menu">
       <a routerLink="/profile" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">👤</span>
+        <span class="ic">PR</span>
         <span class="label">My Profile</span>
       </a>
       <span class="item soon">
-        <span class="ic">⚙️</span>
+        <span class="ic">ST</span>
         <span class="label">Settings</span>
         <em>soon</em>
       </span>
       <span class="item soon">
-        <span class="ic">❓</span>
+        <span class="ic">HP</span>
         <span class="label">Help &amp; Support</span>
         <em>soon</em>
       </span>
       <span class="item soon">
-        <span class="ic">🛡️</span>
+        <span class="ic">AD</span>
         <span class="label">Admin Panel</span>
         <em>soon</em>
       </span>
     </nav>
 
-    <button class="logout" (click)="logout()">↩ Logout</button>
+    <button class="logout" (click)="logout()">Logout</button>
   </aside>
 
   <div class="backdrop" [class.show]="sidebarOpen" (click)="sidebarOpen = false"></div>
 
   <div class="main">
     <header class="topbar">
-      <button class="hamburger" (click)="sidebarOpen = !sidebarOpen">☰</button>
+      <button class="hamburger" (click)="sidebarOpen = !sidebarOpen">Menu</button>
       <div class="search">
-        <span>🔍</span>
-        <input placeholder="Search pickups, opportunities…" [(ngModel)]="searchQuery" (keyup.enter)="onNavSearch()" />
+        <span>Search</span>
+        <input placeholder="Search pickups, opportunities..." [(ngModel)]="searchQuery" (keyup.enter)="onNavSearch()" />
       </div>
       <div class="top-right">
         <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
-          <span>{{ theme === 'dark' ? '☀️' : '🌙' }}</span>
           <strong>{{ theme === 'dark' ? 'Light' : 'Dark' }}</strong>
         </button>
-        <button class="bell" aria-label="Notifications">🔔</button>
+        <button class="bell" aria-label="Notifications">Alerts</button>
         <div class="chip">
           <div class="avatar sm">{{ initial }}</div>
           <span class="chip-name">{{ user?.name }}</span>

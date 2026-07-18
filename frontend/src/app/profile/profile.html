@@ -1,10 +1,9 @@
 <div class="profile-page" style="width:100%">
   @if (loading) {
-    <p class="loading">Loading…</p>
+    <p class="loading">Loading...</p>
   } @else {
     <div class="profile-card">
 
-      <!-- Header -->
       <div class="profile-header">
         <div class="avatar">{{ initial }}</div>
         <div class="who">
@@ -14,7 +13,6 @@
         </div>
       </div>
 
-      <!-- Tabs -->
       <div class="tabs">
         <button class="tab-btn" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
           Profile
@@ -24,7 +22,6 @@
         </button>
       </div>
 
-      <!-- ── PROFILE TAB ── -->
       @if (activeTab === 'profile') {
         <div class="tab-content">
           <h3 class="section-title">Personal Information</h3>
@@ -63,17 +60,16 @@
 
             <div class="field">
               <label>Bio</label>
-              <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself…"></textarea>
+              <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself..."></textarea>
             </div>
 
             <button class="btn-primary" type="submit" [disabled]="saving || profileForm.invalid">
-              {{ saving ? 'Saving…' : 'Save Changes' }}
+              {{ saving ? 'Saving...' : 'Save Changes' }}
             </button>
           </form>
         </div>
       }
 
-      <!-- ── PASSWORD TAB ── -->
       @if (activeTab === 'password') {
         <div class="tab-content">
           <h3 class="section-title">Change Password</h3>
@@ -83,14 +79,13 @@
             <div class="alert success">{{ passwordMessage }}</div>
           }
 
-          <!-- STEP 1: Request OTP -->
           @if (!otpSent) {
             @if (otpError) {
               <div class="alert error">{{ otpError }}</div>
             }
 
             <div class="otp-info">
-              <span class="otp-icon">📧</span>
+              <span class="otp-icon">OTP</span>
               <p>
                 We will send a 6-digit OTP to <strong>{{ user?.email }}</strong>
                 to verify it's you before changing your password.
@@ -98,11 +93,10 @@
             </div>
 
             <button class="btn-primary" (click)="requestOtp()" [disabled]="sendingOtp">
-              {{ sendingOtp ? 'Sending OTP…' : 'Send OTP to My Email' }}
+              {{ sendingOtp ? 'Sending OTP...' : 'Send OTP to My Email' }}
             </button>
           }
 
-          <!-- STEP 2: Enter OTP + Passwords -->
           @if (otpSent) {
             @if (otpMessage) {
               <div class="alert success">{{ otpMessage }}</div>
@@ -132,7 +126,7 @@
                     placeholder="Enter your current password"
                   />
                   <button type="button" class="eye-btn" (click)="toggleCurrentPassword()">
-                    {{ showCurrentPassword ? '🙈' : '👁️' }}
+                    {{ showCurrentPassword ? 'Hide' : 'Show' }}
                   </button>
                 </div>
               </div>
@@ -146,7 +140,7 @@
                     placeholder="At least 6 characters and 1 number"
                   />
                   <button type="button" class="eye-btn" (click)="toggleNewPassword()">
-                    {{ showNewPassword ? '🙈' : '👁️' }}
+                    {{ showNewPassword ? 'Hide' : 'Show' }}
                   </button>
                 </div>
                 <small>Use at least 6 characters and include one number.</small>
@@ -161,7 +155,7 @@
                     placeholder="Repeat new password"
                   />
                   <button type="button" class="eye-btn" (click)="toggleConfirmPassword()">
-                    {{ showConfirmPassword ? '🙈' : '👁️' }}
+                    {{ showConfirmPassword ? 'Hide' : 'Show' }}
                   </button>
                 </div>
               </div>
@@ -175,7 +169,7 @@
                   class="btn-primary"
                   [disabled]="changingPassword || passwordForm.invalid"
                 >
-                  {{ changingPassword ? 'Changing…' : 'Change Password' }}
+                  {{ changingPassword ? 'Changing...' : 'Change Password' }}
                 </button>
               </div>
             </form>

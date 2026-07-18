@@ -1,7 +1,7 @@
 .shell {
   display: flex;
   min-height: 100vh;
-  height: 100vh;          
+  height: 100vh;
   background: var(--app-bg);
   overflow: hidden;
 }
@@ -30,7 +30,8 @@
   padding: 0 8px 18px;
 }
 .brand-logo {
-  font-size: 1.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
 }
 
 .user-card {
@@ -114,8 +115,9 @@
   font-weight: 600;
 }
 .menu .ic {
-  font-size: 1.05rem;
-  width: 20px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  width: 28px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -129,11 +131,9 @@
   cursor: default;
 }
 .menu .item em {
-  flex-shrink: 0;
   font-style: normal;
   font-size: 0.56rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: #b26a00;
   background: var(--warning-bg);
@@ -179,9 +179,13 @@
 
 .hamburger {
   display: none;
-  border: none;
-  background: transparent;
-  font-size: 1.3rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 10px;
   cursor: pointer;
 }
 
@@ -195,6 +199,10 @@
   padding: 9px 14px;
   flex: 1;
   max-width: 420px;
+}
+.search span {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 .search input {
   border: none;
@@ -212,29 +220,25 @@
   gap: 14px;
 }
 .bell {
-  border: none;
-  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
   color: var(--ink);
-  font-size: 1.2rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 10px;
   cursor: pointer;
 }
 .theme-toggle {
   align-items: center;
   background: var(--input-bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 20px;
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
-  gap: 7px;
   min-height: 34px;
   padding: 6px 12px;
-}
-.theme-toggle:hover {
-  background: var(--surface-hover);
-}
-.theme-toggle strong {
-  font-size: 0.8rem;
 }
 .chip {
   display: flex;

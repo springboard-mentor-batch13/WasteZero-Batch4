@@ -1,22 +1,22 @@
 <div class="auth-split">
   <aside class="auth-hero">
     <div class="hero-content">
-      <div class="hero-logo">♻️ WasteZero</div>
+      <div class="hero-logo">WasteZero</div>
       <h2>Welcome back to a cleaner tomorrow</h2>
       <p class="lead">
         Sign in to manage your pickups, track your recycling impact, and stay connected
         with your community.
       </p>
       <ul class="hero-points">
-        <li><span class="tick">✓</span> Schedule &amp; track waste pickups</li>
-        <li><span class="tick">✓</span> Monitor your recycling stats</li>
-        <li><span class="tick">✓</span> Connect with local collectors &amp; NGOs</li>
+        <li><span class="tick">OK</span> Schedule &amp; track waste pickups</li>
+        <li><span class="tick">OK</span> Monitor your recycling stats</li>
+        <li><span class="tick">OK</span> Connect with local collectors &amp; NGOs</li>
       </ul>
 
       <div class="hero-stats">
         <div><strong>12K+</strong><span>Pickups done</span></div>
         <div><strong>850+</strong><span>Active agents</span></div>
-        <div><strong>4.9★</strong><span>User rating</span></div>
+        <div><strong>4.9/5</strong><span>User rating</span></div>
       </div>
     </div>
   </aside>
@@ -24,7 +24,7 @@
   <div class="auth-form-side">
     <div class="auth-form">
       <div class="auth-head">
-        <span class="mini-logo">♻️ WasteZero</span>
+        <span class="mini-logo">WasteZero</span>
         <h1>Sign in</h1>
         <p>Enter your details to access your account.</p>
       </div>
@@ -42,16 +42,16 @@
         <div class="field">
           <label>Password</label>
           <div class="password-wrap">
-            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••">
+            <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Password">
             <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
-              {{ showPassword ? '🙈' : '👁️' }}
+              {{ showPassword ? 'Hide' : 'Show' }}
             </button>
           </div>
           <a class="forgot-link" routerLink="/forgot-password">Forgot password?</a>
         </div>
 
         <button class="btn-primary" type="submit" [disabled]="loading">
-          {{ loading ? 'Signing in…' : 'Sign in' }}
+          {{ loading ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>
 

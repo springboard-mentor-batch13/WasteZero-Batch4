@@ -1,4 +1,4 @@
-import './config/env.js';  // ← MUST be first — loads .env before everything else
+import './config/env.js';
 
 import express from 'express';
 import cors from 'cors';

@@ -3,7 +3,6 @@ import { body, validationResult } from 'express-validator';
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    // Return all validation errors as an array
     return res.status(400).json({
       message: 'Validation failed',
       errors: errors.array().map(e => ({
@@ -15,7 +14,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// validateRegister
 const validateRegister = [
   body('name')
     .trim()
@@ -27,7 +25,7 @@ const validateRegister = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please enter a valid email address')
-    .normalizeEmail(), // Converts to lowercase, removes dots in gmail etc.
+    .normalizeEmail(),
 
   body('password')
     .notEmpty().withMessage('Password is required')
@@ -37,7 +35,6 @@ const validateRegister = [
   handleValidationErrors, 
 ];
 
-// validateLogin 
 const validateLogin = [
   body('email')
     .trim()
@@ -51,7 +48,6 @@ const validateLogin = [
   handleValidationErrors,
 ];
 
-// validateUpdateProfile 
 const validateUpdateProfile = [
   body('name')
     .optional()
@@ -76,7 +72,6 @@ const validateUpdateProfile = [
   handleValidationErrors,
 ];
 
-// validateChangePassword
 const validateChangePassword = [
   body('currentPassword')
     .notEmpty().withMessage('Current password is required'),

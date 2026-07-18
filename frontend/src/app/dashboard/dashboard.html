@@ -13,7 +13,7 @@
       <div class="stat-card">
         <div class="stat-top">
           <div class="stat-ic" [style.background]="s.tint">{{ s.icon }}</div>
-          <span class="trend" [class.down]="!s.up">{{ s.up ? '↑' : '↓' }} {{ s.change }}</span>
+          <span class="trend" [class.down]="!s.up">{{ s.up ? '+' : '-' }} {{ s.change }}</span>
         </div>
         <strong class="stat-value">{{ s.value }}</strong>
         <span class="stat-label">{{ s.label }}</span>

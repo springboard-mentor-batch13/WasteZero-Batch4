@@ -31,7 +31,6 @@ export const sendOtp = async (req, res) => {
 
     const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
 
-    // Respond immediately; email is sent in the background when configured.
     res.json({
       message: canSendEmail
         ? `OTP sent to ${user.email}`
