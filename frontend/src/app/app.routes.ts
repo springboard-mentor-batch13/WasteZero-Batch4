@@ -23,7 +23,6 @@ export const routes: Routes = [
       { path: 'dashboard', component: Dashboard },
       { path: 'profile', component: Profile },
 
-      //Opportunity routes
       { path: 'opportunities', component: OpportunityList },
       { path: 'opportunities/create', component: CreateOpportunity },
       { path: 'opportunities/edit/:id', component: EditOpportunity },

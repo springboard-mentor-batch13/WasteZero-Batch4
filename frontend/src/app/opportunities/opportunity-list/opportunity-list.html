@@ -1,6 +1,5 @@
 <div class="opp-page">
 
-  <!-- Header -->
   <div class="opp-header">
     <div>
       <h2 class="opp-title">Volunteer Opportunities</h2>
@@ -13,17 +12,14 @@
     }
   </div>
 
-  <!-- Filters -->
   <div class="filters">
-    <!-- Search box -->
     <input
       class="search-input"
-      placeholder="🔍 Search by title, skills, location..."
+      placeholder="Search by title, skills, location..."
       [(ngModel)]="search"
       (input)="onSearch()"
     />
 
-    <!-- Status filter -->
     <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterChange()">
       <option value="all">All Statuses</option>
       <option value="open">Open</option>
@@ -31,7 +27,6 @@
       <option value="in-progress">In Progress</option>
     </select>
 
-    <!-- City filter -->
     <select class="filter-select" [(ngModel)]="cityFilter" (change)="onCityChange()">
       <option value="all">All Cities</option>
       @for (city of cities; track city) {
@@ -40,30 +35,26 @@
     </select>
   </div>
 
-  <!-- Search hint -->
   @if (search) {
     <p class="search-hint">
       Showing results for <strong>"{{ search }}"</strong>
-      — searched in title, description, location and skills
-      <button class="clear-btn" (click)="search = ''; onSearch()">✕ Clear</button>
+      - searched in title, description, location and skills
+      <button class="clear-btn" (click)="search = ''; onSearch()">Clear</button>
     </p>
   }
 
-  <!-- Loading -->
   @if (loading) {
     <div class="state-center">
       <p class="state-msg">Loading opportunities...</p>
     </div>
   }
 
-  <!-- Error -->
   @if (!loading && error) {
     <div class="state-center">
       <p class="state-msg error">{{ error }}</p>
     </div>
   }
 
-  <!-- Empty -->
   @if (!loading && !error && opportunities.length === 0) {
     <div class="empty">
       <p>No opportunities found matching your criteria.</p>
@@ -71,17 +62,12 @@
     </div>
   }
 
-  <!-- Cards Grid -->
   @if (!loading && !error && opportunities.length > 0) {
     <div class="grid">
       @for (opp of opportunities; track opp._id) {
         <div class="card">
 
-          @if (opp.image_url) {
-            <img [src]="opp.image_url" [alt]="opp.title" class="card-img" />
-          } @else {
-            <div class="card-img-placeholder">📷 No image</div>
-          }
+          <img [src]="imageFor(opp)" [alt]="opp.title" class="card-img" />
 
           <div class="card-body">
             <div class="card-title-row">
@@ -95,13 +81,13 @@
 
             <div class="card-meta">
               @if (opp.location) {
-                <span>📍 {{ opp.location }}</span>
+                <span>Location: {{ opp.location }}</span>
               }
               @if (opp.duration) {
-                <span>⏱ {{ opp.duration }}</span>
+                <span>Duration: {{ opp.duration }}</span>
               }
               @if (opp.required_skills.length) {
-                <span>🛠 {{ opp.required_skills.join(', ') }}</span>
+                <span>Skills: {{ opp.required_skills.join(', ') }}</span>
               }
             </div>
 
@@ -111,7 +97,7 @@
                 [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
                 (click)="applyForOpportunity(opp._id)"
               >
-                @if (appliedIds.has(opp._id)) { ✓ Applied }
+                @if (appliedIds.has(opp._id)) { Applied }
                 @else if (applyingId === opp._id) { Applying... }
                 @else { Apply Now }
               </button>
@@ -120,10 +106,10 @@
             @if (canManage) {
               <div class="manage-btns">
                 <button class="btn-edit" [routerLink]="['/opportunities/edit', opp._id]">
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button class="btn-delete" (click)="deleteOpportunity(opp._id)">
-                  🗑️ Delete
+                  Delete
                 </button>
               </div>
             }
