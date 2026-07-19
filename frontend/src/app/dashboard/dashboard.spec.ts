@@ -1,9 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 import { Dashboard } from './dashboard';
 import { AuthService } from '../services/auth.service';
 
+class MockAuthService {
+  getUser() {
+    return {
+      name: 'Test User',
+      role: 'volunteer'
+    };
+  }
+}
 
 describe('Dashboard', () => {
   let component: Dashboard;
@@ -11,10 +19,9 @@ describe('Dashboard', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Dashboard],
+      imports: [Dashboard,HttpClientTestingModule],
       providers: [
-        provideRouter([]),
-        provideHttpClient()
+          { provide: AuthService, useClass: MockAuthService }
       ]
     }).compileComponents();
 

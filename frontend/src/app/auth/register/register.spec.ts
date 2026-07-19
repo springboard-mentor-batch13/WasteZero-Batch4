@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 
 import { Register } from './register';
 import { AuthService } from '../../services/auth.service';
 
+class MockAuthService {
+  register() {
+    return Promise.resolve(true);
+  }
+}
 
 describe('Register', () => {
   let component: Register;
@@ -13,13 +17,9 @@ describe('Register', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Register,ReactiveFormsModule],
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        {
-          provide: AuthService,
-          useValue: AuthService
+      imports: [Register,HttpClientTestingModule],
+      providers: [{
+          provide: AuthService,useClass: MockAuthService
         }
       ],
       
@@ -35,7 +35,8 @@ describe('Register', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should create register form', () => {
-    expect(component.registerForm).toBeDefined();
+  it('should render registration form', () => {
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('form')).toBeTruthy();
   });
 });

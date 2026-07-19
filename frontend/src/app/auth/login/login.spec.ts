@@ -1,10 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { LoginComponent } from './login';
 import { AuthService } from '../../services/auth.service';
+
+
+class MockAuthService {
+  login() {
+    return Promise.resolve(true);
+  }
+
+  getUser() {
+    return {
+      role: 'volunteer'
+    };
+  }
+}
 
 describe('Login', () => {
   let component: LoginComponent;
@@ -12,31 +24,30 @@ describe('Login', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        LoginComponent,
-        ReactiveFormsModule
-      ],
+      imports: [LoginComponent,HttpClientTestingModule,RouterTestingModule   ],
 
       providers: [
-        provideRouter([]),
-        provideHttpClient(),
+
         {
           provide: AuthService,
-          useValue: AuthService
+          useClass: MockAuthService
         }
+
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
+     //await fixture.whenStable();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-    it('should create login form', () => {
-    expect(component.loginForm).toBeDefined();
+  it('should render login form', () => {
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('form')).toBeTruthy();
   });
 });
