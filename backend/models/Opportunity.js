@@ -39,7 +39,6 @@ const opportunitySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-//Indexes for faster queries
 opportunitySchema.index({ ngo_id: 1 });
 opportunitySchema.index({ status: 1 });
 opportunitySchema.index({ location: 1 });
