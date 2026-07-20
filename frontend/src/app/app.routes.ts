@@ -6,6 +6,7 @@ import { Shell } from './layout/shell';
 import { Dashboard } from './dashboard/dashboard';
 import { Profile } from './profile/profile';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 import { OpportunityList } from './opportunities/opportunity-list/opportunity-list';
 import { CreateOpportunity } from './opportunities/create-opportunity/create-opportunity';
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
@@ -24,8 +25,18 @@ export const routes: Routes = [
       { path: 'profile', component: Profile },
 
       { path: 'opportunities', component: OpportunityList },
-      { path: 'opportunities/create', component: CreateOpportunity },
-      { path: 'opportunities/edit/:id', component: EditOpportunity },
+      {
+        path: 'opportunities/create',
+        component: CreateOpportunity,
+        canActivate: [roleGuard],
+        data: { roles: ['ngo', 'admin'] },
+      },
+      {
+        path: 'opportunities/edit/:id',
+        component: EditOpportunity,
+        canActivate: [roleGuard],
+        data: { roles: ['ngo', 'admin'] },
+      },
       { path: 'opportunities/:id', component: OpportunityDetail },
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

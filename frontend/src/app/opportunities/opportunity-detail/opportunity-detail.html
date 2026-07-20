@@ -84,10 +84,10 @@
               {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
-        } @else {
+        } @else if (canApply) {
           <button class="btn-apply" [disabled]="applying || applied" (click)="applyForOpportunity()">
             @if (applied) {
-              Applied
+              Already Applied
             } @else {
               {{ applying ? 'Applying...' : 'Apply Now' }}
             }
