@@ -2,6 +2,7 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
+import escapeRegex from "../utils/escapeRegex.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -65,6 +66,9 @@ const createOpportunity = async (req, res) => {
 const getOpportunities = async (req, res) => {
   try {
     const { status, search, city } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const skip = (page - 1) * limit;
     let query = {};
 
     if (status && status !== 'all') {
@@ -72,23 +76,42 @@ const getOpportunities = async (req, res) => {
     }
 
     if (city && city !== 'all') {
-      query.location = { $regex: city, $options: 'i' };
+      query.location = { $regex: escapeRegex(city), $options: 'i' };
     }
 
     if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
-        { required_skills: { $regex: search, $options: 'i' } },
+      const escapedSearch = escapeRegex(search);
+      const searchConditions = [
+        { title: { $regex: escapedSearch, $options: 'i' } },
+        { description: { $regex: escapedSearch, $options: 'i' } },
+        { required_skills: { $regex: escapedSearch, $options: 'i' } },
       ];
+
+      if (!city || city === 'all') {
+        searchConditions.push({ location: { $regex: escapedSearch, $options: 'i' } });
+      }
+
+      query.$or = searchConditions;
     }
 
-    const opportunities = await Opportunity.find(query)
-      .populate('ngo_id', 'name email')
-      .sort({ createdAt: -1 });
+    const [opportunities, total] = await Promise.all([
+      Opportunity.find(query)
+        .populate('ngo_id', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Opportunity.countDocuments(query),
+    ]);
 
-    res.json(opportunities);
+    res.json({
+      opportunities,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.max(Math.ceil(total / limit), 1),
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

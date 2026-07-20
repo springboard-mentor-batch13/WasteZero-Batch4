@@ -138,6 +138,23 @@
         </article>
       }
     </div>
+
+    <div class="pagination">
+      <p>Showing page {{ page }} of {{ pages }} · {{ total }} total</p>
+      <div class="pagination-actions">
+        <button type="button" [disabled]="!hasPreviousPage" (click)="previousPage()">Previous</button>
+        @for (pageNumber of pageNumbers; track pageNumber) {
+          <button
+            type="button"
+            [class.active]="pageNumber === page"
+            (click)="goToPage(pageNumber)"
+          >
+            {{ pageNumber }}
+          </button>
+        }
+        <button type="button" [disabled]="!hasNextPage" (click)="nextPage()">Next</button>
+      </div>
+    </div>
   }
 
 </div>
