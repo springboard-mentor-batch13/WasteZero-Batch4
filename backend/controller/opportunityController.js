@@ -76,12 +76,18 @@ const getOpportunities = async (req, res) => {
     }
 
     if (search) {
-      query.$or = [
+      const searchConditions = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
         { required_skills: { $regex: search, $options: 'i' } },
       ];
+
+      // Only search location if city filter is not already applied
+      if (!city || city === 'all') {
+        searchConditions.push({ location: { $regex: search, $options: 'i' } });
+      }
+
+      query.$or = searchConditions;
     }
 
     const opportunities = await Opportunity.find(query)

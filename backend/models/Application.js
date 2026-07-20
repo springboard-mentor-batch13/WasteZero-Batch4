@@ -21,5 +21,8 @@ const applicationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+applicationSchema.index({ volunteer_id: 1 });
+applicationSchema.index({ opportunity_id: 1 });
+
 const Application = mongoose.model('Application', applicationSchema);
 export default Application;
