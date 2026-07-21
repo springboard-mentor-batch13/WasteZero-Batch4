@@ -19,7 +19,6 @@ export class OpportunityDetail implements OnInit {
   deleting = false;
   applying = false;
   applied = false;
-  private opportunityId = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -34,10 +33,6 @@ export class OpportunityDetail implements OnInit {
     return role === 'admin' || role === 'ngo';
   }
 
-  get canApply() {
-    return this.auth.getUser()?.role === 'volunteer';
-  }
-
   get postedBy() {
     const ngo = this.opportunity?.ngo_id;
     return ngo?.name || ngo?.email || 'WasteZero partner';
@@ -49,8 +44,8 @@ export class OpportunityDetail implements OnInit {
   }
 
   ngOnInit() {
-    this.opportunityId = this.route.snapshot.paramMap.get('id') || '';
-    this.opportunityService.getById(this.opportunityId).subscribe({
+    const id = this.route.snapshot.paramMap.get('id') || '';
+    this.opportunityService.getById(id).subscribe({
       next: (opp) => {
         this.opportunity = opp;
         this.loading = false;
@@ -59,28 +54,6 @@ export class OpportunityDetail implements OnInit {
       error: (err) => {
         this.error = err.error?.message || 'Failed to load opportunity';
         this.loading = false;
-        this.cdr.detectChanges();
-      },
-    });
-
-    if (this.canApply) {
-      this.loadApplicationState();
-    }
-  }
-
-  loadApplicationState() {
-    this.opportunityService.getMyApplications().subscribe({
-      next: (applications: any[]) => {
-        this.applied = applications.some(app => {
-          const opportunityId = typeof app.opportunity_id === 'object'
-            ? app.opportunity_id?._id
-            : app.opportunity_id;
-          return opportunityId === this.opportunityId;
-        });
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.applied = false;
         this.cdr.detectChanges();
       },
     });

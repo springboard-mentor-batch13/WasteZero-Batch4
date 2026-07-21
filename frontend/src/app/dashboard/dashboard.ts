@@ -58,9 +58,9 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit() {
-    this.opportunityService.getPage({ status: 'open', page: 1, limit: 1 }).subscribe({
-      next: (res) => {
-        this.stats = this.statsForRole(this.role, res.pagination.total);
+    this.opportunityService.getAll({ status: 'open' }).subscribe({
+      next: (opps) => {
+        this.stats = this.statsForRole(this.role, opps.length);
       },
       error: () => {
         this.stats = this.statsForRole(this.role, 0);

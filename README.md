@@ -232,14 +232,11 @@ Handles user registration, login, and password recovery.
 <tr>
 <td>PUT</td><td>/api/users/profile</td><td>Yes</td>
 </tr>
-<tr>
-<td>PUT</td><td>/api/users/:id/role</td><td>Admin</td>
-</tr>
 </table>
 
 ### Description
 
-Retrieves and updates authenticated user profile information. Admin users can update another user's role through the protected role endpoint.
+Retrieves and updates authenticated user profile information.
 
 <hr>
 
@@ -248,10 +245,10 @@ Retrieves and updates authenticated user profile information. Admin users can up
 <tr><th>Method</th><th>Endpoint</th><th>Authentication</th>
 </tr>
 <tr>
-<td>GET</td><td>/api/opportunities?page=1&limit=20</td><td>Yes</td>
+<td>GET</td><td>/api/opportunities</td><td>Public</td>
 </tr>
 <tr>
-<td>GET</td><td>/api/opportunities/:id</td><td>Yes</td>
+<td>GET</td><td>/api/opportunities/:id</td><td>Public</td>
 </tr>
 <tr>
 <td>POST</td><td>/api/opportunities</td><td>NGO/Admin</td>
