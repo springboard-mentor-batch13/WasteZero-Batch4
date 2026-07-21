@@ -7,6 +7,11 @@ const applicationSchema = new mongoose.Schema(
       ref: 'Opportunity',
       required: true
     },
+    ngo_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
     volunteer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -20,9 +25,6 @@ const applicationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-applicationSchema.index({ volunteer_id: 1 });
-applicationSchema.index({ opportunity_id: 1 });
 
 const Application = mongoose.model('Application', applicationSchema);
 export default Application;

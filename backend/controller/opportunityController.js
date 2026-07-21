@@ -42,15 +42,25 @@ const createOpportunity = async (req, res) => {
       const uploaded = await uploadToCloudinary(req.file.buffer);
       image_url = uploaded.secure_url;
     }
+
+    let skills = [];
+    if (required_skills) {
+      try {
+        skills = Array.isArray(required_skills)
+          ? required_skills
+          : typeof required_skills === 'string'
+          ? JSON.parse(required_skills)
+          : [];
+      } catch (parseError) {
+        skills = [];
+      }
+    }
+
     const opportunity = await Opportunity.create({
       ngo_id: req.user._id,
       title,
       description,
-      required_skills: Array.isArray(required_skills)
-        ? required_skills
-        : required_skills
-          ? JSON.parse(required_skills)
-          : [],
+      required_skills: skills,
       duration,
       location,
       date,
@@ -177,13 +187,20 @@ const deleteOpportunity = async (req, res) => {
 
 const applyForOpportunity = async (req, res) => {
   try {
+    const opportunity = await Opportunity.findById(req.params.id);
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
     const existing = await Application.findOne({
       opportunity_id: req.params.id,
       volunteer_id: req.user._id,
     });
     if (existing) return res.status(400).json({ message: "Already applied" });
+
     const application = await Application.create({
       opportunity_id: req.params.id,
+      ngo_id: opportunity.ngo_id,
       volunteer_id: req.user._id,
     });
     res.status(201).json(application);
@@ -203,6 +220,145 @@ const getUserApplications = async (req, res) => {
   }
 };
 
+const getNgoApplications = async (req, res) => {
+  try {
+    const apps = await Application.find({
+      ngo_id: req.user._id,
+    })
+      .populate("opportunity_id", "title description location")
+      .populate("volunteer_id", "name email")
+      .sort({ createdAt: -1 });
+    res.json(apps);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const acceptApplication = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.applicationId);
+    
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    if (req.user.role === "ngo" && application.ngo_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to manage this application" });
+    }
+
+    application.status = "accepted";
+    await application.save();
+
+    const populated = await application.populate([
+      { path: "opportunity_id", select: "title" },
+      { path: "volunteer_id", select: "name email" }
+    ]);
+
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const rejectApplication = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.applicationId);
+    
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    if (req.user.role === "ngo" && application.ngo_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to manage this application" });
+    }
+
+    application.status = "rejected";
+    await application.save();
+
+    const populated = await application.populate([
+      { path: "opportunity_id", select: "title" },
+      { path: "volunteer_id", select: "name email" }
+    ]);
+
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAdminApplicationStats = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin only" });
+    }
+
+    const totalApplications = await Application.countDocuments();
+    const acceptedApplications = await Application.countDocuments({ status: "accepted" });
+    const rejectedApplications = await Application.countDocuments({ status: "rejected" });
+    const pendingApplications = await Application.countDocuments({ status: "pending" });
+
+    const applicationsByNgo = await Application.aggregate([
+      {
+        $group: {
+          _id: "$ngo_id",
+          total: { $sum: 1 },
+          accepted: {
+            $sum: { $cond: [{ $eq: ["$status", "accepted"] }, 1, 0] }
+          },
+          rejected: {
+            $sum: { $cond: [{ $eq: ["$status", "rejected"] }, 1, 0] }
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] }
+          }
+        }
+      },
+      { $sort: { total: -1 } }
+    ]);
+
+    res.json({
+      summary: {
+        total: totalApplications,
+        accepted: acceptedApplications,
+        rejected: rejectedApplications,
+        pending: pendingApplications
+      },
+      byNgo: applicationsByNgo
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getAllApplications = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin only" });
+    }
+
+    const { status, ngoId } = req.query;
+    let query = {};
+
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    if (ngoId) {
+      query.ngo_id = ngoId;
+    }
+
+    const applications = await Application.find(query)
+      .populate("opportunity_id", "title location")
+      .populate("volunteer_id", "name email")
+      .populate("ngo_id", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export {
   createOpportunity,
   getOpportunities,
@@ -211,4 +367,9 @@ export {
   deleteOpportunity,
   applyForOpportunity,
   getUserApplications,
+  getNgoApplications,
+  acceptApplication,
+  rejectApplication,
+  getAdminApplicationStats,
+  getAllApplications,
 };
