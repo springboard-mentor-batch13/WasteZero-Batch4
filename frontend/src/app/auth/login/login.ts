@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -20,6 +20,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -40,6 +41,7 @@ export class LoginComponent {
       error: (err) => {
         this.error = err.error?.message || 'Login failed';
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }

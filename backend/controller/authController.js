@@ -1,17 +1,39 @@
 import jwt from 'jsonwebtoken';
 import User from "../models/User.js";
+import { isDisposableEmail, verifyEmailOtp } from './otpController.js';
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
+// Only these roles are self-service at signup. Admin accounts are never
+// created through the public registration form.
+const REGISTERABLE_ROLES = ['volunteer', 'ngo'];
+
 const registerUser = async (req, res) => {
-  const { name, email, password, location, skills, bio } = req.body;
+  const { name, email, password, location, skills, bio, role, otp } = req.body;
   try {
-    const userExists = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (isDisposableEmail(normalizedEmail)) {
+      return res.status(400).json({ message: 'Temporary or disposable email addresses are not allowed. Please use a real email address.' });
+    }
+
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
+    if (!otp) {
+      return res.status(400).json({ message: 'Email verification OTP is required. Please verify your email first.' });
+    }
+
+    const otpCheck = await verifyEmailOtp(normalizedEmail, otp);
+    if (!otpCheck.valid) {
+      return res.status(400).json({ message: otpCheck.message });
+    }
+
+    const safeRole = REGISTERABLE_ROLES.includes(role) ? role : 'volunteer';
+
     const user = await User.create({
-      name, email, password,
-      role: 'volunteer',
+      name, email: normalizedEmail, password,
+      role: safeRole,
       location: location || '',
       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
       bio: bio || '',

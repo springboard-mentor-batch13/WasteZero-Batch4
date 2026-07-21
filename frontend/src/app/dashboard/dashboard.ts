@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -50,6 +50,7 @@ export class Dashboard implements OnInit {
   constructor(
     private auth: AuthService,
     private opportunityService: OpportunityService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.user = auth.getUser();
     this.role = this.user?.role || 'volunteer';
@@ -61,9 +62,11 @@ export class Dashboard implements OnInit {
     this.opportunityService.getAll({ status: 'open' }).subscribe({
       next: (opps) => {
         this.stats = this.statsForRole(this.role, opps.length);
+        this.cdr.detectChanges();
       },
       error: () => {
         this.stats = this.statsForRole(this.role, 0);
+        this.cdr.detectChanges();
       },
     });
   }

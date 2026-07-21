@@ -5,6 +5,25 @@ import bcrypt from 'bcryptjs';
 
 const isStrongPassword = (password) => password.length >= 6 && /\d/.test(password);
 
+// A block-list of common disposable / temp-mail domains. This is not
+// exhaustive, but it stops the majority of throwaway addresses used to
+// bypass registration (mailinator, tempmail, guerrillamail style services).
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  'mailinator.com', 'tempmail.com', 'temp-mail.org', 'guerrillamail.com',
+  'guerrillamail.info', 'guerrillamail.biz', 'guerrillamail.de', 'sharklasers.com',
+  '10minutemail.com', '10minutemail.net', 'yopmail.com', 'yopmail.fr',
+  'trashmail.com', 'throwawaymail.com', 'fakeinbox.com', 'getnada.com',
+  'dispostable.com', 'maildrop.cc', 'moakt.com', 'discard.email', 'mintemail.com',
+  'mailnesia.com', 'mytemp.email', 'emailondeck.com', 'mail-temp.com',
+  'tempmailo.com', 'tempinbox.com', 'spamgourmet.com', 'mohmal.com',
+  'anonbox.net', 'burnermail.io', 'temp-mail.io', 'inboxkitten.com',
+]);
+
+const isDisposableEmail = (email) => {
+  const domain = email.split('@')[1]?.toLowerCase().trim();
+  return Boolean(domain && DISPOSABLE_EMAIL_DOMAINS.has(domain));
+};
+
 const createOtpForEmail = async (email) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -21,6 +40,24 @@ const createOtpForEmail = async (email) => {
 
   return otp;
 };
+
+// Reusable check used by authController.registerUser to confirm the email
+// was actually verified via OTP before the account is created.
+export const verifyEmailOtp = async (email, otp) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const otpRecord = await Otp.findOne({ email: normalizedEmail });
+
+  if (!otpRecord) return { valid: false, message: 'OTP not found. Please request a new one.' };
+  if (otpRecord.expiresAt < new Date()) return { valid: false, message: 'OTP has expired. Please request a new one.' };
+
+  const isOtpMatch = await bcrypt.compare(otp, otpRecord.otp);
+  if (!isOtpMatch) return { valid: false, message: 'Invalid OTP. Please try again.' };
+
+  await Otp.deleteMany({ email: normalizedEmail });
+  return { valid: true };
+};
+
+export { isDisposableEmail };
 
 export const sendOtp = async (req, res) => {
   try {
@@ -44,6 +81,52 @@ export const sendOtp = async (req, res) => {
       to: user.email,
       subject: 'WasteZero - Your OTP for Password Change',
       text: `Your OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
+    }).catch(err => console.error('Email error:', err));
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Sends an OTP to verify an email address before an account is created.
+// This is what stops registration with fake / temporary inboxes: the OTP
+// must be read from the real inbox and submitted back before /auth/register
+// will create the user.
+export const sendRegisterOtp = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (isDisposableEmail(normalizedEmail)) {
+      return res.status(400).json({ message: 'Temporary or disposable email addresses are not allowed. Please use a real email address.' });
+    }
+
+    const userExists = await User.findOne({ email: normalizedEmail });
+    if (userExists) {
+      return res.status(400).json({ message: 'An account with this email already exists' });
+    }
+
+    const otp = await createOtpForEmail(normalizedEmail);
+
+    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+
+    res.json({
+      message: canSendEmail
+        ? `OTP sent to ${normalizedEmail}`
+        : 'Email is not configured. Use the returned OTP to continue.',
+      otp: canSendEmail ? undefined : otp,
+    });
+
+    if (!canSendEmail) return;
+
+    sendEmail({
+      to: normalizedEmail,
+      subject: 'WasteZero - Verify your email',
+      text: `Your email verification OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
     }).catch(err => console.error('Email error:', err));
   } catch (error) {
     res.status(500).json({ message: error.message });

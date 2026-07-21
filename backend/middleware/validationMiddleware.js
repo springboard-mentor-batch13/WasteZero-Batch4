@@ -32,6 +32,14 @@ const validateRegister = [
     .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     .matches(/\d/).withMessage('Password must contain at least one number'),
 
+  body('role')
+    .optional()
+    .isIn(['volunteer', 'ngo']).withMessage('Role must be either volunteer or ngo'),
+
+  body('otp')
+    .notEmpty().withMessage('Email verification OTP is required')
+    .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+
   handleValidationErrors, 
 ];
 

@@ -149,7 +149,11 @@
   text-decoration: none;
 }
 
-.btn-apply { background: var(--green-dark); border: 1px solid var(--green-dark); color: #fff; }
+.btn-apply {
+  background: linear-gradient(135deg, #3da35b, #175d35);
+  border: 1px solid #175d35;
+  color: #fff;
+}
 .btn-secondary, .btn-edit { background: var(--surface); border: 1px solid var(--border); color: var(--ink); }
 .btn-delete { background: #fdecea; border: 1px solid #f5c6c2; color: var(--danger); }
 .btn-apply:disabled { cursor: not-allowed; opacity: 0.6; }
