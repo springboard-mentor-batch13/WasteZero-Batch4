@@ -36,9 +36,18 @@ export class OpportunityList implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  get userRole() { return this.auth.getUser()?.role; }
-  get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+get userRole() { return this.auth.getUser()?.role; }
+  get canCreate() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+  get isVolunteer() { return this.userRole === 'volunteer'; }
   get totalCount() { return this.opportunities.length; }
+
+  canManageOpp(opp: Opportunity): boolean {
+    const user = this.auth.getUser();
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    const ownerId = (opp.ngo_id as any)?._id || opp.ngo_id;
+    return user.role === 'ngo' && ownerId === user._id;
+  }
   get openCount() { return this.opportunities.filter(opp => opp.status === 'open').length; }
   get cityCount() { return this.cities.length; }
 
@@ -158,6 +167,20 @@ export class OpportunityList implements OnInit, OnDestroy {
     if (!text) return '';
     return text.length > 110 ? `${text.slice(0, 110)}...` : text;
   }
+
+  ngoLabel(opp: Opportunity): string {
+  const ngo = opp.ngo_id;
+
+  if (!ngo) return 'Unknown NGO';
+
+  // If ngo_id is populated (object)
+  if (typeof ngo === 'object' && ngo._id) {
+    return ngo._id.slice(-6);
+  }
+
+  // If ngo_id is just a string
+  return String(ngo).slice(-6);
+}
 
   imageFor(opp: Opportunity): string {
     if (opp.image_url) return opp.image_url;

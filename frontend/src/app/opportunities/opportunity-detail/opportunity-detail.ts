@@ -28,10 +28,17 @@ export class OpportunityDetail implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  get canManage() {
-    const role = this.auth.getUser()?.role;
-    return role === 'admin' || role === 'ngo';
-  }
+ get canManage() {
+  const user = this.auth.getUser();
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
+  return user.role === 'ngo' && ownerId === user._id;
+}
+
+get isVolunteer() {
+  return this.auth.getUser()?.role === 'volunteer';
+}
 
   get postedBy() {
     const ngo = this.opportunity?.ngo_id;
@@ -43,12 +50,23 @@ export class OpportunityDetail implements OnInit {
     return id ? String(id).slice(-6).toUpperCase() : 'N/A';
   }
 
-  ngOnInit() {
+ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id') || '';
     this.opportunityService.getById(id).subscribe({
       next: (opp) => {
         this.opportunity = opp;
         this.loading = false;
+        if (this.isVolunteer) {
+          this.opportunityService.getMyApplications().subscribe({
+            next: (apps: any[]) => {
+              this.applied = apps.some((app) => {
+                const oppId = typeof app.opportunity_id === 'object' ? app.opportunity_id._id : app.opportunity_id;
+                return oppId === id;
+              });
+              this.cdr.detectChanges();
+            },
+          });
+        }
         this.cdr.detectChanges();
       },
       error: (err) => {
