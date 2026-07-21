@@ -6,7 +6,7 @@
       <h1 class="opp-title">Volunteer Opportunities</h1>
       <p class="opp-sub">Find active recycling drives, cleanup events, and local waste management initiatives.</p>
     </div>
-    @if (canManage) {
+    @if (canCreate) {
       <button class="btn-create" [routerLink]="['/opportunities/create']">
         Create Opportunity
       </button>
@@ -105,9 +105,10 @@
               @if (opp.required_skills.length) {
                 <span><strong>Skills</strong>{{ opp.required_skills.join(', ') }}</span>
               }
+              <span><strong>Posted by</strong>{{ ngoLabel(opp) }}</span>
             </div>
 
-            @if (!canManage) {
+            @if (isVolunteer) {
               <div class="card-actions">
                 <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">View Details</a>
                 <button
@@ -122,7 +123,7 @@
               </div>
             }
 
-            @if (canManage) {
+            @if (canManageOpp(opp)) {
               <div class="manage-btns">
                 <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">Details</a>
                 <button class="btn-edit" [routerLink]="['/opportunities/edit', opp._id]">
@@ -131,6 +132,12 @@
                 <button class="btn-delete" (click)="deleteOpportunity(opp._id)">
                   Delete
                 </button>
+              </div>
+            }
+
+            @if (!isVolunteer && !canManageOpp(opp)) {
+              <div class="card-actions">
+                <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">View Details</a>
               </div>
             }
 

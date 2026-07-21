@@ -131,7 +131,7 @@
 }
 
 .panel p {
-  color: #33443c;
+  color: var(--ink);
   font-size: 0.92rem;
   line-height: 1.7;
   margin: 0;
@@ -176,7 +176,10 @@
   background: #f2f6f4;
   border: 1px solid var(--border);
   border-radius: 7px;
-  color: var(--green-dark);
+  /* Background here is always a fixed light tint, so the icon color must
+     stay a fixed dark green too -- var(--green-dark) turns light-mint in
+     dark mode and disappears against this light box. */
+  color: #17462b;
   display: flex;
   font-size: 0.7rem;
   font-weight: 800;

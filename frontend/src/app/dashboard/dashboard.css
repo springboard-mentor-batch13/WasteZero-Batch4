@@ -79,7 +79,13 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 1.4rem;
+  /* Icon tints are always a light pastel (set inline per stat), so the
+     icon text stays a fixed dark green instead of inheriting the theme's
+     ink color -- otherwise it turns near-white-on-light and disappears
+     in dark mode. */
+  color: #17462b;
+  font-weight: 800;
+  font-size: 0.78rem;
 }
 .trend {
   font-size: 0.78rem;

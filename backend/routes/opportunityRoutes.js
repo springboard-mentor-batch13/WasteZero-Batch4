@@ -9,8 +9,7 @@ import {
   applyForOpportunity,
   getUserApplications,
 } from "../controller/opportunityController.js";
-
-import { protect, ngoOrAdmin } from "../middleware/authMiddleware.js";
+import { protect, ngoOrAdmin, volunteerOnly } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
@@ -28,6 +27,6 @@ router
   .put(protect, ngoOrAdmin, upload.single("image"), updateOpportunity)
   .delete(protect, ngoOrAdmin, deleteOpportunity);
 
-router.post("/:id/apply", protect, applyForOpportunity);
+router.post("/:id/apply", protect, volunteerOnly, applyForOpportunity);
 
 export default router;

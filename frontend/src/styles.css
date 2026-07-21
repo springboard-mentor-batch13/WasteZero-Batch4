@@ -539,6 +539,10 @@ body {
   }
 }
 
+:root[data-theme='dark'] .auth-form {
+  background: rgba(21, 34, 26, 0.92) !important;
+}
+
 :root[data-theme='dark'] .profile-card,
 :root[data-theme='dark'] .form-card,
 :root[data-theme='dark'] .card,
