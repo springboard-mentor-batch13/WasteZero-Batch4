@@ -79,32 +79,4 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-const updateUserRole = async (req, res) => {
-  const allowedRoles = ['volunteer', 'ngo', 'admin'];
-
-  if (!allowedRoles.includes(req.body.role)) {
-    return res.status(400).json({ message: 'Invalid role' });
-  }
-
-  try {
-    const user = await User.findById(req.params.id).select('-password');
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    user.role = req.body.role;
-    const updated = await user.save();
-
-    res.json({
-      _id: updated._id,
-      name: updated.name,
-      email: updated.email,
-      role: updated.role,
-      location: updated.location,
-      skills: updated.skills,
-      bio: updated.bio,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export{ registerUser, loginUser, getUserProfile, updateUserProfile, updateUserRole };
+export{ registerUser, loginUser, getUserProfile, updateUserProfile };

@@ -237,22 +237,10 @@
   width: 100%;
 }
 
-:host-context([data-theme='dark']) .btn-apply {
-  background: #8ef0af;
-  color: #082817;
-}
-
 .btn-delete:disabled,
 .btn-apply:disabled {
   cursor: not-allowed;
-  opacity: 0.72;
-}
-
-:host-context([data-theme='dark']) .btn-apply:disabled {
-  background: #315b41;
-  border: 1px solid #426f52;
-  color: #cfe8d6;
-  opacity: 1;
+  opacity: 0.62;
 }
 
 .state-card {

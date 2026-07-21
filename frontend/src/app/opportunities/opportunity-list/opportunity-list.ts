@@ -24,10 +24,6 @@ export class OpportunityList implements OnInit, OnDestroy {
   cities: string[] = [];
   applyingId = '';
   appliedIds: Set<string> = new Set();
-  page = 1;
-  limit = 20;
-  total = 0;
-  pages = 1;
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -42,16 +38,9 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   get userRole() { return this.auth.getUser()?.role; }
   get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
-  get totalCount() { return this.total; }
+  get totalCount() { return this.opportunities.length; }
   get openCount() { return this.opportunities.filter(opp => opp.status === 'open').length; }
   get cityCount() { return this.cities.length; }
-  get hasPreviousPage() { return this.page > 1; }
-  get hasNextPage() { return this.page < this.pages; }
-  get pageNumbers() {
-    const start = Math.max(1, this.page - 2);
-    const end = Math.min(this.pages, start + 4);
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-  }
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -82,20 +71,15 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.error = '';
     this.cdr.detectChanges();
 
-    this.opportunityService.getPage({
+    this.opportunityService.getAll({
       status: this.statusFilter,
       search: this.search,
       city: this.cityFilter,
-      page: this.page,
-      limit: this.limit,
     }).subscribe({
       next: (data) => {
-        this.opportunities = data.opportunities;
-        this.total = data.pagination.total;
-        this.pages = data.pagination.pages;
-        this.page = data.pagination.page;
+        this.opportunities = data;
 
-        const allCities = data.opportunities
+        const allCities = data
           .map(o => o.location?.trim())
           .filter(Boolean) as string[];
         this.cities = [...new Set(allCities)].sort();
@@ -129,40 +113,12 @@ export class OpportunityList implements OnInit, OnDestroy {
     });
   }
 
-  onSearch() {
-    this.page = 1;
-    this.searchSubject.next(this.search);
-  }
-  onFilterChange() {
-    this.page = 1;
-    this.loadOpportunities();
-  }
-  onCityChange() {
-    this.page = 1;
-    this.loadOpportunities();
-  }
-
-  nextPage() {
-    if (!this.hasNextPage) return;
-    this.page += 1;
-    this.loadOpportunities();
-  }
-
-  previousPage() {
-    if (!this.hasPreviousPage) return;
-    this.page -= 1;
-    this.loadOpportunities();
-  }
-
-  goToPage(page: number) {
-    if (page < 1 || page > this.pages || page === this.page) return;
-    this.page = page;
-    this.loadOpportunities();
-  }
+  onSearch() { this.searchSubject.next(this.search); }
+  onFilterChange() { this.loadOpportunities(); }
+  onCityChange() { this.loadOpportunities(); }
 
   clearSearch() {
     this.search = '';
-    this.page = 1;
     this.router.navigate(['/opportunities']);
   }
 
