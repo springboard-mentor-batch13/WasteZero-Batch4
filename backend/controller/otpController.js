@@ -41,6 +41,8 @@ const createOtpForEmail = async (email) => {
   return otp;
 };
 
+const canSendEmail = () => Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+
 // Reusable check used by authController.registerUser to confirm the email
 // was actually verified via OTP before the account is created.
 export const verifyEmailOtp = async (email, otp) => {
@@ -64,18 +66,15 @@ export const sendOtp = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    if (!canSendEmail()) {
+      return res.status(503).json({ message: 'Email service is not configured. Please try again later.' });
+    }
+
     const otp = await createOtpForEmail(user.email);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
     res.json({
-      message: canSendEmail
-        ? `OTP sent to ${user.email}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
+      message: `OTP sent to ${user.email}`,
     });
-
-    if (!canSendEmail) return;
 
     sendEmail({
       to: user.email,
@@ -110,18 +109,15 @@ export const sendRegisterOtp = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email already exists' });
     }
 
+    if (!canSendEmail()) {
+      return res.status(503).json({ message: 'Email service is not configured. Please try again later.' });
+    }
+
     const otp = await createOtpForEmail(normalizedEmail);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
     res.json({
-      message: canSendEmail
-        ? `OTP sent to ${normalizedEmail}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
+      message: `OTP sent to ${normalizedEmail}`,
     });
-
-    if (!canSendEmail) return;
 
     sendEmail({
       to: normalizedEmail,
@@ -145,18 +141,15 @@ export const sendForgotPasswordOtp = async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(404).json({ message: 'No account found with this email' });
 
+    if (!canSendEmail()) {
+      return res.status(503).json({ message: 'Email service is not configured. Please try again later.' });
+    }
+
     const otp = await createOtpForEmail(user.email);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
     res.json({
-      message: canSendEmail
-        ? `OTP sent to ${user.email}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
+      message: `OTP sent to ${user.email}`,
     });
-
-    if (!canSendEmail) return;
 
     sendEmail({
       to: user.email,

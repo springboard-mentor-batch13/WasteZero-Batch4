@@ -40,4 +40,12 @@ export class OpportunityService {
   getMyApplications(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/my-applications`);
   }
+
+  getApplications(id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.api}/${id}/applications`);
+  }
+
+  updateApplicationStatus(applicationId: string, status: 'pending' | 'accepted' | 'rejected'): Observable<any> {
+    return this.http.put(`${this.api}/applications/${applicationId}/status`, { status });
+  }
 }

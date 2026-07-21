@@ -52,7 +52,8 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id, name: user.name, email: user.email,
@@ -81,8 +82,17 @@ const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (user) {
+      const normalizedEmail = req.body.email?.trim().toLowerCase();
+
+      if (normalizedEmail && normalizedEmail !== user.email) {
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+          return res.status(400).json({ message: 'Email already in use' });
+        }
+      }
+
       user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
+      user.email = normalizedEmail || user.email;
       user.location = req.body.location !== undefined ? req.body.location : user.location;
       user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
       user.skills = req.body.skills || user.skills;

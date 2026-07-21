@@ -2,6 +2,8 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
+import escapeRegex from "../utils/escapeRegex.js";
+import parseSkills from "../utils/parseSkills.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -32,6 +34,14 @@ const canManageOpportunity = (opportunity, user) => {
   return opportunity.ngo_id.toString() === user._id.toString();
 };
 
+const canManageApplication = async (application, user) => {
+  if (!user || !application) return false;
+  if (user.role === "admin") return true;
+
+  const opportunity = await Opportunity.findById(application.opportunity_id);
+  return Boolean(opportunity && canManageOpportunity(opportunity, user));
+};
+
 const createOpportunity = async (req, res) => {
   const { title, description, required_skills, duration, location, date } =
     req.body;
@@ -46,11 +56,7 @@ const createOpportunity = async (req, res) => {
       ngo_id: req.user._id,
       title,
       description,
-      required_skills: Array.isArray(required_skills)
-        ? required_skills
-        : required_skills
-          ? JSON.parse(required_skills)
-          : [],
+      required_skills: parseSkills(required_skills),
       duration,
       location,
       date,
@@ -76,19 +82,19 @@ const getOpportunities = async (req, res) => {
     }
 
     if (city && city !== 'all') {
-      query.location = { $regex: city, $options: 'i' };
+      query.location = { $regex: escapeRegex(city), $options: 'i' };
     }
 
     if (search) {
+      const escapedSearch = escapeRegex(search);
       const searchConditions = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { required_skills: { $regex: search, $options: 'i' } },
+        { title: { $regex: escapedSearch, $options: 'i' } },
+        { description: { $regex: escapedSearch, $options: 'i' } },
+        { required_skills: { $regex: escapedSearch, $options: 'i' } },
       ];
 
-      // Only search location if city filter is not already applied
       if (!city || city === 'all') {
-        searchConditions.push({ location: { $regex: search, $options: 'i' } });
+        searchConditions.push({ location: { $regex: escapedSearch, $options: 'i' } });
       }
 
       query.$or = searchConditions;
@@ -140,10 +146,8 @@ const updateOpportunity = async (req, res) => {
 
     if (req.body.status) opportunity.status = req.body.status;
 
-    if (req.body.required_skills) {
-      opportunity.required_skills = Array.isArray(req.body.required_skills)
-        ? req.body.required_skills
-        : JSON.parse(req.body.required_skills);
+    if (Object.prototype.hasOwnProperty.call(req.body, "required_skills")) {
+      opportunity.required_skills = parseSkills(req.body.required_skills);
     }
 
     if (req.file && hasCloudinaryConfig()) {
@@ -177,6 +181,13 @@ const deleteOpportunity = async (req, res) => {
 
 const applyForOpportunity = async (req, res) => {
   try {
+    const opportunity = await Opportunity.findById(req.params.id);
+    if (!opportunity)
+      return res.status(404).json({ message: "Opportunity not found" });
+
+    if (opportunity.status !== "open")
+      return res.status(400).json({ message: "This opportunity is not open for applications" });
+
     const existing = await Application.findOne({
       opportunity_id: req.params.id,
       volunteer_id: req.user._id,
@@ -187,6 +198,54 @@ const applyForOpportunity = async (req, res) => {
       volunteer_id: req.user._id,
     });
     res.status(201).json(application);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getOpportunityApplications = async (req, res) => {
+  try {
+    const opportunity = await Opportunity.findById(req.params.id);
+    if (!opportunity)
+      return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to view these applications" });
+    }
+
+    const applications = await Application.find({ opportunity_id: req.params.id })
+      .populate("volunteer_id", "name email skills location bio")
+      .populate("opportunity_id", "title status location")
+      .sort({ createdAt: -1 });
+
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateApplicationStatus = async (req, res) => {
+  const allowedStatuses = ["pending", "accepted", "rejected"];
+
+  if (!allowedStatuses.includes(req.body.status)) {
+    return res.status(400).json({ message: "Invalid application status" });
+  }
+
+  try {
+    const application = await Application.findById(req.params.applicationId);
+    if (!application)
+      return res.status(404).json({ message: "Application not found" });
+
+    if (!(await canManageApplication(application, req.user))) {
+      return res.status(403).json({ message: "Not authorized to update this application" });
+    }
+
+    application.status = req.body.status;
+    const updated = await application.save();
+    await updated.populate("volunteer_id", "name email skills location bio");
+    await updated.populate("opportunity_id", "title status location");
+
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -210,5 +269,7 @@ export {
   updateOpportunity,
   deleteOpportunity,
   applyForOpportunity,
+  getOpportunityApplications,
   getUserApplications,
+  updateApplicationStatus,
 };
