@@ -79,10 +79,6 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  /* Icon tints are always a light pastel (set inline per stat), so the
-     icon text stays a fixed dark green instead of inheriting the theme's
-     ink color -- otherwise it turns near-white-on-light and disappears
-     in dark mode. */
   color: #17462b;
   font-weight: 800;
   font-size: 0.78rem;
@@ -109,6 +105,213 @@
   font-size: 0.88rem;
 }
 
+/* SUMMARY CARDS & APPLICATION PANELS */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+  margin-bottom: 18px;
+}
+
+.card {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card:hover, .card.active {
+  border-color: #278a49;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.card h4 {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+  color: var(--ink);
+}
+
+.card .count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.details-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.details-section h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+/* APPLICATION TABLES */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+.data-table th, .data-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* STATUS BADGES */
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.badge.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.badge.accepted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge.rejected {
+  background: #fdecea;
+  color: #c62828;
+}
+
+/* ACTION BUTTONS */
+.btn-accept {
+  background: #278a49;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: opacity 0.15s;
+}
+
+.btn-reject {
+  background: #c62828;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-accept:hover, .btn-reject:hover {
+  opacity: 0.88;
+}
+
+.remark-text {
+  color: #c62828;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* MODAL STYLES */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90%;
+  box-shadow: var(--shadow-md, 0 10px 25px rgba(0,0,0,0.15));
+}
+
+.modal-content h3 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.modal-content p {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.modal-content textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--ink);
+  padding: 10px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-cancel {
+  background: var(--input-bg);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirm-reject {
+  background: #c62828;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .panels {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
@@ -121,6 +324,7 @@
   border-radius: 14px;
   padding: 22px 24px;
   box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
 }
 .panel-head {
   display: flex;
@@ -250,5 +454,9 @@ a.q:hover {
   }
   .panels {
     grid-template-columns: 1fr;
+  }
+  .data-table {
+    display: block;
+    overflow-x: auto;
   }
 }

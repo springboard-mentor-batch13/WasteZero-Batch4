@@ -123,26 +123,40 @@
                           }
                         </div>
                       }
+
+                      <!-- Display Rejection Reason if Rejected -->
+                      @if (application.status === 'rejected' && application.rejection_remark) {
+                        <div class="remark-box" style="margin-top: 8px; font-size: 0.85rem; color: #c62828;">
+                          <strong>Rejection Reason:</strong> {{ application.rejection_remark }}
+                        </div>
+                      }
                     </div>
 
                     @if (canReviewApplications) {
                       <div class="application-actions">
-                      <button
-                        class="btn-accept"
-                        type="button"
-                        [disabled]="isUpdatingApplication(application._id) || application.status === 'accepted'"
-                        (click)="updateApplicationStatus(application, 'accepted')"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        class="btn-reject"
-                        type="button"
-                        [disabled]="isUpdatingApplication(application._id) || application.status === 'rejected'"
-                        (click)="updateApplicationStatus(application, 'rejected')"
-                      >
-                        Reject
-                      </button>
+                        <!-- Only show Accept button if NOT rejected -->
+                        @if (application.status !== 'rejected') {
+                          <button
+                            class="btn-accept"
+                            type="button"
+                            [disabled]="isUpdatingApplication(application._id) || application.status === 'accepted'"
+                            (click)="updateApplicationStatus(application, 'accepted')"
+                          >
+                            Accept
+                          </button>
+                        }
+
+                        <!-- Only show Reject button if NOT accepted -->
+                        @if (application.status !== 'accepted') {
+                          <button
+                            class="btn-reject"
+                            type="button"
+                            [disabled]="isUpdatingApplication(application._id) || application.status === 'rejected'"
+                            (click)="openRejectModal(application)"
+                          >
+                            Reject
+                          </button>
+                        }
                       </div>
                     }
                   </div>
@@ -220,5 +234,21 @@
         }
       </aside>
     </section>
+  }
+
+  <!-- REJECTION REMARK MODAL -->
+  @if (showRejectModal) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h3>Reject Application</h3>
+        <p>Please enter the reason for rejection (visible to the applicant):</p>
+        <textarea [(ngModel)]="rejectionRemark" rows="4" placeholder="Enter rejection reason..."></textarea>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" type="button" (click)="closeRejectModal()">Cancel</button>
+          <button class="btn-confirm-reject" type="button" (click)="confirmReject()">Reject Application</button>
+        </div>
+      </div>
+    </div>
   }
 </div>

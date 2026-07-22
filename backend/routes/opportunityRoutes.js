@@ -10,6 +10,7 @@ import {
   getOpportunityApplications,
   updateApplicationStatus,
   getUserApplications,
+  getDashboardData,
 } from "../controller/opportunityController.js";
 import { protect, ngoOrAdmin, volunteerOnly } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -21,8 +22,14 @@ router
   .get(protect, getOpportunities)
   .post(protect, ngoOrAdmin, upload.single("image"), createOpportunity);
 
+router.get("/dashboard", protect, getDashboardData);
+
 router.get("/my-applications", protect, getUserApplications);
-router.put("/applications/:applicationId/status", protect, ngoOrAdmin, updateApplicationStatus);
+
+router.route("/applications/:applicationId/status")
+  .put(protect, ngoOrAdmin, updateApplicationStatus)
+  .patch(protect, ngoOrAdmin, updateApplicationStatus);
+
 router.get("/:id/applications", protect, ngoOrAdmin, getOpportunityApplications);
 
 router

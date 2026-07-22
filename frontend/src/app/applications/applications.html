@@ -1,0 +1,178 @@
+<section class="applications-container">
+  <header class="app-head">
+    <div>
+      <p class="eyebrow">Management</p>
+      <h1>Applications</h1>
+      <p class="sub">
+        @if (role === 'ngo') { Review and manage volunteer application requests for your opportunities. }
+        @else if (role === 'volunteer') { Track status and responses for your submitted opportunity applications. }
+        @else { System-wide overview of all submitted volunteer applications. }
+      </p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <div class="panel">
+      <p class="muted">Loading applications data...</p>
+    </div>
+  } @else {
+    <!-- NGO VIEW -->
+    @if (role === 'ngo') {
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Your Opportunities & Applicants</h2>
+          <span class="muted">Click an opportunity card below to view applicant details</span>
+        </div>
+
+        <div class="summary-cards">
+          @for (oppId of ObjectKeys; track oppId) {
+            <div 
+              class="card"
+              [class.active]="selectedOpportunityId === oppId"
+              (click)="selectOpportunity(oppId)">
+              <h4>{{ groupedOpportunities[oppId].title }}</h4>
+              <p class="count">Total Applications: {{ groupedOpportunities[oppId].applications.length }}</p>
+            </div>
+          } @empty {
+            <p class="muted">No opportunity applications received yet.</p>
+          }
+        </div>
+
+        @if (selectedOpportunityId && groupedOpportunities[selectedOpportunityId]) {
+          <div class="details-section">
+            <h3>Applications for "{{ groupedOpportunities[selectedOpportunityId].title }}"</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Volunteer Name</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Rejection Remark</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (app of groupedOpportunities[selectedOpportunityId].applications; track app._id) {
+                  <tr>
+                    <td>{{ app.volunteer_id?.name || 'N/A' }}</td>
+                    <td>{{ app.volunteer_id?.email || 'N/A' }}</td>
+                    <td>
+                      <span class="badge" [class]="app.status">{{ app.status }}</span>
+                    </td>
+                    <td>
+                      @if (app.status === 'rejected') {
+                        <span class="remark-text">{{ app.rejection_remark || 'No remark provided' }}</span>
+                      } @else {
+                        <span>-</span>
+                      }
+                    </td>
+                    <td>
+                      @if (app.status === 'pending') {
+                        <button class="btn-accept" (click)="acceptApplication(app._id)">Accept</button>
+                        <button class="btn-reject" (click)="openRejectModal(app._id)">Reject</button>
+                      } @else if (app.status === 'accepted') {
+                        <span class="muted font-bold">Accepted</span>
+                      } @else if (app.status === 'rejected') {
+                        <span class="muted font-bold">Rejected</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- VOLUNTEER VIEW -->
+    @if (role === 'volunteer') {
+      <div class="panel">
+        <div class="panel-head">
+          <h2>My Opportunity Applications</h2>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>NGO</th>
+              <th>Status</th>
+              <th>Rejection Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of applications; track app._id) {
+              <tr>
+                <td>{{ app.opportunity_id?.title || 'N/A' }}</td>
+                <td>{{ getNgoDisplay(app) }}</td>
+                <td><span class="badge" [class]="app.status">{{ app.status }}</span></td>
+                <td>
+                  @if (app.status === 'rejected') {
+                    <span class="remark-text">{{ app.rejection_remark || 'No reason specified' }}</span>
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="muted">You haven't applied to any opportunities yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ADMIN VIEW -->
+    @if (role === 'admin') {
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Platform Applications Overview</h2>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Opportunity</th>
+              <th>Volunteer</th>
+              <th>NGO</th>
+              <th>Status</th>
+              <th>Rejection Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (app of applications; track app._id) {
+              <tr>
+                <td>{{ app.opportunity_id?.title || 'N/A' }}</td>
+                <td>{{ app.volunteer_id?.name || 'N/A' }} ({{ app.volunteer_id?.email }})</td>
+                <td>{{ getNgoDisplay(app) }}</td>
+                <td><span class="badge" [class]="app.status">{{ app.status }}</span></td>
+                <td>{{ app.rejection_remark || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="muted">No application records found across the platform.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- REJECTION REMARK MODAL -->
+  @if (showRejectModal) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <h3>Reject Application</h3>
+        <p>Please enter the reason for rejection (visible to the applicant):</p>
+        <textarea [(ngModel)]="rejectionRemark" rows="4" placeholder="Enter rejection reason..."></textarea>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="closeRejectModal()">Cancel</button>
+          <button class="btn-confirm-reject" (click)="confirmReject()">Reject Application</button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

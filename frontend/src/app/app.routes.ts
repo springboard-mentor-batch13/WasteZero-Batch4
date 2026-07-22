@@ -10,6 +10,7 @@ import { OpportunityList } from './opportunities/opportunity-list/opportunity-li
 import { CreateOpportunity } from './opportunities/create-opportunity/create-opportunity';
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
+import { ApplicationsComponent } from './applications/applications';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -21,6 +22,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
+      { path: 'applications', component: ApplicationsComponent },
       { path: 'profile', component: Profile },
 
       { path: 'opportunities', component: OpportunityList },

@@ -269,7 +269,7 @@ const getOpportunityApplications = async (req, res) => {
 
 const updateApplicationStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, remark, rejection_remark } = req.body;
     if (!["accepted", "rejected"].includes(status)) {
       return res.status(400).json({ message: "Status must be accepted or rejected" });
     }
@@ -289,6 +289,11 @@ const updateApplicationStatus = async (req, res) => {
     application.status = status;
     application.reviewed_by = req.user._id;
     application.reviewed_at = new Date();
+
+    if (status === 'rejected') {
+      application.rejection_remark = rejection_remark || remark || '';
+    }
+
     const updated = await application.save();
     await updated.populate("volunteer_id", "name email role location skills");
     await updated.populate("reviewed_by", "name email role");
@@ -312,6 +317,53 @@ const getUserApplications = async (req, res) => {
   }
 };
 
+const getDashboardData = async (req, res) => {
+  try {
+    const { role, _id: userId } = req.user;
+
+    if (role === 'ngo') {
+      const ngoOpportunities = await Opportunity.find({ ngo_id: userId }).select('_id');
+      const oppIds = ngoOpportunities.map(opp => opp._id);
+
+      const applications = await Application.find({ opportunity_id: { $in: oppIds } })
+        .populate('opportunity_id', 'title description location status')
+        .populate('volunteer_id', 'name email phone location skills')
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    if (role === 'volunteer') {
+      const applications = await Application.find({ volunteer_id: userId })
+        .populate({
+          path: 'opportunity_id',
+          select: 'title location ngo_id',
+          populate: { path: 'ngo_id', select: 'name email' }
+        })
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    if (role === 'admin') {
+      const applications = await Application.find()
+        .populate({
+          path: 'opportunity_id',
+          select: 'title ngo_id',
+          populate: { path: 'ngo_id', select: 'name email' }
+        })
+        .populate('volunteer_id', 'name email')
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    return res.status(403).json({ message: 'Unauthorized role' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export {
   createOpportunity,
   getOpportunities,
@@ -322,4 +374,5 @@ export {
   getOpportunityApplications,
   updateApplicationStatus,
   getUserApplications,
+  getDashboardData,
 };

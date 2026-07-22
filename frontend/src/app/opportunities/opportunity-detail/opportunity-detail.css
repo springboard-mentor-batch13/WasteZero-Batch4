@@ -331,6 +331,17 @@
   gap: 8px;
 }
 
+.remark-box {
+  background: #fdecea;
+  border: 1px solid #f4b4ae;
+  border-radius: 8px;
+  color: #b42318;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
 .detail-item {
   display: grid;
   gap: 10px;
@@ -343,9 +354,6 @@
   background: #f2f6f4;
   border: 1px solid var(--border);
   border-radius: 7px;
-  /* Background here is always a fixed light tint, so the icon color must
-     stay a fixed dark green too -- var(--green-dark) turns light-mint in
-     dark mode and disappears against this light box. */
   color: #17462b;
   display: flex;
   font-size: 0.7rem;
@@ -382,7 +390,9 @@
 .btn-apply,
 .btn-refresh,
 .btn-accept,
-.btn-reject {
+.btn-reject,
+.btn-cancel,
+.btn-confirm-reject {
   border-radius: 10px;
   cursor: pointer;
   font-family: inherit;
@@ -465,6 +475,73 @@
 
 .state-card.error {
   color: var(--danger);
+}
+
+/* REJECTION REMARK MODAL OVERLAY */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  width: 440px;
+  max-width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content h3 {
+  color: var(--ink);
+  font-size: 1.15rem;
+  margin: 0 0 8px;
+}
+
+.modal-content p {
+  color: var(--muted);
+  font-size: 0.86rem;
+  margin: 0 0 14px;
+}
+
+.modal-content textarea {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  padding: 12px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.btn-cancel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.btn-confirm-reject {
+  background: #ef4444;
+  border: 1px solid #ef4444;
+  color: #fff;
 }
 
 @media (max-width: 920px) {

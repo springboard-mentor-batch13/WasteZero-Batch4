@@ -37,15 +37,26 @@ export class OpportunityService {
     return this.http.post(`${this.api}/${id}/apply`, {});
   }
 
-  getApplications(id: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.api}/${id}/applications`);
+  getApplications(id: string): Observable<any> {
+    return this.http.get<any>(`${this.api}/${id}/applications`);
   }
 
-  updateApplicationStatus(applicationId: string, status: 'accepted' | 'rejected'): Observable<any> {
-    return this.http.put(`${this.api}/applications/${applicationId}/status`, { status });
+  updateApplicationStatus(
+    applicationId: string, 
+    statusOrPayload: 'accepted' | 'rejected' | { status: 'accepted' | 'rejected'; rejection_remark?: string; remark?: string }
+  ): Observable<any> {
+    const payload = typeof statusOrPayload === 'string' 
+      ? { status: statusOrPayload } 
+      : statusOrPayload;
+
+    return this.http.put(`${this.api}/applications/${applicationId}/status`, payload);
   }
 
   getMyApplications(): Observable<any[]> {
     return this.http.get<any[]>(`${this.api}/my-applications`);
+  }
+
+  getDashboardData(): Observable<any> {
+    return this.http.get<any>(`${this.api}/dashboard`);
   }
 }

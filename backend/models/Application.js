@@ -25,7 +25,11 @@ const applicationSchema = new mongoose.Schema(
     reviewed_at: {
       type: Date,
       default: null
-    }
+    },
+    rejection_remark: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

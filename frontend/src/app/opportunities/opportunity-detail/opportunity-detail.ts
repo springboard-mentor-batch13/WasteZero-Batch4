@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { OpportunityService } from '../opportunity.service';
 import { Opportunity } from '../opportunity.model';
 import { AuthService } from '../../services/auth.service';
@@ -10,6 +11,7 @@ interface OpportunityApplication {
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
   reviewed_at?: string | null;
+  rejection_remark?: string;
   reviewed_by?: {
     _id: string;
     name?: string;
@@ -28,7 +30,7 @@ interface OpportunityApplication {
 @Component({
   selector: 'app-opportunity-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './opportunity-detail.html',
   styleUrl: './opportunity-detail.css',
 })
@@ -40,6 +42,7 @@ export class OpportunityDetail implements OnInit {
   applying = false;
   applied = false;
   volunteerApplicationStatus: 'pending' | 'accepted' | 'rejected' | '' = '';
+  volunteerRejectionRemark = '';
   volunteerReviewedAt = '';
   volunteerReviewedBy = '';
   applications: OpportunityApplication[] = [];
@@ -54,6 +57,11 @@ export class OpportunityDetail implements OnInit {
   };
   updatingApplicationIds = new Set<string>();
 
+  // Rejection Remark Modal State
+  showRejectModal = false;
+  selectedAppForReject: OpportunityApplication | null = null;
+  rejectionRemark = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -62,44 +70,44 @@ export class OpportunityDetail implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {}
 
- get canManage() {
-  const user = this.auth.getUser();
-  if (!user) return false;
-  if (user.role === 'admin') return true;
-  const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
-  return user.role === 'ngo' && ownerId === user._id;
-}
+  get canManage() {
+    const user = this.auth.getUser();
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
+    return user.role === 'ngo' && ownerId === user._id;
+  }
 
-get isVolunteer() {
-  return this.auth.getUser()?.role === 'volunteer';
-}
+  get isVolunteer() {
+    return this.auth.getUser()?.role === 'volunteer';
+  }
 
-get isAdmin() {
-  return this.auth.getUser()?.role === 'admin';
-}
+  get isAdmin() {
+    return this.auth.getUser()?.role === 'admin';
+  }
 
-get canReviewApplications() {
-  const user = this.auth.getUser();
-  if (!user || user.role !== 'ngo') return false;
-  const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
-  return ownerId === user._id;
-}
+  get canReviewApplications() {
+    const user = this.auth.getUser();
+    if (!user || user.role !== 'ngo') return false;
+    const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
+    return ownerId === user._id;
+  }
 
-get canViewApplicationStatus() {
-  return this.canReviewApplications || this.isAdmin;
-}
+  get canViewApplicationStatus() {
+    return this.canReviewApplications || this.isAdmin;
+  }
 
-get pendingCount() {
-  return this.applicationSummary.pending;
-}
+  get pendingCount() {
+    return this.applicationSummary.pending;
+  }
 
-get acceptedCount() {
-  return this.applicationSummary.accepted;
-}
+  get acceptedCount() {
+    return this.applicationSummary.accepted;
+  }
 
-get rejectedCount() {
-  return this.applicationSummary.rejected;
-}
+  get rejectedCount() {
+    return this.applicationSummary.rejected;
+  }
 
   get postedBy() {
     const ngo = this.opportunity?.ngo_id;
@@ -111,7 +119,7 @@ get rejectedCount() {
     return id ? String(id).slice(-6).toUpperCase() : 'N/A';
   }
 
-ngOnInit() {
+  ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id') || '';
     this.opportunityService.getById(id).subscribe({
       next: (opp) => {
@@ -129,6 +137,7 @@ ngOnInit() {
               });
               this.applied = Boolean(currentApplication);
               this.volunteerApplicationStatus = currentApplication?.status || '';
+              this.volunteerRejectionRemark = currentApplication?.rejection_remark || '';
               this.volunteerReviewedAt = currentApplication?.reviewed_at || '';
               this.volunteerReviewedBy = currentApplication?.reviewed_by?.name || currentApplication?.reviewed_by?.email || '';
               this.cdr.detectChanges();
@@ -173,7 +182,7 @@ ngOnInit() {
     });
   }
 
-  updateApplicationStatus(application: OpportunityApplication, status: 'accepted' | 'rejected') {
+  updateApplicationStatus(application: OpportunityApplication, status: 'accepted' | 'rejected', remark: string = '') {
     if (!this.canReviewApplications) {
       this.applicationsError = 'Only the owning NGO can update application status';
       return;
@@ -182,7 +191,12 @@ ngOnInit() {
     this.updatingApplicationIds.add(application._id);
     this.cdr.detectChanges();
 
-    this.opportunityService.updateApplicationStatus(application._id, status).subscribe({
+    const payload = {
+      status,
+      rejection_remark: remark,
+    };
+
+    this.opportunityService.updateApplicationStatus(application._id, payload).subscribe({
       next: (updated) => {
         this.applications = this.applications.map((item) =>
           item._id === application._id ? updated : item,
@@ -202,6 +216,28 @@ ngOnInit() {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  openRejectModal(application: OpportunityApplication) {
+    this.selectedAppForReject = application;
+    this.rejectionRemark = '';
+    this.showRejectModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeRejectModal() {
+    this.showRejectModal = false;
+    this.selectedAppForReject = null;
+    this.rejectionRemark = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmReject() {
+    if (!this.selectedAppForReject) return;
+    const app = this.selectedAppForReject;
+    const remark = this.rejectionRemark;
+    this.closeRejectModal();
+    this.updateApplicationStatus(app, 'rejected', remark);
   }
 
   isUpdatingApplication(id: string) {
@@ -256,7 +292,11 @@ ngOnInit() {
 
   volunteerStatusText() {
     if (this.volunteerApplicationStatus === 'accepted') return 'Your request has been accepted.';
-    if (this.volunteerApplicationStatus === 'rejected') return 'Your request was rejected.';
+    if (this.volunteerApplicationStatus === 'rejected') {
+      return this.volunteerRejectionRemark 
+        ? `Your request was rejected. Reason: ${this.volunteerRejectionRemark}` 
+        : 'Your request was rejected.';
+    }
     if (this.volunteerApplicationStatus === 'pending') return 'Your request is pending NGO review.';
     return '';
   }
