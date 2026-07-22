@@ -10,6 +10,21 @@
   font-weight: 600;
 }
 
+.form-success {
+  background: #e8f7ef;
+  border: 1px solid #a8dfbf;
+  border-radius: 11px;
+  color: #17663a;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+}
+
+.otp-field .dev-otp {
+  color: #17663a;
+  font-weight: 700;
+}
+
 .otp-actions {
   display: flex;
   gap: 10px;

@@ -39,6 +39,118 @@
             <p class="muted">No specific skills required.</p>
           }
         </article>
+
+        @if (canViewApplicationStatus) {
+          <article class="panel applications-panel">
+            <div class="panel-title-row">
+              <div>
+                <h2>Volunteer Applications</h2>
+                @if (canReviewApplications) {
+                  <p>Review applicants for this opportunity.</p>
+                } @else {
+                  <p>Read-only status overview for this opportunity.</p>
+                }
+              </div>
+              <button class="btn-refresh" type="button" [disabled]="applicationsLoading" (click)="loadApplications()">
+                {{ applicationsLoading ? 'Refreshing...' : 'Refresh' }}
+              </button>
+            </div>
+
+            <div class="application-summary">
+              <span>{{ applicationSummary.total }} total</span>
+              <span>{{ pendingCount }} pending</span>
+              <span>{{ acceptedCount }} accepted</span>
+              <span>{{ rejectedCount }} rejected</span>
+            </div>
+
+            @if (applicationsError) {
+              <div class="inline-error">{{ applicationsError }}</div>
+            }
+
+            @if (applicationsLoading && applications.length === 0) {
+              <p class="muted">Loading applications...</p>
+            }
+
+            @if (!applicationsLoading && applications.length === 0) {
+              <p class="muted">No volunteers have applied yet.</p>
+            }
+
+            @if (applications.length > 0) {
+              <div class="application-list">
+                @for (application of applications; track application._id) {
+                  <div class="application-item">
+                    @if (canReviewApplications) {
+                      <div class="applicant-avatar">
+                        {{ (application.volunteer_id?.name || application.volunteer_id?.email || 'V').slice(0, 1).toUpperCase() }}
+                      </div>
+                    } @else {
+                      <div class="applicant-avatar status-avatar">
+                        {{ application.status.slice(0, 1).toUpperCase() }}
+                      </div>
+                    }
+
+                    <div class="applicant-info">
+                      <div class="applicant-head">
+                        <div>
+                          @if (canReviewApplications) {
+                            <strong>{{ application.volunteer_id?.name || 'Volunteer' }}</strong>
+                            <p>{{ application.volunteer_id?.email || 'No email available' }}</p>
+                          } @else {
+                            <strong>Application {{ application.status }}</strong>
+                            @if (application.status === 'accepted') {
+                              <p>Accepted by {{ reviewedBy(application) || postedBy }}</p>
+                            } @else {
+                              <p>NGO: {{ postedBy }}</p>
+                            }
+                          }
+                        </div>
+                        <span [class]="applicationStatusClass(application.status)">{{ application.status }}</span>
+                      </div>
+
+                      <div class="applicant-meta">
+                        @if (canReviewApplications) {
+                          <span>{{ application.volunteer_id?.location || 'Location not added' }}</span>
+                        } @else if (application.reviewed_at) {
+                          <span>Reviewed {{ application.reviewed_at | date: 'mediumDate' }}</span>
+                        }
+                        <span>Applied {{ application.createdAt | date: 'mediumDate' }}</span>
+                      </div>
+
+                      @if (canReviewApplications && application.volunteer_id?.skills?.length) {
+                        <div class="mini-skill-list">
+                          @for (skill of application.volunteer_id?.skills; track skill) {
+                            <span>{{ skill }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+
+                    @if (canReviewApplications) {
+                      <div class="application-actions">
+                      <button
+                        class="btn-accept"
+                        type="button"
+                        [disabled]="isUpdatingApplication(application._id) || application.status === 'accepted'"
+                        (click)="updateApplicationStatus(application, 'accepted')"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        class="btn-reject"
+                        type="button"
+                        [disabled]="isUpdatingApplication(application._id) || application.status === 'rejected'"
+                        (click)="updateApplicationStatus(application, 'rejected')"
+                      >
+                        Reject
+                      </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </article>
+        }
       </div>
 
       <aside class="details-card">
@@ -84,14 +196,27 @@
               {{ deleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
-        } @else {
+        } @else if (isVolunteer) {
+          @if (applied) {
+            <div [class]="applicationStatusClass(volunteerApplicationStatus)">
+              {{ volunteerStatusText() }}
+              @if (volunteerReviewedAt) {
+                <small>Reviewed {{ volunteerReviewedAt | date: 'mediumDate' }}</small>
+              }
+              @if (volunteerReviewedBy) {
+                <small>By {{ volunteerReviewedBy }}</small>
+              }
+            </div>
+          }
           <button class="btn-apply" [disabled]="applying || applied" (click)="applyForOpportunity()">
             @if (applied) {
-              Applied
+              {{ volunteerApplicationStatus ? (volunteerApplicationStatus | titlecase) : 'Applied' }}
             } @else {
               {{ applying ? 'Applying...' : 'Apply Now' }}
             }
           </button>
+        } @else {
+          <p class="muted side-note">Only volunteers can apply for opportunities.</p>
         }
       </aside>
     </section>

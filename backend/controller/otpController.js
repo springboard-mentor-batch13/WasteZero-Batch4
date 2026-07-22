@@ -41,6 +41,38 @@ const createOtpForEmail = async (email) => {
   return otp;
 };
 
+const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+
+  if (!canSendEmail) {
+    return res.json({
+      message: isDevelopment
+        ? 'Email is not configured. Use the OTP shown below to continue.'
+        : 'Email service is not configured. Please try again later.',
+      otp: isDevelopment ? otp : undefined,
+    });
+  }
+
+  try {
+    await sendEmail({ to: email, subject, text });
+    return res.json({ message: `OTP sent to ${email}` });
+  } catch (error) {
+    console.error('Email error:', error.message);
+
+    if (isDevelopment) {
+      return res.json({
+        message: 'Email could not be delivered. Use the OTP shown below to continue.',
+        otp,
+      });
+    }
+
+    return res.status(502).json({
+      message: 'Could not send OTP email. Please try again later.',
+    });
+  }
+};
+
 // Reusable check used by authController.registerUser to confirm the email
 // was actually verified via OTP before the account is created.
 export const verifyEmailOtp = async (email, otp) => {
@@ -66,22 +98,13 @@ export const sendOtp = async (req, res) => {
 
     const otp = await createOtpForEmail(user.email);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
-    res.json({
-      message: canSendEmail
-        ? `OTP sent to ${user.email}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
-    });
-
-    if (!canSendEmail) return;
-
-    sendEmail({
-      to: user.email,
+    return sendOtpResponse({
+      res,
+      email: user.email,
+      otp,
       subject: 'WasteZero - Your OTP for Password Change',
       text: `Your OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
-    }).catch(err => console.error('Email error:', err));
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -112,22 +135,13 @@ export const sendRegisterOtp = async (req, res) => {
 
     const otp = await createOtpForEmail(normalizedEmail);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
-    res.json({
-      message: canSendEmail
-        ? `OTP sent to ${normalizedEmail}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
-    });
-
-    if (!canSendEmail) return;
-
-    sendEmail({
-      to: normalizedEmail,
+    return sendOtpResponse({
+      res,
+      email: normalizedEmail,
+      otp,
       subject: 'WasteZero - Verify your email',
       text: `Your email verification OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
-    }).catch(err => console.error('Email error:', err));
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -147,22 +161,13 @@ export const sendForgotPasswordOtp = async (req, res) => {
 
     const otp = await createOtpForEmail(user.email);
 
-    const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
-
-    res.json({
-      message: canSendEmail
-        ? `OTP sent to ${user.email}`
-        : 'Email is not configured. Use the returned OTP to continue.',
-      otp: canSendEmail ? undefined : otp,
-    });
-
-    if (!canSendEmail) return;
-
-    sendEmail({
-      to: user.email,
+    return sendOtpResponse({
+      res,
+      email: user.email,
+      otp,
       subject: 'WasteZero - Password reset OTP',
       text: `Your password reset OTP is: ${otp}\n\nThis OTP is valid for 10 minutes. Do not share it with anyone.`,
-    }).catch(err => console.error('Email error:', err));
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -5,6 +5,26 @@ import { OpportunityService } from '../opportunity.service';
 import { Opportunity } from '../opportunity.model';
 import { AuthService } from '../../services/auth.service';
 
+interface OpportunityApplication {
+  _id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+  reviewed_at?: string | null;
+  reviewed_by?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | null;
+  volunteer_id?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    location?: string;
+    skills?: string[];
+  } | null;
+}
+
 @Component({
   selector: 'app-opportunity-detail',
   standalone: true,
@@ -19,6 +39,20 @@ export class OpportunityDetail implements OnInit {
   deleting = false;
   applying = false;
   applied = false;
+  volunteerApplicationStatus: 'pending' | 'accepted' | 'rejected' | '' = '';
+  volunteerReviewedAt = '';
+  volunteerReviewedBy = '';
+  applications: OpportunityApplication[] = [];
+  applicationsLoading = false;
+  applicationsError = '';
+  applicationMode: 'review' | 'admin' | '' = '';
+  applicationSummary = {
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    rejected: 0,
+  };
+  updatingApplicationIds = new Set<string>();
 
   constructor(
     private route: ActivatedRoute,
@@ -40,6 +74,33 @@ get isVolunteer() {
   return this.auth.getUser()?.role === 'volunteer';
 }
 
+get isAdmin() {
+  return this.auth.getUser()?.role === 'admin';
+}
+
+get canReviewApplications() {
+  const user = this.auth.getUser();
+  if (!user || user.role !== 'ngo') return false;
+  const ownerId = (this.opportunity?.ngo_id as any)?._id || this.opportunity?.ngo_id;
+  return ownerId === user._id;
+}
+
+get canViewApplicationStatus() {
+  return this.canReviewApplications || this.isAdmin;
+}
+
+get pendingCount() {
+  return this.applicationSummary.pending;
+}
+
+get acceptedCount() {
+  return this.applicationSummary.accepted;
+}
+
+get rejectedCount() {
+  return this.applicationSummary.rejected;
+}
+
   get postedBy() {
     const ngo = this.opportunity?.ngo_id;
     return ngo?.name || ngo?.email || 'WasteZero partner';
@@ -56,13 +117,20 @@ ngOnInit() {
       next: (opp) => {
         this.opportunity = opp;
         this.loading = false;
+        if (this.canViewApplicationStatus) {
+          this.loadApplications(id);
+        }
         if (this.isVolunteer) {
           this.opportunityService.getMyApplications().subscribe({
             next: (apps: any[]) => {
-              this.applied = apps.some((app) => {
+              const currentApplication = apps.find((app) => {
                 const oppId = typeof app.opportunity_id === 'object' ? app.opportunity_id._id : app.opportunity_id;
                 return oppId === id;
               });
+              this.applied = Boolean(currentApplication);
+              this.volunteerApplicationStatus = currentApplication?.status || '';
+              this.volunteerReviewedAt = currentApplication?.reviewed_at || '';
+              this.volunteerReviewedBy = currentApplication?.reviewed_by?.name || currentApplication?.reviewed_by?.email || '';
               this.cdr.detectChanges();
             },
           });
@@ -75,6 +143,69 @@ ngOnInit() {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  loadApplications(id = this.opportunity?._id || '') {
+    if (!id) return;
+
+    this.applicationsLoading = true;
+    this.applicationsError = '';
+    this.cdr.detectChanges();
+
+    this.opportunityService.getApplications(id).subscribe({
+      next: (response: any) => {
+        this.applicationMode = response.mode || (this.canReviewApplications ? 'review' : 'admin');
+        this.applications = Array.isArray(response) ? response : response.applications || [];
+        this.applicationSummary = response.summary || {
+          total: this.applications.length,
+          pending: this.applications.filter((app) => app.status === 'pending').length,
+          accepted: this.applications.filter((app) => app.status === 'accepted').length,
+          rejected: this.applications.filter((app) => app.status === 'rejected').length,
+        };
+        this.applicationsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.applicationsError = err.error?.message || 'Failed to load applications';
+        this.applicationsLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  updateApplicationStatus(application: OpportunityApplication, status: 'accepted' | 'rejected') {
+    if (!this.canReviewApplications) {
+      this.applicationsError = 'Only the owning NGO can update application status';
+      return;
+    }
+
+    this.updatingApplicationIds.add(application._id);
+    this.cdr.detectChanges();
+
+    this.opportunityService.updateApplicationStatus(application._id, status).subscribe({
+      next: (updated) => {
+        this.applications = this.applications.map((item) =>
+          item._id === application._id ? updated : item,
+        );
+        this.applicationSummary = {
+          total: this.applications.length,
+          pending: this.applications.filter((app) => app.status === 'pending').length,
+          accepted: this.applications.filter((app) => app.status === 'accepted').length,
+          rejected: this.applications.filter((app) => app.status === 'rejected').length,
+        };
+        this.updatingApplicationIds.delete(application._id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.applicationsError = err.error?.message || 'Failed to update application';
+        this.updatingApplicationIds.delete(application._id);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  isUpdatingApplication(id: string) {
+    return this.updatingApplicationIds.has(id);
   }
 
   deleteOpportunity() {
@@ -103,6 +234,7 @@ ngOnInit() {
     this.opportunityService.apply(this.opportunity._id).subscribe({
       next: () => {
         this.applied = true;
+        this.volunteerApplicationStatus = 'pending';
         this.applying = false;
         this.cdr.detectChanges();
       },
@@ -116,6 +248,22 @@ ngOnInit() {
 
   statusClass(status: string) {
     return `status ${status}`;
+  }
+
+  applicationStatusClass(status: string) {
+    return `application-status ${status}`;
+  }
+
+  volunteerStatusText() {
+    if (this.volunteerApplicationStatus === 'accepted') return 'Your request has been accepted.';
+    if (this.volunteerApplicationStatus === 'rejected') return 'Your request was rejected.';
+    if (this.volunteerApplicationStatus === 'pending') return 'Your request is pending NGO review.';
+    return '';
+  }
+
+  reviewedBy(application: OpportunityApplication) {
+    const reviewer = application.reviewed_by;
+    return reviewer?.name || reviewer?.email || (application.status === 'accepted' ? this.postedBy : '');
   }
 
   imageFor(opp: Opportunity): string {

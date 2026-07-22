@@ -132,6 +132,33 @@
 .card-meta strong { color: var(--ink); font-size: 0.68rem; text-transform: uppercase; }
 .card-actions, .manage-btns { display: flex; gap: 8px; }
 
+.application-chip {
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  padding: 9px 11px;
+  text-align: center;
+}
+
+.application-chip.pending {
+  background: #fff4df;
+  border: 1px solid #f4d09a;
+  color: #9a5200;
+}
+
+.application-chip.accepted {
+  background: #e6f6ed;
+  border: 1px solid #9ed7b8;
+  color: #13733a;
+}
+
+.application-chip.rejected {
+  background: #fdecea;
+  border: 1px solid #f4b4ae;
+  color: #b42318;
+}
+
 .btn-apply,
 .btn-edit,
 .btn-delete,

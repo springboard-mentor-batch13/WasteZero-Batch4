@@ -16,6 +16,15 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'accepted', 'rejected'],
       default: 'pending'
+    },
+    reviewed_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    reviewed_at: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }
