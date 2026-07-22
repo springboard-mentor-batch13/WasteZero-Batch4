@@ -24,6 +24,7 @@ export class OpportunityList implements OnInit, OnDestroy {
   cities: string[] = [];
   applyingId = '';
   appliedIds: Set<string> = new Set();
+  applicationStatuses = new Map<string, 'pending' | 'accepted' | 'rejected'>();
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -110,11 +111,13 @@ get userRole() { return this.auth.getUser()?.role; }
     this.opportunityService.getMyApplications().subscribe({
       next: (applications: any[]) => {
         this.appliedIds.clear();
+        this.applicationStatuses.clear();
         applications.forEach(app => {
           const opportunityId = typeof app.opportunity_id === 'object'
             ? app.opportunity_id._id
             : app.opportunity_id;
           this.appliedIds.add(opportunityId);
+          this.applicationStatuses.set(opportunityId, app.status || 'pending');
         });
         this.cdr.detectChanges();
       },
@@ -148,6 +151,7 @@ get userRole() { return this.auth.getUser()?.role; }
     this.opportunityService.apply(id).subscribe({
       next: () => {
         this.appliedIds.add(id);
+        this.applicationStatuses.set(id, 'pending');
         this.applyingId = '';
         this.loadMyApplications();
       },
@@ -161,6 +165,22 @@ get userRole() { return this.auth.getUser()?.role; }
 
   statusColor(status: string): string {
     return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
+  }
+
+  applicationStatus(oppId: string) {
+    return this.applicationStatuses.get(oppId);
+  }
+
+  applicationStatusLabel(oppId: string) {
+    const status = this.applicationStatus(oppId);
+    if (status === 'accepted') return 'Accepted';
+    if (status === 'rejected') return 'Rejected';
+    if (status === 'pending') return 'Pending';
+    return '';
+  }
+
+  applicationStatusClass(oppId: string) {
+    return `application-chip ${this.applicationStatus(oppId) || ''}`;
   }
 
   excerpt(text: string): string {

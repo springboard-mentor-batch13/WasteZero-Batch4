@@ -109,6 +109,11 @@
             </div>
 
             @if (isVolunteer) {
+              @if (appliedIds.has(opp._id)) {
+                <div [class]="applicationStatusClass(opp._id)">
+                  Request {{ applicationStatusLabel(opp._id) }}
+                </div>
+              }
               <div class="card-actions">
                 <a class="btn-secondary" [routerLink]="['/opportunities', opp._id]">View Details</a>
                 <button
@@ -116,7 +121,7 @@
                   [disabled]="applyingId === opp._id || appliedIds.has(opp._id)"
                   (click)="applyForOpportunity(opp._id)"
                 >
-                  @if (appliedIds.has(opp._id)) { Applied }
+                  @if (appliedIds.has(opp._id)) { {{ applicationStatusLabel(opp._id) }} }
                   @else if (applyingId === opp._id) { Applying... }
                   @else { Apply Now }
                 </button>

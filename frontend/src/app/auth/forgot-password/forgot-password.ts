@@ -15,6 +15,7 @@ export class ForgotPassword {
   resetForm: FormGroup;
   error = '';
   success = '';
+  devOtp = '';
   loading = false;
   otpSent = false;
   email = '';
@@ -51,6 +52,10 @@ export class ForgotPassword {
       next: (res) => {
         this.otpSent = true;
         this.success = res.message || 'OTP sent to your email.';
+        this.devOtp = res.otp || '';
+        if (this.devOtp) {
+          this.resetForm.patchValue({ otp: this.devOtp });
+        }
         this.loading = false;
         this.cdr.detectChanges();
       },

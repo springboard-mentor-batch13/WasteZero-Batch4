@@ -7,6 +7,8 @@ import {
   updateOpportunity,
   deleteOpportunity,
   applyForOpportunity,
+  getOpportunityApplications,
+  updateApplicationStatus,
   getUserApplications,
 } from "../controller/opportunityController.js";
 import { protect, ngoOrAdmin, volunteerOnly } from "../middleware/authMiddleware.js";
@@ -20,6 +22,8 @@ router
   .post(protect, ngoOrAdmin, upload.single("image"), createOpportunity);
 
 router.get("/my-applications", protect, getUserApplications);
+router.put("/applications/:applicationId/status", protect, ngoOrAdmin, updateApplicationStatus);
+router.get("/:id/applications", protect, ngoOrAdmin, getOpportunityApplications);
 
 router
   .route("/:id")
