@@ -178,6 +178,7 @@ export class Dashboard implements OnInit {
 
   confirmReject() {
     if (!this.selectedAppIdForReject) return;
+    if (!confirm('Reject this volunteer application?')) return;
 
     this.opportunityService.updateApplicationStatus(this.selectedAppIdForReject, {
       status: 'rejected',

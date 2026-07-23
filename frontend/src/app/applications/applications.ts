@@ -133,6 +133,7 @@ export class ApplicationsComponent implements OnInit {
 
   confirmReject(): void {
     if (!this.selectedAppIdForReject) return;
+    if (!confirm('Reject this volunteer application?')) return;
 
     this.opportunityService.updateApplicationStatus(this.selectedAppIdForReject, {
       status: 'rejected',

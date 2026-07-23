@@ -243,6 +243,8 @@ export class OpportunityDetail implements OnInit {
 
   confirmReject() {
     if (!this.selectedAppForReject) return;
+    if (!confirm('Reject this volunteer application?')) return;
+
     const app = this.selectedAppForReject;
     const remark = this.rejectionRemark;
     this.closeRejectModal();
