@@ -1,0 +1,7 @@
+<div class="toast-stack" aria-live="polite" aria-atomic="true">
+  @for (toast of toastService.messages; track toast.id) {
+    <button class="toast" [class]="toast.type" type="button" (click)="toastService.dismiss(toast.id)">
+      <span>{{ toast.message }}</span>
+    </button>
+  }
+</div>

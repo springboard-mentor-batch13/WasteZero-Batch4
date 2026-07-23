@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { OtpService } from '../../services/otp.service';
+import { AppTheme, ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-register',
@@ -21,6 +22,7 @@ export class Register {
   loading = false;
   sendingOtp = false;
   showPassword = false;
+  theme: AppTheme = 'light';
 
   // Once the email OTP has been sent, the details form is locked and the
   // OTP field is shown. This is what actually stops sign-ups with fake or
@@ -35,7 +37,9 @@ export class Register {
     private otpService: OtpService,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private themeService: ThemeService,
   ) {
+    this.theme = this.themeService.theme;
     this.registerForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -48,6 +52,10 @@ export class Register {
     this.otpForm = this.fb.group({
       otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
     });
+  }
+
+  toggleTheme() {
+    this.theme = this.themeService.toggle();
   }
 
   get emailControl() {

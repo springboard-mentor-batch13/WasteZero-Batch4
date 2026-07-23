@@ -6,6 +6,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { OpportunityService } from '../opportunity.service';
 import { Opportunity } from '../opportunity.model';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-opportunity-list',
@@ -35,6 +36,7 @@ export class OpportunityList implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,  
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
   ) {}
 
 get userRole() { return this.auth.getUser()?.role; }
@@ -153,10 +155,11 @@ get userRole() { return this.auth.getUser()?.role; }
         this.appliedIds.add(id);
         this.applicationStatuses.set(id, 'pending');
         this.applyingId = '';
+        this.toast.success('Application sent successfully');
         this.loadMyApplications();
       },
       error: (err) => {
-        alert(err.error?.message || 'Failed to apply');
+        this.toast.error(err.error?.message || 'Failed to apply');
         this.applyingId = '';
         this.cdr.detectChanges();
       },

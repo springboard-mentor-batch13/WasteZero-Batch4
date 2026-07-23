@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { OpportunityService } from '../opportunities/opportunity.service';
+import { ToastService } from '../services/toast.service';
 
 interface Stat {
   label: string;
@@ -88,6 +89,7 @@ export class Dashboard implements OnInit {
     private auth: AuthService,
     private opportunityService: OpportunityService,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
   ) {
     this.user = auth.getUser();
     this.role = this.user?.role || 'volunteer';
@@ -148,9 +150,17 @@ export class Dashboard implements OnInit {
   }
 
   acceptApplication(appId: string) {
+    if (!confirm('Accept this volunteer application?')) return;
+
     this.opportunityService.updateApplicationStatus(appId, { status: 'accepted' }).subscribe({
-      next: () => this.fetchDashboardData(),
-      error: (err) => console.error('Failed to accept application:', err)
+      next: () => {
+        this.toast.success('Application accepted');
+        this.fetchDashboardData();
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Failed to accept application');
+        console.error('Failed to accept application:', err);
+      }
     });
   }
 
@@ -174,10 +184,14 @@ export class Dashboard implements OnInit {
       rejection_remark: this.rejectionRemark
     }).subscribe({
       next: () => {
+        this.toast.success('Application rejected');
         this.closeRejectModal();
         this.fetchDashboardData();
       },
-      error: (err) => console.error('Failed to reject application:', err)
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Failed to reject application');
+        console.error('Failed to reject application:', err);
+      }
     });
   }
 

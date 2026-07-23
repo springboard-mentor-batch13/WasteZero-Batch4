@@ -2,6 +2,7 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { AppTheme, ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-login',
@@ -15,17 +16,24 @@ export class LoginComponent {
   error = '';
   loading = false;
   showPassword = false;
+  theme: AppTheme = 'light';
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef,
+    private themeService: ThemeService,
   ) {
+    this.theme = this.themeService.theme;
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
     });
+  }
+
+  toggleTheme() {
+    this.theme = this.themeService.toggle();
   }
 
   onLogin() {
