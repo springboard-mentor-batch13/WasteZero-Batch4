@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { OpportunityService } from '../opportunity.service';
 import { Opportunity } from '../opportunity.model';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 interface OpportunityApplication {
   _id: string;
@@ -68,6 +69,7 @@ export class OpportunityDetail implements OnInit {
     private opportunityService: OpportunityService,
     private auth: AuthService,
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
   ) {}
 
   get canManage() {
@@ -185,6 +187,11 @@ export class OpportunityDetail implements OnInit {
   updateApplicationStatus(application: OpportunityApplication, status: 'accepted' | 'rejected', remark: string = '') {
     if (!this.canReviewApplications) {
       this.applicationsError = 'Only the owning NGO can update application status';
+      this.toast.error(this.applicationsError);
+      return;
+    }
+
+    if (status === 'accepted' && !confirm('Accept this volunteer application?')) {
       return;
     }
 
@@ -208,11 +215,13 @@ export class OpportunityDetail implements OnInit {
           rejected: this.applications.filter((app) => app.status === 'rejected').length,
         };
         this.updatingApplicationIds.delete(application._id);
+        this.toast.success(status === 'accepted' ? 'Application accepted' : 'Application rejected');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.applicationsError = err.error?.message || 'Failed to update application';
         this.updatingApplicationIds.delete(application._id);
+        this.toast.error(this.applicationsError);
         this.cdr.detectChanges();
       },
     });
@@ -234,6 +243,8 @@ export class OpportunityDetail implements OnInit {
 
   confirmReject() {
     if (!this.selectedAppForReject) return;
+    if (!confirm('Reject this volunteer application?')) return;
+
     const app = this.selectedAppForReject;
     const remark = this.rejectionRemark;
     this.closeRejectModal();
@@ -272,11 +283,13 @@ export class OpportunityDetail implements OnInit {
         this.applied = true;
         this.volunteerApplicationStatus = 'pending';
         this.applying = false;
+        this.toast.success('Application sent successfully');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to apply';
         this.applying = false;
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       },
     });

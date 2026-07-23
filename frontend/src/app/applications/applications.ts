@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OpportunityService } from '../opportunities/opportunity.service';
 import { AuthService } from '../services/auth.service';
+import { ToastService } from '../services/toast.service';
 
 interface Application {
   _id: string;
@@ -54,7 +55,8 @@ export class ApplicationsComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private opportunityService: OpportunityService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toast: ToastService
   ) {
     this.user = this.authService.getUser();
     this.role = this.user?.role || 'volunteer';
@@ -103,9 +105,17 @@ export class ApplicationsComponent implements OnInit {
   }
 
   acceptApplication(appId: string): void {
+    if (!confirm('Accept this volunteer application?')) return;
+
     this.opportunityService.updateApplicationStatus(appId, { status: 'accepted' }).subscribe({
-      next: () => this.fetchApplications(),
-      error: (err) => console.error('Failed to accept application:', err)
+      next: () => {
+        this.toast.success('Application accepted');
+        this.fetchApplications();
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Failed to accept application');
+        console.error('Failed to accept application:', err);
+      }
     });
   }
 
@@ -123,16 +133,21 @@ export class ApplicationsComponent implements OnInit {
 
   confirmReject(): void {
     if (!this.selectedAppIdForReject) return;
+    if (!confirm('Reject this volunteer application?')) return;
 
     this.opportunityService.updateApplicationStatus(this.selectedAppIdForReject, {
       status: 'rejected',
       rejection_remark: this.rejectionRemark
     }).subscribe({
       next: () => {
+        this.toast.success('Application rejected');
         this.closeRejectModal();
         this.fetchApplications();
       },
-      error: (err) => console.error('Failed to reject application:', err)
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Failed to reject application');
+        console.error('Failed to reject application:', err);
+      }
     });
   }
 
