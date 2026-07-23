@@ -90,10 +90,6 @@ const getOpportunities = async (req, res) => {
     const { status, search, city } = req.query;
     let query = {};
 
-    if (req.user?.role === 'ngo') {
-      query.ngo_id = req.user._id;
-    }
-
     if (status && status !== 'all') {
       query.status = status;
     }
