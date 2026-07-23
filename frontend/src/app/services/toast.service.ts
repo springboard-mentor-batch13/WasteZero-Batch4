@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -10,12 +10,12 @@ export interface ToastMessage {
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
-  messages: ToastMessage[] = [];
+  messages = signal<ToastMessage[]>([]);
   private nextId = 1;
 
   show(message: string, type: ToastType = 'info'): void {
     const toast = { id: this.nextId++, message, type };
-    this.messages = [...this.messages, toast];
+    this.messages.update((messages) => [...messages, toast]);
 
     setTimeout(() => this.dismiss(toast.id), 3500);
   }
@@ -33,6 +33,6 @@ export class ToastService {
   }
 
   dismiss(id: number): void {
-    this.messages = this.messages.filter((toast) => toast.id !== id);
+    this.messages.update((messages) => messages.filter((toast) => toast.id !== id));
   }
 }
