@@ -11,6 +11,8 @@ import { CreateOpportunity } from './opportunities/create-opportunity/create-opp
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
 import { ApplicationsComponent } from './applications/applications';
+import { Messages } from './messages/messages';
+import { Notifications } from './notifications/notifications';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -21,17 +23,20 @@ export const routes: Routes = [
     component: Shell,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', component: Dashboard },
-      { path: 'applications', component: ApplicationsComponent },
-      { path: 'profile', component: Profile },
+  { path: 'dashboard', component: Dashboard },
+  { path: 'applications', component: ApplicationsComponent },
+  { path: 'profile', component: Profile },
 
-      { path: 'opportunities', component: OpportunityList },
-      { path: 'opportunities/create', component: CreateOpportunity },
-      { path: 'opportunities/edit/:id', component: EditOpportunity },
-      { path: 'opportunities/:id', component: OpportunityDetail },
+  { path: 'messages', component: Messages },
+  { path: 'notifications', component: Notifications },
 
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-    ],
+  { path: 'opportunities', component: OpportunityList },
+  { path: 'opportunities/create', component: CreateOpportunity },
+  { path: 'opportunities/edit/:id', component: EditOpportunity },
+  { path: 'opportunities/:id', component: OpportunityDetail },
+
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+],
   },
   { path: '**', redirectTo: 'dashboard' },
 ];

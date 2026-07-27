@@ -1,0 +1,20 @@
+<div class="notifications-container">
+  <h2>Notifications</h2>
+
+  <div *ngIf="notifications.length === 0">
+    No notifications available.
+  </div>
+
+  <div
+    class="notification-card"
+    *ngFor="let notification of notifications"
+  >
+    <h4>{{ notification.title || 'Notification' }}</h4>
+
+    <p>{{ notification.message }}</p>
+
+    <small>
+      {{ notification.sent_at | date:'medium' }}
+    </small>
+  </div>
+</div>
