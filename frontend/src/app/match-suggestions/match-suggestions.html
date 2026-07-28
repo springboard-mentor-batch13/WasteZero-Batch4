@@ -1,0 +1,59 @@
+<section class="matches">
+
+    <div class="header">
+        <h1>Match Suggestions</h1>
+
+        <p>
+            Opportunities recommended based on your profile.
+        </p>
+    </div>
+
+    <div class="match-grid">
+
+        @for(match of matches; track match.title){
+
+        <div class="match-card">
+
+            <div class="top">
+
+                <div>
+
+                    <h3>{{match.title}}</h3>
+
+                    <span>{{match.organization}}</span>
+
+                </div>
+
+                <div class="score">
+
+                    {{match.percentage}}%
+
+                </div>
+
+            </div>
+
+            <p class="location">
+
+                📍 {{match.location}}
+
+            </p>
+
+            <p class="description">
+
+                {{match.description}}
+
+            </p>
+
+            <button routerLink="/opportunities">
+
+                View Opportunity
+
+            </button>
+
+        </div>
+
+        }
+
+    </div>
+
+</section>

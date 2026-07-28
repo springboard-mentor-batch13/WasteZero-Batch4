@@ -76,4 +76,31 @@
       }
     </ul>
   </div>
+
+  <div class="panel">
+  <div class="panel-head">
+    <h2>Suggested Matches</h2>
+    <span class="muted">Based on your profile</span>
+  </div>
+
+  <div class="match-list">
+    @for (match of matchSuggestions; track match.title) {
+      <div class="match-card">
+
+        <div class="match-info">
+          <h4>{{ match.title }}</h4>
+
+          <p>{{ match.ngo }}</p>
+
+          <small>{{ match.location }}</small>
+        </div>
+
+        <div class="match-score">
+          {{ match.match }}%
+        </div>
+
+      </div>
+    }
+  </div>
+</div>
 </section>

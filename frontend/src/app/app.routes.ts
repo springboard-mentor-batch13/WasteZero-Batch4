@@ -11,6 +11,7 @@ import { CreateOpportunity } from './opportunities/create-opportunity/create-opp
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
 import { ApplicationsComponent } from './applications/applications';
+import { MatchSuggestions } from './match-suggestions/match-suggestions';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -22,6 +23,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
+      { path:'match-suggestions', component:MatchSuggestions},
+      
       { path: 'applications', component: ApplicationsComponent },
       { path: 'profile', component: Profile },
 
