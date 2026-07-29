@@ -1,0 +1,31 @@
+<div class="messages-container">
+  <h2>Messages</h2>
+
+  <input
+    type="text"
+    placeholder="Receiver User ID"
+    [(ngModel)]="receiverId"
+  />
+
+  <button (click)="loadMessages()">Load Messages</button>
+
+  <div class="message-list">
+    <div *ngFor="let msg of messages" class="message">
+      <strong>{{ msg.sender_id }}</strong>
+
+      <p>{{ msg.content }}</p>
+
+      <small>{{ msg.timestamp | date:'short' }}</small>
+    </div>
+  </div>
+
+  <div class="send-box">
+    <input
+      type="text"
+      placeholder="Type message..."
+      [(ngModel)]="newMessage"
+    />
+
+    <button (click)="sendMessage()">Send</button>
+  </div>
+</div>
