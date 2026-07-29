@@ -239,6 +239,7 @@ export class Dashboard implements OnInit {
       return [
         editProfile,
         browseOpportunities,
+        { label: 'Manage pickups', icon: 'PK', link: '/pickups' },
         { label: 'Manage users', icon: 'AD', soon: true },
         { label: 'View reports', icon: 'RP', soon: true },
       ];
@@ -247,12 +248,14 @@ export class Dashboard implements OnInit {
       return [
         editProfile,
         { label: 'Create opportunity', icon: 'ADD', link: '/opportunities/create' },
+        { label: 'Manage pickups', icon: 'PK', link: '/pickups' },
         browseOpportunities,
       ];
     }
     return [
       editProfile,
-      { label: 'Schedule a pickup', icon: 'PK', soon: true },
+      { label: 'Schedule a pickup', icon: 'PK', link: '/pickups' },
+      { label: 'View my matches', icon: 'MT', link: '/match-suggestions' },
       browseOpportunities,
     ];
   }

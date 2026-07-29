@@ -2,6 +2,7 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
+import Notification from "../models/Notification.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -60,7 +61,7 @@ const isOpportunityOwner = (opportunity, user) => {
 };
 
 const createOpportunity = async (req, res) => {
-  const { title, description, required_skills, duration, location, date } =
+  const { title, description, required_skills, waste_types, duration, location, date } =
     req.body;
 
   try {
@@ -73,6 +74,11 @@ const createOpportunity = async (req, res) => {
         ? required_skills
         : required_skills
           ? JSON.parse(required_skills)
+          : [],
+      waste_types: Array.isArray(waste_types)
+        ? waste_types
+        : waste_types
+          ? JSON.parse(waste_types)
           : [],
       duration,
       location,
@@ -165,6 +171,12 @@ const updateOpportunity = async (req, res) => {
         : JSON.parse(req.body.required_skills);
     }
 
+    if (req.body.waste_types) {
+      opportunity.waste_types = Array.isArray(req.body.waste_types)
+        ? req.body.waste_types
+        : JSON.parse(req.body.waste_types);
+    }
+
     if (req.file) {
       opportunity.image_url = await getOpportunityImageUrl(req.file);
     }
@@ -212,6 +224,16 @@ const applyForOpportunity = async (req, res) => {
       opportunity_id: req.params.id,
       volunteer_id: req.user._id,
     });
+
+    await Notification.create({
+      user_id: opportunity.ngo_id,
+      type: "application",
+      title: "New volunteer application",
+      message: `${req.user.name} applied for ${opportunity.title}`,
+      link: `/opportunities/${opportunity._id}`,
+    });
+    req.app.get("io")?.to(`user:${opportunity.ngo_id}`).emit("notification:new");
+
     res.status(201).json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -293,6 +315,15 @@ const updateApplicationStatus = async (req, res) => {
     const updated = await application.save();
     await updated.populate("volunteer_id", "name email role location skills");
     await updated.populate("reviewed_by", "name email role");
+
+    await Notification.create({
+      user_id: application.volunteer_id,
+      type: "application_status",
+      title: `Application ${status}`,
+      message: `Your application for ${opportunity.title} was ${status}.`,
+      link: "/applications",
+    });
+    req.app.get("io")?.to(`user:${application.volunteer_id}`).emit("notification:new");
 
     res.json(updated);
   } catch (error) {

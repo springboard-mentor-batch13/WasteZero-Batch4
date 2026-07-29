@@ -1,0 +1,14 @@
+.page header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 22px; }
+.eyebrow { color: #218a4a; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+h1 { margin: 4px 0; font-size: 32px; }
+header p:last-child { color: #6b7b72; }
+header button { border: 0; background: #238b4b; color: white; padding: 10px 14px; border-radius: 10px; font-weight: 700; }
+.list { background: var(--surface, white); border: 1px solid #dce7df; border-radius: 18px; overflow: hidden; }
+.notice { width: 100%; display: flex; gap: 14px; align-items: flex-start; border: 0; border-bottom: 1px solid #e3ece6; padding: 18px 20px; background: transparent; text-align: left; color: inherit; cursor: pointer; }
+.notice:last-child { border-bottom: 0; }
+.notice.unread { background: #eef9f1; }
+.dot { width: 9px; height: 9px; margin-top: 6px; border-radius: 50%; background: transparent; flex: none; }
+.unread .dot { background: #238b4b; }
+.copy { display: grid; gap: 4px; }
+.copy span, .copy small { color: #66766c; }
+.empty { padding: 35px; text-align: center; color: #66766c; }

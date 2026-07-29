@@ -33,6 +33,10 @@ WasteZero is a full-stack web application designed to connect NGOs, volunteers, 
 - Opportunity Management
 - Volunteer Applications
 - Messaging System
+- Real-time NGO/volunteer messaging with Socket.IO
+- Volunteer matching by waste type, skills, and location
+- In-app application and message notifications
+- Household pickup scheduling with role-based status management
 - Image Uploads
 - Responsive User Interface
 
@@ -45,7 +49,7 @@ Before setting up the project, ensure the following software and services are av
 - Node.js (v18 or later)
 - npm
 - Git
-- MongoDB Atlas Account
+- MongoDB Community Server (MongoDB Compass is optional)
 - Cloudinary Account
 - Gmail Account with App Password
 - Angular CLI
@@ -107,7 +111,12 @@ Install dependencies.
 ```bash
 npm install
 ```
-Create a `.env` file using the `.env.example` file.
+Create a `.env` file using the `.env.example` file. For local MongoDB/Compass use:
+
+```env
+MONGO_URI=mongodb://127.0.0.1:27017/wastezero
+JWT_SECRET=replace-with-a-long-random-secret
+```
 
 Start the backend server.
 
@@ -305,6 +314,21 @@ Supports secure communication between users within the platform.
 
 <hr>
 
+## Pickups
+
+| Method | Endpoint | Access |
+|---|---|---|
+| GET | `/api/pickups` | Authenticated |
+| POST | `/api/pickups` | Volunteer |
+| PATCH | `/api/pickups/:id/status` | NGO/Admin |
+| PATCH | `/api/pickups/:id/cancel` | Volunteer owner |
+
+Volunteers can schedule and track waste pickups. NGOs and administrators can
+confirm, assign, progress, complete, or cancel pickup requests. Each status
+change creates an in-app notification for the volunteer.
+
+<hr>
+
 # Architecture Overview
 
 WasteZero follows a client-server architecture.
@@ -359,6 +383,16 @@ Visit:
 ```
 http://localhost:4200
 ```
+
+The backend health endpoint is available at `http://localhost:5000`.
+
+To inspect the local database in MongoDB Compass, connect with:
+
+```text
+mongodb://127.0.0.1:27017
+```
+
+Then open the `wastezero` database.
 
 <hr>
 

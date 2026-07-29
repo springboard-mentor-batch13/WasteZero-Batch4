@@ -1,0 +1,130 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Collection service</p>
+      <h1>{{ isVolunteer ? 'Schedule a pickup' : 'Pickup management' }}</h1>
+      <p>{{ isVolunteer ? 'Choose what, when, and where our collection partner should pick up.' : 'Review requests and keep residents updated.' }}</p>
+    </div>
+  </header>
+
+  @if (error) { <div class="alert">{{ error }}</div> }
+
+  @if (isVolunteer) {
+    <form class="schedule-card" [formGroup]="form" (ngSubmit)="schedule()">
+      <div class="form-head">
+        <h2>New pickup request</h2>
+        <span>All fields marked * are required</span>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          <span>Waste type *</span>
+          <select formControlName="waste_type">
+            <option value="plastic">Plastic</option>
+            <option value="paper">Paper</option>
+            <option value="organic">Organic</option>
+            <option value="e-waste">E-waste</option>
+            <option value="glass">Glass</option>
+            <option value="metal">Metal</option>
+            <option value="mixed">Mixed</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Estimated quantity (kg) *</span>
+          <input type="number" min="0.1" max="10000" step="0.1" formControlName="quantity_kg" />
+        </label>
+
+        <label>
+          <span>Pickup date *</span>
+          <input type="date" [min]="today" formControlName="pickup_date" />
+        </label>
+
+        <label>
+          <span>Preferred time *</span>
+          <select formControlName="time_slot">
+            <option value="morning">Morning · 8 AM–12 PM</option>
+            <option value="afternoon">Afternoon · 12–4 PM</option>
+            <option value="evening">Evening · 4–8 PM</option>
+          </select>
+        </label>
+
+        <label class="wide">
+          <span>Collection address *</span>
+          <textarea rows="2" formControlName="address" placeholder="House/building, street, area and city"></textarea>
+        </label>
+
+        <label class="wide">
+          <span>Notes for the collector</span>
+          <textarea rows="2" formControlName="notes" placeholder="Access instructions, item details, or special handling"></textarea>
+        </label>
+      </div>
+
+      <button class="primary" type="submit" [disabled]="saving">
+        {{ saving ? 'Scheduling...' : 'Schedule pickup' }}
+      </button>
+    </form>
+  }
+
+  <section class="history">
+    <div class="section-head">
+      <div>
+        <h2>{{ isVolunteer ? 'My pickup requests' : 'Pickup queue' }}</h2>
+        <span>{{ pickups.length }} request{{ pickups.length === 1 ? '' : 's' }}</span>
+      </div>
+      <label class="filter">
+        <span>Status</span>
+        <select [value]="statusFilter" (change)="load($any($event.target).value)">
+          <option value="all">All</option>
+          @for (status of statuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (loading) {
+      <div class="empty">Loading pickup requests...</div>
+    } @else if (!pickups.length) {
+      <div class="empty">No pickup requests match this filter.</div>
+    }
+
+    <div class="pickup-grid">
+      @for (pickup of pickups; track pickup._id) {
+        <article>
+          <div class="card-top">
+            <span class="waste">{{ pickup.waste_type }}</span>
+            <span class="status" [attr.data-status]="pickup.status">{{ pickup.status }}</span>
+          </div>
+          <h3>{{ pickup.quantity_kg }} kg · {{ pickup.pickup_date | date:'mediumDate' }}</h3>
+          <p class="slot">{{ pickup.time_slot }} pickup</p>
+          <p class="address">{{ pickup.address }}</p>
+          @if (pickup.notes) { <p class="notes">{{ pickup.notes }}</p> }
+          @if (!isVolunteer) {
+            <div class="requester">
+              <strong>{{ pickup.user_id?.name }}</strong>
+              <span>{{ pickup.user_id?.email }}</span>
+            </div>
+          }
+          @if (pickup.assigned_to) {
+            <p class="assigned">Coordinator: {{ pickup.assigned_to.name }}</p>
+          }
+
+          @if (canCancel(pickup)) {
+            <button class="secondary danger" type="button" (click)="cancel(pickup)">Cancel pickup</button>
+          } @else if (!isVolunteer && pickup.status !== 'completed' && pickup.status !== 'cancelled') {
+            <div class="manage">
+              <select #nextStatus [value]="pickup.status">
+                @for (status of statuses; track status) {
+                  <option [value]="status">{{ status }}</option>
+                }
+              </select>
+              <button class="secondary" type="button" (click)="updateStatus(pickup, nextStatus.value)">Update</button>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </section>
+</section>

@@ -11,6 +11,10 @@ import { CreateOpportunity } from './opportunities/create-opportunity/create-opp
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
 import { ApplicationsComponent } from './applications/applications';
+import { Messages } from './messages/messages';
+import { Notifications } from './notifications/notifications';
+import { MatchSuggestions } from './match-suggestions/match-suggestions';
+import { Pickups } from './pickups/pickups';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -24,6 +28,10 @@ export const routes: Routes = [
       { path: 'dashboard', component: Dashboard },
       { path: 'applications', component: ApplicationsComponent },
       { path: 'profile', component: Profile },
+      { path: 'messages', component: Messages },
+      { path: 'notifications', component: Notifications },
+      { path: 'match-suggestions', component: MatchSuggestions },
+      { path: 'pickups', component: Pickups },
 
       { path: 'opportunities', component: OpportunityList },
       { path: 'opportunities/create', component: CreateOpportunity },

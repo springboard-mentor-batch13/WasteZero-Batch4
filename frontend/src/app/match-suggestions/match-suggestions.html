@@ -1,0 +1,32 @@
+<section class="page">
+  <header>
+    <p class="eyebrow">Smart matching</p>
+    <h1>Recommended opportunities</h1>
+    <p>Suggestions are ranked using your preferred waste types, skills, and location.</p>
+  </header>
+
+  @if (loading) { <div class="empty">Finding your best matches...</div> }
+  @if (error) { <div class="error">{{ error }}</div> }
+  @if (!loading && !error && !matches.length) {
+    <div class="empty">No open opportunities are available. Complete your profile and check again soon.</div>
+  }
+
+  <div class="grid">
+    @for (match of matches; track match.opportunity._id) {
+      <article>
+        <div class="score" [class.strong]="match.score >= 60">{{ match.score }}% match</div>
+        <h2>{{ match.opportunity.title }}</h2>
+        <p>{{ match.opportunity.description }}</p>
+        <dl>
+          <div><dt>NGO</dt><dd>{{ match.opportunity.ngo_id?.name || 'WasteZero partner' }}</dd></div>
+          <div><dt>Location</dt><dd>{{ match.opportunity.location }}</dd></div>
+        </dl>
+        <div class="reasons">
+          @for (reason of match.reasons; track reason) { <span>{{ reason }}</span> }
+          @if (!match.reasons.length) { <span>New opportunity</span> }
+        </div>
+        <a [routerLink]="['/opportunities', match.opportunity._id]">View opportunity</a>
+      </article>
+    }
+  </div>
+</section>

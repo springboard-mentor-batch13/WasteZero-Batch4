@@ -42,6 +42,7 @@ export class Profile implements OnInit {
       email: [''],
       location: [''],
       skills: [''],
+      waste_types: [''],
       bio: [''],
     });
 
@@ -60,6 +61,7 @@ export class Profile implements OnInit {
         email: cached.email,
         location: cached.location || '',
         skills: (cached.skills || []).join(', '),
+        waste_types: (cached.waste_types || []).join(', '),
         bio: cached.bio || '',
       });
       this.loading = false;
@@ -79,6 +81,7 @@ export class Profile implements OnInit {
           email: user.email,
           location: user.location || '',
           skills: (user.skills || []).join(', '),
+          waste_types: (user.waste_types || []).join(', '),
           bio: user.bio || '',
         });
         this.loading = false;
@@ -120,6 +123,9 @@ export class Profile implements OnInit {
     const data = { ...rest };
     data.skills = data.skills
       ? data.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : [];
+    data.waste_types = data.waste_types
+      ? data.waste_types.split(',').map((s: string) => s.trim()).filter(Boolean)
       : [];
 
     this.auth.updateProfile(data).subscribe({

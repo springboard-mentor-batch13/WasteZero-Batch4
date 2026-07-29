@@ -43,6 +43,7 @@ Thumbs.db
 
 # Optional npm cache
 .npm
+.npm-cache/
 
 # Optional ESLint cache
 .eslintcache

@@ -27,6 +27,7 @@ export class CreateOpportunity {
       title: ['', Validators.required],
       description: ['', Validators.required],
       required_skills: [''],
+      waste_types: [''],
       duration: [''],
       location: ['', Validators.required],
       date: [''],
@@ -63,6 +64,14 @@ export class CreateOpportunity {
               .split(',')
               .map((s: string) => s.trim())
               .filter(Boolean)
+          : [],
+      ),
+    );
+    formData.append(
+      'waste_types',
+      JSON.stringify(
+        val.waste_types
+          ? val.waste_types.split(',').map((s: string) => s.trim()).filter(Boolean)
           : [],
       ),
     );

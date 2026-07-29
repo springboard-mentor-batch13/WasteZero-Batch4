@@ -31,6 +31,7 @@ export class EditOpportunity implements OnInit {
       title: ['', Validators.required],
       description: ['', Validators.required],
       required_skills: [''],
+      waste_types: [''],
       duration: [''],
       location: ['', Validators.required],
       date: [''],
@@ -54,6 +55,7 @@ export class EditOpportunity implements OnInit {
           title: opp.title,
           description: opp.description,
           required_skills: (opp.required_skills || []).join(', '),
+          waste_types: (opp.waste_types || []).join(', '),
           duration: opp.duration || '',
           location: opp.location || '',
           date: opp.date ? opp.date.slice(0, 10) : '',
@@ -90,6 +92,14 @@ export class EditOpportunity implements OnInit {
       JSON.stringify(
         val.required_skills
           ? val.required_skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : [],
+      ),
+    );
+    formData.append(
+      'waste_types',
+      JSON.stringify(
+        val.waste_types
+          ? val.waste_types.split(',').map((s: string) => s.trim()).filter(Boolean)
           : [],
       ),
     );

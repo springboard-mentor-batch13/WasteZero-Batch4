@@ -4,6 +4,7 @@ export interface Opportunity {
   title: string;
   description: string;
   required_skills: string[];
+  waste_types?: string[];
   duration: string;
   location: string;
   status: 'open' | 'closed' | 'in-progress';

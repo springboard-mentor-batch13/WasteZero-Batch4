@@ -1,0 +1,26 @@
+.page header { margin-bottom: 22px; }
+.eyebrow { color: #218a4a; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+h1 { margin: 4px 0; font-size: 32px; }
+header p:last-child, .muted { color: #6b7b72; }
+.error { margin-bottom: 12px; padding: 12px; border-radius: 10px; color: #b42318; background: #fee4e2; }
+.messenger { display: grid; grid-template-columns: 280px 1fr; min-height: 620px; background: var(--surface, #fff); border: 1px solid #dce7df; border-radius: 18px; overflow: hidden; }
+.contacts { padding: 18px; border-right: 1px solid #dce7df; }
+.contacts h2 { margin: 0 0 14px; font-size: 17px; }
+.contacts button { width: 100%; display: flex; gap: 10px; align-items: center; border: 0; background: transparent; padding: 11px; border-radius: 12px; text-align: left; cursor: pointer; color: inherit; }
+.contacts button:hover, .contacts button.active { background: #e9f7ee; }
+.contacts small { display: block; margin-top: 3px; color: #6b7b72; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #248c4c; color: white; font-weight: 800; flex: none; }
+.conversation { min-width: 0; display: flex; flex-direction: column; }
+.conversation-head { padding: 18px 22px; border-bottom: 1px solid #dce7df; display: flex; justify-content: space-between; }
+.conversation-head span { color: #6b7b72; text-transform: capitalize; }
+.thread { flex: 1; padding: 22px; overflow: auto; display: flex; flex-direction: column; gap: 10px; background: #f6faf7; }
+.bubble { max-width: 72%; align-self: flex-start; background: white; padding: 11px 14px; border-radius: 14px 14px 14px 4px; box-shadow: 0 2px 8px #153d2212; }
+.bubble.mine { align-self: flex-end; background: #238b4b; color: white; border-radius: 14px 14px 4px 14px; }
+.bubble p { margin: 0 0 6px; white-space: pre-wrap; }
+.bubble small { opacity: .7; }
+.composer { padding: 14px; display: flex; gap: 10px; border-top: 1px solid #dce7df; }
+.composer input { flex: 1; border: 1px solid #cddbd1; border-radius: 10px; padding: 12px 14px; }
+.composer button { border: 0; border-radius: 10px; background: #238b4b; color: white; padding: 0 24px; font-weight: 800; }
+.composer button:disabled { opacity: .5; }
+.empty, .empty-state { margin: auto; color: #6b7b72; text-align: center; }
+@media (max-width: 760px) { .messenger { grid-template-columns: 1fr; } .contacts { border-right: 0; border-bottom: 1px solid #dce7df; max-height: 230px; overflow: auto; } }

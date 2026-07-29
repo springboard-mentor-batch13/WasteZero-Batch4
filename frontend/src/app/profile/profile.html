@@ -58,6 +58,14 @@
               <small>Separate skills with commas.</small>
             </div>
 
+            @if (user?.role === 'volunteer') {
+              <div class="field">
+                <label>Preferred Waste Types</label>
+                <input formControlName="waste_types" placeholder="e.g. plastic, organic, e-waste" />
+                <small>These preferences improve your opportunity matches.</small>
+              </div>
+            }
+
             <div class="field">
               <label>Bio</label>
               <textarea formControlName="bio" rows="3" placeholder="Tell us about yourself..."></textarea>

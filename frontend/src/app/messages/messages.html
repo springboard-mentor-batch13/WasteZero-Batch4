@@ -1,0 +1,50 @@
+<section class="page">
+  <header>
+    <p class="eyebrow">Communication</p>
+    <h1>Messages</h1>
+    <p>Chat with NGOs and volunteers in real time.</p>
+  </header>
+
+  @if (error) { <div class="error">{{ error }}</div> }
+
+  <div class="messenger">
+    <aside class="contacts">
+      <h2>Contacts</h2>
+      @if (loading) {
+        <p class="muted">Loading contacts...</p>
+      } @else if (!contacts.length) {
+        <p class="muted">No contacts are available yet.</p>
+      }
+      @for (contact of contacts; track contact._id) {
+        <button type="button" [class.active]="selectedContact?._id === contact._id" (click)="selectContact(contact)">
+          <span class="avatar">{{ contact.name.charAt(0).toUpperCase() }}</span>
+          <span><strong>{{ contact.name }}</strong><small>{{ contact.role }} · {{ contact.location || 'Location not set' }}</small></span>
+        </button>
+      }
+    </aside>
+
+    <div class="conversation">
+      @if (selectedContact) {
+        <div class="conversation-head">
+          <strong>{{ selectedContact.name }}</strong>
+          <span>{{ selectedContact.role }}</span>
+        </div>
+        <div class="thread">
+          @if (!messages.length) { <p class="empty">Start the conversation with {{ selectedContact.name }}.</p> }
+          @for (message of messages; track message._id) {
+            <div class="bubble" [class.mine]="isMine(message)">
+              <p>{{ message.content }}</p>
+              <small>{{ message.createdAt | date:'short' }}</small>
+            </div>
+          }
+        </div>
+        <form class="composer" (ngSubmit)="send()">
+          <input name="draft" [(ngModel)]="draft" maxlength="2000" placeholder="Write a message..." autocomplete="off" />
+          <button type="submit" [disabled]="!draft.trim()">Send</button>
+        </form>
+      } @else {
+        <div class="empty-state">Choose a contact to begin messaging.</div>
+      }
+    </div>
+  </div>
+</section>

@@ -9,7 +9,7 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 const REGISTERABLE_ROLES = ['volunteer', 'ngo'];
 
 const registerUser = async (req, res) => {
-  const { name, email, password, location, skills, bio, role, otp } = req.body;
+  const { name, email, password, location, skills, waste_types, bio, role, otp } = req.body;
   try {
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -36,12 +36,15 @@ const registerUser = async (req, res) => {
       role: safeRole,
       location: location || '',
       skills: skills ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim())) : [],
+      waste_types: waste_types
+        ? (Array.isArray(waste_types) ? waste_types : waste_types.split(',').map(s => s.trim()))
+        : [],
       bio: bio || '',
     });
 
     res.status(201).json({
       _id: user._id, name: user.name, email: user.email,
-      role: user.role, location: user.location, skills: user.skills, bio: user.bio,
+      role: user.role, location: user.location, skills: user.skills, waste_types: user.waste_types, bio: user.bio,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -52,11 +55,12 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id, name: user.name, email: user.email,
-        role: user.role, location: user.location, skills: user.skills, bio: user.bio,
+        role: user.role, location: user.location, skills: user.skills, waste_types: user.waste_types, bio: user.bio,
         token: generateToken(user._id),
       });
     } else {
@@ -86,11 +90,12 @@ const updateUserProfile = async (req, res) => {
       user.location = req.body.location !== undefined ? req.body.location : user.location;
       user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
       user.skills = req.body.skills || user.skills;
+      user.waste_types = req.body.waste_types || user.waste_types;
       if (req.body.password) user.password = req.body.password;
       const updated = await user.save();
       res.json({
         _id: updated._id, name: updated.name, email: updated.email,
-        role: updated.role, location: updated.location, skills: updated.skills, bio: updated.bio,
+        role: updated.role, location: updated.location, skills: updated.skills, waste_types: updated.waste_types, bio: updated.bio,
         token: generateToken(updated._id),
       });
     } else {

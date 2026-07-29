@@ -1,0 +1,28 @@
+<section class="page">
+  <header>
+    <div>
+      <p class="eyebrow">Updates</p>
+      <h1>Notifications</h1>
+      <p>{{ unread }} unread notification{{ unread === 1 ? '' : 's' }}</p>
+    </div>
+    @if (unread) { <button type="button" (click)="markAllRead()">Mark all read</button> }
+  </header>
+
+  <div class="list">
+    @if (loading) {
+      <p class="empty">Loading notifications...</p>
+    } @else if (!notifications.length) {
+      <p class="empty">You do not have any notifications yet.</p>
+    }
+    @for (notification of notifications; track notification._id) {
+      <button type="button" class="notice" [class.unread]="!notification.read_at" (click)="open(notification)">
+        <span class="dot"></span>
+        <span class="copy">
+          <strong>{{ notification.title }}</strong>
+          <span>{{ notification.message }}</span>
+          <small>{{ notification.createdAt | date:'medium' }}</small>
+        </span>
+      </button>
+    }
+  </div>
+</section>

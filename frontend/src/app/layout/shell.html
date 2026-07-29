@@ -25,21 +25,25 @@
         <span class="label">Applications</span>
       </a>
 
-      <span class="item soon">
+      <a routerLink="/pickups" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic">PK</span>
-        <span class="label">Schedule Pickup</span>
-        <em>soon</em>
-      </span>
+        <span class="label">{{ user?.role === 'volunteer' ? 'Schedule Pickup' : 'Pickup Management' }}</span>
+      </a>
       
       <a routerLink="/opportunities" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic">OP</span>
         <span class="label">Opportunities</span>
       </a>
-      <span class="item soon">
+      <a routerLink="/messages" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic">MS</span>
         <span class="label">Messages</span>
-        <em>soon</em>
-      </span>
+      </a>
+      @if (user?.role === 'volunteer') {
+        <a routerLink="/match-suggestions" routerLinkActive="active" (click)="sidebarOpen = false">
+          <span class="ic">MT</span>
+          <span class="label">My Matches</span>
+        </a>
+      }
       <span class="item soon">
         <span class="ic">IM</span>
         <span class="label">My Impact</span>
@@ -86,7 +90,7 @@
         <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
           <strong>{{ theme === 'dark' ? 'Light' : 'Dark' }}</strong>
         </button>
-        <button class="bell" aria-label="Notifications">Alerts</button>
+        <a class="bell" routerLink="/notifications" aria-label="Notifications">Alerts</a>
         <div class="chip">
           <div class="avatar sm">{{ initial }}</div>
           <span class="chip-name">{{ user?.name }}</span>

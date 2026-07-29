@@ -34,6 +34,11 @@
         <input formControlName="required_skills" placeholder="teamwork, recycling (comma separated)" />
       </div>
       <div class="field">
+        <label>Waste Types</label>
+        <input formControlName="waste_types" placeholder="plastic, organic, e-waste (comma separated)" />
+        <small>Used to match this opportunity with interested volunteers.</small>
+      </div>
+      <div class="field">
         <label>Opportunity Image (Optional)</label>
 
         <input type="file" accept="image/*" (change)="onFileSelected($event)" />

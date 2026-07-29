@@ -16,6 +16,7 @@ const opportunitySchema = new mongoose.Schema(
       required: true
     },
     required_skills: [{ type: String }],
+    waste_types: [{ type: String }],
     duration: {
       type: String,
     },
