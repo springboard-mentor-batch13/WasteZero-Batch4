@@ -11,12 +11,9 @@ import { CreateOpportunity } from './opportunities/create-opportunity/create-opp
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
 import { ApplicationsComponent } from './applications/applications';
-<<<<<<< HEAD
 import { MatchSuggestions } from './match-suggestions/match-suggestions';
-=======
 import { Messages } from './messages/messages';
 import { Notifications } from './notifications/notifications';
->>>>>>> origin/feature/messages-notifications
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -27,20 +24,12 @@ export const routes: Routes = [
     component: Shell,
     canActivate: [authGuard],
     children: [
-<<<<<<< HEAD
       { path: 'dashboard', component: Dashboard },
-      { path:'match-suggestions', component:MatchSuggestions},
-      
+      { path: 'match-suggestions', component: MatchSuggestions },
       { path: 'applications', component: ApplicationsComponent },
       { path: 'profile', component: Profile },
-=======
-  { path: 'dashboard', component: Dashboard },
-  { path: 'applications', component: ApplicationsComponent },
-  { path: 'profile', component: Profile },
->>>>>>> origin/feature/messages-notifications
-
-  { path: 'messages', component: Messages },
-  { path: 'notifications', component: Notifications },
+      { path: 'messages', component: Messages },
+      { path: 'notifications', component: Notifications },
 
   { path: 'opportunities', component: OpportunityList },
   { path: 'opportunities/create', component: CreateOpportunity },

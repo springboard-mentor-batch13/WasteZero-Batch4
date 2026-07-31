@@ -1,31 +1,121 @@
-<div class="messages-container">
-  <h2>Messages</h2>
-
-  <input
-    type="text"
-    placeholder="Receiver User ID"
-    [(ngModel)]="receiverId"
-  />
-
-  <button (click)="loadMessages()">Load Messages</button>
-
-  <div class="message-list">
-    <div *ngFor="let msg of messages" class="message">
-      <strong>{{ msg.sender_id }}</strong>
-
-      <p>{{ msg.content }}</p>
-
-      <small>{{ msg.timestamp | date:'short' }}</small>
+<section class="messages-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Communication</p>
+      <h1>Messages</h1>
+      <p>Chat with volunteers, NGOs, and waste management partners.</p>
     </div>
-  </div>
+    <span class="status-pill"><i></i> Live messaging</span>
+  </header>
 
-  <div class="send-box">
-    <input
-      type="text"
-      placeholder="Type message..."
-      [(ngModel)]="newMessage"
-    />
+  @if (error) {
+    <div class="message-error">{{ error }}</div>
+  }
 
-    <button (click)="sendMessage()">Send</button>
+  <div class="inbox">
+    <aside class="conversation-panel">
+      <div class="conversation-search">
+        <span aria-hidden="true">⌕</span>
+        <input
+          type="search"
+          placeholder="Search messages..."
+          [(ngModel)]="searchQuery"
+          aria-label="Search conversations"
+        />
+      </div>
+
+      <div class="conversation-label">
+        <span>Conversations</span>
+        <strong>{{ filteredContacts.length }}</strong>
+      </div>
+
+      <div class="conversation-list">
+        @if (loadingContacts) {
+          <div class="list-state">Loading conversations...</div>
+        } @else if (!filteredContacts.length) {
+          <div class="list-state">
+            <strong>No conversations found</strong>
+            <span>Other registered users will appear here.</span>
+          </div>
+        } @else {
+          @for (contact of filteredContacts; track contact._id) {
+            <button
+              type="button"
+              class="conversation"
+              [class.active]="activeContact?._id === contact._id"
+              (click)="selectContact(contact)"
+            >
+              <span class="contact-avatar">{{ contactInitial(contact) }}</span>
+              <span class="contact-copy">
+                <span class="contact-top">
+                  <strong>{{ contact.name }}</strong>
+                  @if (contact.lastMessageAt) {
+                    <time>{{ contact.lastMessageAt | date:'shortDate' }}</time>
+                  }
+                </span>
+                <span class="contact-role">{{ contact.role }}</span>
+                <span class="message-preview">
+                  {{ contact.lastMessage || 'Start a conversation' }}
+                </span>
+              </span>
+            </button>
+          }
+        }
+      </div>
+    </aside>
+
+    <section class="chat-panel">
+      @if (activeContact) {
+        <header class="chat-header">
+          <span class="contact-avatar large">{{ activeInitial }}</span>
+          <div>
+            <strong>{{ activeContact.name }}</strong>
+            <span>{{ activeContact.role }} · {{ activeContact.email }}</span>
+          </div>
+          <span class="online-label"><i></i> Available</span>
+        </header>
+
+        <div class="message-thread">
+          @if (loadingMessages) {
+            <div class="thread-state">Loading messages...</div>
+          } @else if (!messages.length) {
+            <div class="thread-state empty-thread">
+              <span class="empty-icon">MS</span>
+              <strong>Start the conversation</strong>
+              <p>Send a message to {{ activeContact.name }}.</p>
+            </div>
+          } @else {
+            @for (message of messages; track message._id || message.timestamp) {
+              <div class="bubble-row" [class.mine]="message.sender_id === currentUserId">
+                <div class="bubble">
+                  <p>{{ message.content }}</p>
+                  <time>{{ message.timestamp | date:'shortTime' }}</time>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <form class="composer" (ngSubmit)="sendMessage()">
+          <input
+            name="message"
+            [(ngModel)]="newMessage"
+            placeholder="Write a message..."
+            autocomplete="off"
+            aria-label="Message"
+          />
+          <button type="submit" [disabled]="!newMessage.trim()" aria-label="Send message">
+            <span>Send</span>
+            <b aria-hidden="true">➤</b>
+          </button>
+        </form>
+      } @else {
+        <div class="thread-state empty-thread no-contact">
+          <span class="empty-icon">MS</span>
+          <strong>Select a conversation</strong>
+          <p>Choose someone from the list to view your messages.</p>
+        </div>
+      }
+    </section>
   </div>
-</div>
+</section>
