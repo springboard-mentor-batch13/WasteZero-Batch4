@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken'; // 1. Added JWT import
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -11,6 +12,7 @@ import otpRoutes from './routes/otpRoutes.js';
 import opportunityRoutes from './routes/opportunityRoutes.js';
 import matchCommunicationRoutes from './routes/matchCommunicationRoutes.js';
 import Message from './models/Message.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 connectDB();
 
@@ -38,31 +40,73 @@ app.use('/api/users', userRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/communication', matchCommunicationRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// 2. Socket.IO JWT Authentication Middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
+
+  if (!token) {
+    return next(new Error('Authentication error: No token provided'));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded; // Attach user data to socket
+    next();
+  } catch (err) {
+    return next(new Error('Authentication error: Invalid or expired token'));
+  }
+});
 
 // Socket.IO Connection Handling
 io.on('connection', (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  console.log(`Authenticated user connected: ${socket.id} (User ID: ${socket.user.id || socket.user._id})`);
 
   socket.on('join_room', (userId) => {
-    socket.join(userId);
-    console.log(`User joined room: ${userId}`);
+    // Authed user joins their own room or room passed
+    const roomId = userId || socket.user.id || socket.user._id;
+    socket.join(roomId);
+    console.log(`User joined room: ${roomId}`);
   });
 
-  socket.on('send_message', async (data) => {
-    try {
-      const { sender_id, receiver_id, content } = data;
-      
-      // Save the message to MongoDB
-      const newMessage = new Message({ sender_id, receiver_id, content });
-      await newMessage.save();
+socket.on('send_message', async (data) => {
+  try {
+    const { receiver_id, content } = data;
+    const sender_id = socket.user.id || socket.user._id;
 
-      // Emit to both receiver and sender rooms in real-time
-      io.to(receiver_id).emit('receive_message', newMessage);
-      io.to(sender_id).emit('receive_message', newMessage);
-    } catch (error) {
-      console.error('Error handling socket message:', error);
+    // Validation
+    if (!receiver_id) {
+      return socket.emit('error_message', {
+        message: 'Receiver ID is required.'
+      });
     }
-  });
+
+    if (!content || !content.trim()) {
+      return socket.emit('error_message', {
+        message: 'Message cannot be empty.'
+      });
+    }
+
+    const newMessage = new Message({
+      sender_id,
+      receiver_id,
+      content: content.trim(),
+    });
+
+    await newMessage.save();
+
+    io.to(receiver_id).emit('receive_message', newMessage);
+    io.to(sender_id).emit('receive_message', newMessage);
+
+  } catch (error) {
+    console.error('Error handling socket message:', error);
+
+    socket.emit('error_message', {
+      message: 'Failed to send message.'
+    });
+  }
+});
 
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
