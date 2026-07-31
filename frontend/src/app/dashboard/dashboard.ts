@@ -267,6 +267,7 @@ export class Dashboard implements OnInit {
     if (role === 'admin') {
       return [
         editProfile,
+        { label: 'Schedule a pickup', icon: 'PK', link: '/schedule-pickup' },
         browseOpportunities,
         { label: 'Manage users', icon: 'AD', soon: true },
         { label: 'View reports', icon: 'RP', soon: true },
@@ -275,14 +276,15 @@ export class Dashboard implements OnInit {
     if (role === 'ngo') {
       return [
         editProfile,
+        { label: 'Schedule a pickup', icon: 'PK', link: '/schedule-pickup' },
         { label: 'Create opportunity', icon: 'ADD', link: '/opportunities/create' },
         browseOpportunities,
       ];
     }
     return [
       editProfile,
-      { label:'Match Suggestions', icon:'MS', ink:'/match-suggestions'},
-      { label: 'Schedule a pickup', icon: 'PK', soon: true },
+      { label:'Match Suggestions', icon:'MS', link:'/match-suggestions' },
+      { label: 'Schedule a pickup', icon: 'PK', link: '/schedule-pickup' },
       browseOpportunities,
     ];
   }

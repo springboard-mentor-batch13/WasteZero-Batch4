@@ -1,0 +1,167 @@
+<section class="pickup-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Waste collection</p>
+      <h1>Schedule Pickup</h1>
+      <p>Request waste collection and manage your pickup activity.</p>
+    </div>
+    <div class="summary">
+      <span><strong>{{ scheduledCount }}</strong> Active</span>
+      <span><strong>{{ completedCount }}</strong> Completed</span>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button type="button" [class.active]="activeTab === 'schedule'" (click)="selectTab('schedule')">
+      Schedule New Pickup
+    </button>
+    <button type="button" [class.active]="activeTab === 'history'" (click)="selectTab('history')">
+      Pickup History
+      @if (pickups.length) { <span>{{ pickups.length }}</span> }
+    </button>
+  </div>
+
+  @if (error) {
+    <div class="form-error">{{ error }}</div>
+  }
+
+  @if (activeTab === 'schedule') {
+    <div class="request-card">
+      <div class="card-head">
+        <div>
+          <h2>Request Waste Collection</h2>
+          <p>Fill in the details to schedule a pickup for recyclable waste.</p>
+        </div>
+        <div class="steps">
+          <span [class.active]="step >= 1">1</span><i [class.active]="step >= 2"></i><span [class.active]="step >= 2">2</span>
+        </div>
+      </div>
+
+      @if (step === 1) {
+        <div class="form-grid">
+          <label class="full">
+            <span>Pickup address</span>
+            <input [(ngModel)]="form.address" placeholder="Enter your street address" maxlength="200">
+          </label>
+          <label>
+            <span>City</span>
+            <input [(ngModel)]="form.city" placeholder="Enter your city" maxlength="80">
+          </label>
+          <label>
+            <span>Pickup date</span>
+            <input type="date" [(ngModel)]="form.pickupDate" [min]="minDate">
+          </label>
+          <label class="full">
+            <span>Preferred time slot</span>
+            <select [(ngModel)]="form.timeSlot">
+              <option value="">Select a time slot</option>
+              @for (slot of timeSlots; track slot.value) {
+                <option [value]="slot.value">{{ slot.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="form-actions end">
+          <button class="primary" type="button" (click)="nextStep()">Next Step <b>→</b></button>
+        </div>
+      } @else {
+        <div class="waste-section">
+          <h3>Waste types</h3>
+          <p>Select every type of waste you want us to collect.</p>
+          <div class="waste-grid">
+            @for (type of wasteOptions; track type) {
+              <label class="waste-option" [class.selected]="isWasteSelected(type)">
+                <input
+                  type="checkbox"
+                  [checked]="isWasteSelected(type)"
+                  (change)="toggleWaste(type, $any($event.target).checked)"
+                >
+                <span class="check"></span>
+                <strong>{{ type }}</strong>
+              </label>
+            }
+          </div>
+
+          <label class="notes">
+            <span>Additional notes <em>Optional</em></span>
+            <textarea
+              [(ngModel)]="form.notes"
+              placeholder="Any special instructions or information about your waste"
+              maxlength="600"
+            ></textarea>
+            <small>{{ form.notes.length }}/600 characters</small>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="secondary" type="button" (click)="step = 1">← Previous Step</button>
+          <button class="primary" type="button" [disabled]="loading" (click)="schedulePickup()">
+            {{ loading ? 'Scheduling...' : 'Schedule Pickup' }}
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="history-card">
+      <div class="history-head">
+        <div>
+          <h2>{{ canManage ? 'Pickup Requests' : 'Your Pickup History' }}</h2>
+          <p>{{ canManage ? 'Review and manage collection requests.' : 'Track your scheduled and completed collections.' }}</p>
+        </div>
+        <button type="button" (click)="loadHistory()">Refresh</button>
+      </div>
+
+      @if (loadingHistory) {
+        <div class="empty-state">Loading pickup history...</div>
+      } @else if (!pickups.length) {
+        <div class="empty-state">
+          <span>PK</span>
+          <strong>No pickup requests yet</strong>
+          <p>Schedule your first collection to see it here.</p>
+          <button type="button" (click)="selectTab('schedule')">Schedule Pickup</button>
+        </div>
+      } @else {
+        <div class="pickup-list">
+          @for (pickup of pickups; track pickup._id) {
+            <article class="pickup-item">
+              <div class="date-tile">
+                <strong>{{ pickup.pickupDate | date:'dd' }}</strong>
+                <span>{{ pickup.pickupDate | date:'MMM' }}</span>
+              </div>
+              <div class="pickup-main">
+                <div class="pickup-title">
+                  <strong>{{ pickup.city }}</strong>
+                  <span class="status" [class]="pickup.status">{{ pickup.status }}</span>
+                </div>
+                <p>{{ pickup.address }}</p>
+                <div class="meta">
+                  <span>{{ pickup.pickupDate | date:'mediumDate' }}</span>
+                  <span>{{ pickup.timeSlot }}</span>
+                  @if (canManage && pickup.requester_id) {
+                    <span>Requested by {{ pickup.requester_id.name }}</span>
+                  }
+                </div>
+                <div class="waste-tags">
+                  @for (type of pickup.wasteTypes; track type) { <span>{{ type }}</span> }
+                </div>
+              </div>
+              @if (canManage) {
+                <select
+                  class="status-select"
+                  [ngModel]="pickup.status"
+                  (ngModelChange)="updateStatus(pickup, $event)"
+                >
+                  <option value="scheduled">Scheduled</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>
