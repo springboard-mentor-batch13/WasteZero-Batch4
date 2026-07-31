@@ -24,7 +24,7 @@ router
 
 router.get("/dashboard", protect, getDashboardData);
 
-router.get("/my-applications", protect, getUserApplications);
+router.get("/my-applications", protect, volunteerOnly, getUserApplications);
 
 router.route("/applications/:applicationId/status")
   .put(protect, ngoOrAdmin, updateApplicationStatus)

@@ -20,6 +20,15 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  status: {
+    type: String,
+    enum: ['sent', 'delivered', 'read'],
+    default: 'sent'
+  },
+  read_at: {
+    type: Date,
+    default: null
+  },
   demo_key: {
     type: String,
     unique: true,
