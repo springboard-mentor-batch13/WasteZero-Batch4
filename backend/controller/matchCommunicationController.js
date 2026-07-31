@@ -2,6 +2,7 @@ import Opportunity from '../models/Opportunity.js';
 import Message from '../models/Message.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import { canCommunicateWith, getAllowedContactIds } from '../utils/communicationAccess.js';
 
 export const getMatchedOpportunities = async (req, res) => {
   try {
@@ -29,6 +30,14 @@ export const getMessages = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You cannot access this conversation.' });
     }
 
+    const contactId = user1 === req.user._id.toString() ? user2 : user1;
+    if (!(await canCommunicateWith(req.user, contactId))) {
+      return res.status(403).json({
+        success: false,
+        message: 'Chat becomes available after the volunteer application is accepted.',
+      });
+    }
+
     const messages = await Message.find({
       $or: [
         { sender_id: user1, receiver_id: user2 },
@@ -44,7 +53,8 @@ export const getMessages = async (req, res) => {
 export const getConversationContacts = async (req, res) => {
   try {
     const currentUserId = req.user._id;
-    const users = await User.find({ _id: { $ne: currentUserId } })
+    const allowedContactIds = await getAllowedContactIds(req.user);
+    const users = await User.find({ _id: { $in: allowedContactIds } })
       .select('name email role')
       .sort({ name: 1 })
       .lean();

@@ -21,6 +21,7 @@ interface ChatMessage {
   receiver_id: string;
   content: string;
   timestamp: string;
+  status?: 'sent' | 'delivered' | 'read';
 }
 
 @Component({
@@ -42,6 +43,8 @@ export class Messages implements OnInit, OnDestroy {
   error = '';
 
   private messageSubscription?: Subscription;
+  private readSubscription?: Subscription;
+  private errorSubscription?: Subscription;
 
   constructor(
     private messageService: MessageService,
@@ -64,15 +67,33 @@ export class Messages implements OnInit, OnDestroy {
 
       if (this.activeContact?._id === partnerId) {
         this.messages = [...this.messages, message];
+        if (message.receiver_id === this.currentUserId) {
+          this.socketService.markMessagesRead(message.sender_id);
+        }
       }
 
       this.updateContactPreview(partnerId, message);
+      this.cdr.detectChanges();
+    });
+
+    this.readSubscription = this.socketService.messagesRead().subscribe(({ messageIds }) => {
+      const readIds = new Set(messageIds);
+      this.messages = this.messages.map((message) =>
+        message._id && readIds.has(message._id) ? { ...message, status: 'read' } : message,
+      );
+      this.cdr.detectChanges();
+    });
+
+    this.errorSubscription = this.socketService.messageError().subscribe(({ message }) => {
+      this.error = message;
       this.cdr.detectChanges();
     });
   }
 
   ngOnDestroy(): void {
     this.messageSubscription?.unsubscribe();
+    this.readSubscription?.unsubscribe();
+    this.errorSubscription?.unsubscribe();
   }
 
   get filteredContacts(): ChatContact[] {
@@ -148,6 +169,7 @@ export class Messages implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           this.messages = res.data || [];
+          this.socketService.markMessagesRead(this.activeContact!._id);
         },
         error: (err) => {
           this.error = err.name === 'TimeoutError'
@@ -155,6 +177,12 @@ export class Messages implements OnInit, OnDestroy {
             : err.error?.message || 'Could not load messages.';
         },
       });
+  }
+
+  messageStatusLabel(message: ChatMessage): string {
+    if (message.status === 'read') return 'Read';
+    if (message.status === 'delivered') return 'Delivered';
+    return 'Sent';
   }
 
   sendMessage(): void {

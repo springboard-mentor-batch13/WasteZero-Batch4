@@ -35,7 +35,7 @@
         } @else if (!filteredContacts.length) {
           <div class="list-state">
             <strong>No conversations found</strong>
-            <span>Other registered users will appear here.</span>
+            <span>Volunteer–NGO chat appears after an application is accepted.</span>
           </div>
         } @else {
           @for (contact of filteredContacts; track contact._id) {
@@ -89,7 +89,17 @@
               <div class="bubble-row" [class.mine]="message.sender_id === currentUserId">
                 <div class="bubble">
                   <p>{{ message.content }}</p>
-                  <time>{{ message.timestamp | date:'shortTime' }}</time>
+                  <span class="message-meta">
+                    <time>{{ message.timestamp | date:'shortTime' }}</time>
+                    @if (message.sender_id === currentUserId) {
+                      <span
+                        class="message-ticks"
+                        [class.read]="message.status === 'read'"
+                        [attr.aria-label]="messageStatusLabel(message)"
+                        [title]="messageStatusLabel(message)"
+                      >{{ message.status === 'sent' ? '✓' : '✓✓' }}</span>
+                    }
+                  </span>
                 </div>
               </div>
             }

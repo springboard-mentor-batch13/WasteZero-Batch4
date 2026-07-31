@@ -90,6 +90,11 @@ const getOpportunities = async (req, res) => {
     const { status, search, city } = req.query;
     let query = {};
 
+    // NGOs manage their own workboard; volunteers and admins can browse all.
+    if (req.user.role === 'ngo') {
+      query.ngo_id = req.user._id;
+    }
+
     if (status && status !== 'all') {
       query.status = status;
     }
@@ -131,6 +136,9 @@ const getOpportunityById = async (req, res) => {
     );
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+    if (req.user.role === 'ngo' && !isOpportunityOwner(opportunity, req.user)) {
+      return res.status(403).json({ message: 'NGOs can only view their own opportunities' });
+    }
     res.json(opportunity);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -195,6 +203,10 @@ const deleteOpportunity = async (req, res) => {
 
 const applyForOpportunity = async (req, res) => {
   try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can apply for opportunities' });
+    }
+
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
@@ -302,6 +314,9 @@ const updateApplicationStatus = async (req, res) => {
 
 const getUserApplications = async (req, res) => {
   try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can view volunteer applications' });
+    }
     const apps = await Application.find({
       volunteer_id: req.user._id,
     })
