@@ -9,34 +9,48 @@ export class OtpService {
   constructor(private http: HttpClient) {}
 
   sendOtp(): Observable<any> {
-  return this.http.post(`${this.api}/send`, {}, {
-    headers: { 'Cache-Control': 'no-cache' }
-  });
-}
+    return this.http.post(
+      `${this.api}/send`,
+      {},
+      { headers: { 'Cache-Control': 'no-cache', 'Content-Type': 'application/json' } }
+    );
+  }
 
-verifyAndChange(data: {
-  otp: string;
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}): Observable<any> {
-  return this.http.post(`${this.api}/verify-and-change`, data);
-}
+  verifyAndChange(data: {
+    otp: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Observable<any> {
+    return this.http.post(`${this.api}/verify-and-change`, data, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-sendForgotPasswordOtp(email: string): Observable<any> {
-  return this.http.post(`${this.api}/forgot-password/send`, { email });
-}
+  sendForgotPasswordOtp(email: string): Observable<any> {
+    return this.http.post(
+      `${this.api}/forgot-password/send`,
+      { email },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
-sendRegisterOtp(email: string): Observable<any> {
-  return this.http.post(`${this.api}/register/send`, { email });
-}
+  sendRegisterOtp(email: string): Observable<any> {
+    return this.http.post(
+      `${this.api}/register/send`,
+      { email },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+  }
 
-resetForgotPassword(data: {
-  email: string;
-  otp: string;
-  newPassword: string;
-  confirmPassword: string;
-}): Observable<any> {
-  return this.http.post(`${this.api}/forgot-password/reset`, data);
-}
+  resetForgotPassword(data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Observable<any> {
+    return this.http.post(`${this.api}/forgot-password/reset`, data, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }

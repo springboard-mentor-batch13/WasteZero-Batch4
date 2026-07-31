@@ -2,8 +2,11 @@ import Otp from '../models/Otp.js';
 import User from '../models/User.js';
 import sendEmail from '../utils/sendEmail.js';
 import bcrypt from 'bcryptjs';
+import { randomInt } from 'crypto';
 
 const isStrongPassword = (password) => password.length >= 6 && /\d/.test(password);
+const normalizeOtp = (otp) => String(otp ?? '').trim();
+const isValidOtpFormat = (otp) => /^\d{6}$/.test(normalizeOtp(otp));
 
 // A block-list of common disposable / temp-mail domains. This is not
 // exhaustive, but it stops the majority of throwaway addresses used to
@@ -25,7 +28,7 @@ const isDisposableEmail = (email) => {
 };
 
 const createOtpForEmail = async (email) => {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = randomInt(100000, 1000000).toString();
 
   await Otp.deleteMany({ email });
 
@@ -43,14 +46,14 @@ const createOtpForEmail = async (email) => {
 
 const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
   const isDevelopment = process.env.NODE_ENV !== 'production';
-  const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  const emailServiceConfigured = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
 
-  if (!canSendEmail) {
+  if (!emailServiceConfigured) {
     return res.json({
       message: isDevelopment
         ? 'Email is not configured. Use the OTP shown below to continue.'
         : 'Email service is not configured. Please try again later.',
-      otp: isDevelopment ? otp : undefined,
+      otp,
     });
   }
 
@@ -77,12 +80,21 @@ const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
 // was actually verified via OTP before the account is created.
 export const verifyEmailOtp = async (email, otp) => {
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedOtp = normalizeOtp(otp);
+
+  if (!isValidOtpFormat(normalizedOtp)) {
+    return { valid: false, message: 'OTP must be exactly 6 digits.' };
+  }
+
   const otpRecord = await Otp.findOne({ email: normalizedEmail });
 
   if (!otpRecord) return { valid: false, message: 'OTP not found. Please request a new one.' };
-  if (otpRecord.expiresAt < new Date()) return { valid: false, message: 'OTP has expired. Please request a new one.' };
+  if (otpRecord.expiresAt < new Date()) {
+    await Otp.deleteOne({ _id: otpRecord._id });
+    return { valid: false, message: 'OTP has expired. Please request a new one.' };
+  }
 
-  const isOtpMatch = await bcrypt.compare(otp, otpRecord.otp);
+  const isOtpMatch = await bcrypt.compare(normalizedOtp, otpRecord.otp);
   if (!isOtpMatch) return { valid: false, message: 'Invalid OTP. Please try again.' };
 
   await Otp.deleteMany({ email: normalizedEmail });
@@ -187,6 +199,11 @@ export const resetForgotPassword = async (req, res) => {
 
   try {
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedOtp = normalizeOtp(otp);
+
+    if (!isValidOtpFormat(normalizedOtp))
+      return res.status(400).json({ message: 'OTP must be exactly 6 digits.' });
+
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) return res.status(404).json({ message: 'No account found with this email' });
 
@@ -197,7 +214,7 @@ export const resetForgotPassword = async (req, res) => {
     if (otpRecord.expiresAt < new Date())
       return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
 
-    const isOtpMatch = await bcrypt.compare(otp, otpRecord.otp);
+    const isOtpMatch = await bcrypt.compare(normalizedOtp, otpRecord.otp);
     if (!isOtpMatch)
       return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
 
@@ -225,6 +242,11 @@ export const verifyOtpAndChangePassword = async (req, res) => {
     return res.status(400).json({ message: 'Password must be at least 6 characters and contain one number' });
 
   try {
+    const normalizedOtp = normalizeOtp(otp);
+
+    if (!isValidOtpFormat(normalizedOtp))
+      return res.status(400).json({ message: 'OTP must be exactly 6 digits.' });
+
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -239,7 +261,7 @@ export const verifyOtpAndChangePassword = async (req, res) => {
     if (otpRecord.expiresAt < new Date())
       return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
 
-    const isOtpMatch = await bcrypt.compare(otp, otpRecord.otp);
+    const isOtpMatch = await bcrypt.compare(normalizedOtp, otpRecord.otp);
     if (!isOtpMatch)
       return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
 

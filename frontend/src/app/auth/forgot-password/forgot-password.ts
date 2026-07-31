@@ -31,7 +31,7 @@ export class ForgotPassword {
     });
 
     this.resetForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.minLength(6)]],
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
       newPassword: ['', [Validators.required, Validators.minLength(6), Validators.pattern(/\d/)]],
       confirmPassword: ['', Validators.required],
     });
@@ -90,6 +90,7 @@ export class ForgotPassword {
     this.otpService.resetForgotPassword({
       email: this.email,
       ...this.resetForm.value,
+      otp: String(this.resetForm.value.otp).trim(),
     }).subscribe({
       next: (res) => {
         this.success = res.message || 'Password reset successfully. You can sign in now.';

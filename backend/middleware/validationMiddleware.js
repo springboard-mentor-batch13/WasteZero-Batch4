@@ -38,7 +38,7 @@ const validateRegister = [
 
   body('otp')
     .notEmpty().withMessage('Email verification OTP is required')
-    .isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+    .matches(/^\d{6}$/).withMessage('OTP must be exactly 6 digits'),
 
   handleValidationErrors, 
 ];

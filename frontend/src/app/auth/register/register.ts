@@ -50,7 +50,7 @@ export class Register {
     });
 
     this.otpForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]],
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
     });
   }
 
@@ -95,7 +95,15 @@ export class Register {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Could not send verification OTP';
+        if (err.status === 0) {
+          this.error = 'Unable to reach the verification server. Make sure the backend is running.';
+        } else {
+          const serverMessage = err.error?.message ||
+            (typeof err.error === 'string' ? err.error : undefined) ||
+            err.message;
+
+          this.error = serverMessage || 'Could not send verification OTP';
+        }
         this.sendingOtp = false;
         this.cdr.detectChanges();
       },
@@ -134,7 +142,7 @@ export class Register {
     this.otpError = '';
 
     const { confirmPassword, ...data } = this.registerForm.value;
-    const payload = { ...data, otp: this.otpForm.value.otp };
+    const payload = { ...data, otp: String(this.otpForm.value.otp).trim() };
 
     this.auth.register(payload).subscribe({
       next: (res) => {
