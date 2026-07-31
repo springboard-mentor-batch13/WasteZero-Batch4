@@ -460,3 +460,52 @@ a.q:hover {
     overflow-x: auto;
   }
 }
+
+/*match-section*/
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.match-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: 0.3s;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.match-info h4 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.match-info p {
+  margin: 5px 0;
+  color: var(--muted);
+}
+
+.match-info small {
+  color: var(--muted);
+}
+
+.match-score {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}

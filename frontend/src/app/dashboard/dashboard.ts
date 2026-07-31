@@ -22,6 +22,13 @@ interface QuickAction {
   soon?: boolean;
 }
 
+interface MatchSuggestion {
+  title: string;
+  ngo: string;
+  location: string;
+  match: number;
+}
+
 interface Application {
   _id: string;
   opportunity_id?: {
@@ -62,6 +69,27 @@ export class Dashboard implements OnInit {
   greeting = '';
   stats: Stat[] = [];
   actions: QuickAction[] = [];
+
+  matchSuggestions: MatchSuggestion[] = [
+  {
+    title: 'Plastic Cleanup Drive',
+    ngo: 'Green Earth',
+    location: 'Hyderabad',
+    match: 95
+  },
+  {
+    title: 'Tree Plantation',
+    ngo: 'Eco Club',
+    location: 'Visakhapatnam',
+    match: 88
+  },
+  {
+    title: 'Beach Cleanup',
+    ngo: 'Blue Ocean',
+    location: 'Vizag',
+    match: 82
+  }
+];
 
   applications: Application[] = [];
   groupedOpportunities: Record<string, GroupedOpportunity> = {};
@@ -228,6 +256,7 @@ export class Dashboard implements OnInit {
       { label: 'Recycled Items', value: 635, icon: 'RC', tint: '#e3f2fd', change: '12%', up: true },
       { label: 'Applied Opportunities', value: this.applications.length, icon: 'OP', tint: '#f1f8e9', change: '3', up: true },
       { label: 'Messages', value: 5, icon: 'MS', tint: '#fff3e0', change: '1', up: false },
+      
     ];
   }
 
@@ -252,6 +281,7 @@ export class Dashboard implements OnInit {
     }
     return [
       editProfile,
+      { label:'Match Suggestions', icon:'MS', ink:'/match-suggestions'},
       { label: 'Schedule a pickup', icon: 'PK', soon: true },
       browseOpportunities,
     ];
