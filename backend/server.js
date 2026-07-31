@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
 import opportunityRoutes from './routes/opportunityRoutes.js';
 import matchCommunicationRoutes from './routes/matchCommunicationRoutes.js';
+import pickupRoutes from './routes/pickupRoutes.js';
 import Message from './models/Message.js';
 
 connectDB();
@@ -41,6 +42,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/communication', matchCommunicationRoutes);
+app.use('/api/pickups', pickupRoutes);
 
 // Socket.IO Connection Handling
 io.on('connection', (socket) => {
