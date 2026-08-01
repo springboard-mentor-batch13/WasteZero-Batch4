@@ -13,6 +13,7 @@ import opportunityRoutes from './routes/opportunityRoutes.js';
 import matchCommunicationRoutes from './routes/matchCommunicationRoutes.js';
 import Message from './models/Message.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import pickupRoutes from './routes/pickupRoutes.js';
 
 connectDB();
 
@@ -44,6 +45,7 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/communication', matchCommunicationRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/pickups', pickupRoutes);
 
 // 2. Socket.IO JWT Authentication Middleware
 io.use((socket, next) => {

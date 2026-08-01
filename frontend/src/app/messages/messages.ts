@@ -158,7 +158,7 @@ export class Messages implements OnInit, OnDestroy {
     this.error = '';
 
     this.messageService
-      .getMessages(this.currentUserId, this.activeContact._id)
+       .getMessages(this.activeContact._id)
       .pipe(
         timeout(15_000),
         finalize(() => {

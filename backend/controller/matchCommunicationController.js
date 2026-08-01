@@ -75,7 +75,7 @@ export const getMessages = async (req, res) => {
         { sender_id: otherUserId, receiver_id: currentUserId },
       ],
     })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -112,7 +112,7 @@ export const getContacts = async (req, res) => {
             { sender_id: req.user._id, receiver_id: contact._id },
             { sender_id: contact._id, receiver_id: req.user._id },
           ],
-        }).sort({ createdAt: -1 }).lean();
+        }).sort({ createdAt: 1 }).lean();
 
         return {
           ...contact,

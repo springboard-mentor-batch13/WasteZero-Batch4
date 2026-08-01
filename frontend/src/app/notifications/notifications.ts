@@ -25,7 +25,7 @@ export class Notifications implements OnInit {
     if (!this.currentUser) return;
 
     this.notificationService
-      .getNotifications(this.currentUser._id)
+       .getNotifications()
       .subscribe({
         next: (res: any) => {
           this.notifications = res.data;
