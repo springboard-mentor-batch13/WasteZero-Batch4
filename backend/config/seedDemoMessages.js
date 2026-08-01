@@ -1,4 +1,6 @@
+import Application from '../models/Application.js';
 import Message from '../models/Message.js';
+import Opportunity from '../models/Opportunity.js';
 import User from '../models/User.js';
 
 const seedDemoMessages = async () => {
@@ -10,93 +12,62 @@ const seedDemoMessages = async () => {
     User.find({ role: 'ngo' }).select('_id name'),
   ]);
 
-  if (!admin || !volunteers.length || !ngos.length) {
-    console.log('Demo messages skipped: admin, volunteer, and NGO accounts are required');
+  if (!admin) {
+    console.log('Demo messages skipped: an admin account is required');
     return;
   }
 
-  const volunteer = volunteers[0];
-  const ngo = ngos[0];
   const now = Date.now();
-  const demoMessages = [
-    {
-      demo_key: 'volunteer-ngo-pickup-question',
-      sender_id: volunteer._id,
-      receiver_id: ngo._id,
-      content: 'Hello! I have plastic and paper waste ready for collection.',
-      timestamp: new Date(now - 48 * 60 * 60 * 1000),
-    },
-    {
-      demo_key: 'ngo-volunteer-pickup-reply',
-      sender_id: ngo._id,
-      receiver_id: volunteer._id,
-      content: 'Thanks for reaching out. Please schedule a pickup and we will assign a collection slot.',
-      timestamp: new Date(now - 47 * 60 * 60 * 1000),
-    },
-    {
-      demo_key: 'volunteer-admin-profile-question',
-      sender_id: volunteer._id,
-      receiver_id: admin._id,
-      content: 'Hi Admin, can I update the address on my upcoming pickup?',
-      timestamp: new Date(now - 25 * 60 * 60 * 1000),
-    },
-    {
-      demo_key: 'admin-volunteer-profile-reply',
-      sender_id: admin._id,
-      receiver_id: volunteer._id,
-      content: 'Yes. Open Pickup History, update the request, or contact the assigned NGO for assistance.',
-      timestamp: new Date(now - 24 * 60 * 60 * 1000),
-    },
-    {
-      demo_key: 'ngo-admin-completion-report',
-      sender_id: ngo._id,
-      receiver_id: admin._id,
-      content: 'We completed today’s recycling pickup and sorted the collected materials.',
-      timestamp: new Date(now - 3 * 60 * 60 * 1000),
-    },
-    {
-      demo_key: 'admin-ngo-completion-reply',
-      sender_id: admin._id,
-      receiver_id: ngo._id,
-      content: 'Great work. The pickup status is now reflected in the platform report.',
-      timestamp: new Date(now - 2 * 60 * 60 * 1000),
-    },
-  ];
+  const demoMessages = [];
 
-  for (const [index, extraVolunteer] of volunteers.slice(1).entries()) {
-    demoMessages.push(
-      {
-        demo_key: `admin-volunteer-welcome-${extraVolunteer._id}`,
-        sender_id: admin._id,
-        receiver_id: extraVolunteer._id,
-        content: `Welcome ${extraVolunteer.name}! Your WasteZero volunteer account is ready.`,
-        timestamp: new Date(now - (90 + index * 10) * 60 * 1000),
-      },
-      {
-        demo_key: `ngo-volunteer-pickup-guide-${extraVolunteer._id}`,
-        sender_id: ngo._id,
-        receiver_id: extraVolunteer._id,
-        content: 'Hello! Schedule a pickup whenever your recyclable waste is ready.',
-        timestamp: new Date(now - (75 + index * 10) * 60 * 1000),
-      },
-    );
+  // Admin support conversations are available to every account.
+  for (const [index, volunteer] of volunteers.entries()) {
+    demoMessages.push({
+      demo_key: `admin-volunteer-welcome-${volunteer._id}`,
+      sender_id: admin._id,
+      receiver_id: volunteer._id,
+      content: `Welcome ${volunteer.name}! Your WasteZero volunteer account is ready.`,
+      timestamp: new Date(now - (90 + index * 10) * 60 * 1000),
+    });
   }
 
-  for (const [index, extraNgo] of ngos.slice(1).entries()) {
+  for (const [index, ngo] of ngos.entries()) {
+    demoMessages.push({
+      demo_key: `admin-ngo-welcome-${ngo._id}`,
+      sender_id: admin._id,
+      receiver_id: ngo._id,
+      content: `Welcome ${ngo.name}! You can review and assign scheduled pickups from your dashboard.`,
+      timestamp: new Date(now - (80 + index * 10) * 60 * 1000),
+    });
+  }
+
+  // Volunteer–NGO demo chats are created only for accepted applications.
+  const acceptedApplications = await Application.find({ status: 'accepted' }).lean();
+  const acceptedOpportunities = await Opportunity.find({
+    _id: { $in: acceptedApplications.map(({ opportunity_id }) => opportunity_id) },
+  }).select('_id ngo_id').lean();
+  const ngoByOpportunity = new Map(
+    acceptedOpportunities.map(({ _id, ngo_id }) => [_id.toString(), ngo_id]),
+  );
+
+  for (const [index, application] of acceptedApplications.entries()) {
+    const ngoId = ngoByOpportunity.get(application.opportunity_id.toString());
+    if (!ngoId) continue;
+
     demoMessages.push(
       {
-        demo_key: `admin-ngo-welcome-${extraNgo._id}`,
-        sender_id: admin._id,
-        receiver_id: extraNgo._id,
-        content: `Welcome ${extraNgo.name}! You can review and assign scheduled pickups from your dashboard.`,
-        timestamp: new Date(now - (80 + index * 10) * 60 * 1000),
+        demo_key: `accepted-volunteer-ngo-${application._id}`,
+        sender_id: application.volunteer_id,
+        receiver_id: ngoId,
+        content: 'Thank you for accepting my application. I am looking forward to volunteering!',
+        timestamp: new Date(now - (60 + index * 5) * 60 * 1000),
       },
       {
-        demo_key: `volunteer-ngo-introduction-${extraNgo._id}`,
-        sender_id: volunteer._id,
-        receiver_id: extraNgo._id,
-        content: 'Hello! I would like to learn more about your recycling collection services.',
-        timestamp: new Date(now - (65 + index * 10) * 60 * 1000),
+        demo_key: `accepted-ngo-volunteer-${application._id}`,
+        sender_id: ngoId,
+        receiver_id: application.volunteer_id,
+        content: 'Welcome to the team! We will share the opportunity details with you here.',
+        timestamp: new Date(now - (55 + index * 5) * 60 * 1000),
       },
     );
   }
@@ -111,7 +82,7 @@ const seedDemoMessages = async () => {
     ),
   );
 
-  console.log('Demo conversations ready for Admin, Volunteer, and NGO');
+  console.log('Role-safe demo conversations ready');
 };
 
 export default seedDemoMessages;

@@ -351,6 +351,29 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
+.message-meta {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.message-meta time {
+  margin-top: 3px;
+}
+
+.message-ticks {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: -3px;
+  padding-right: 3px;
+}
+
+.message-ticks.read {
+  color: #62c4ff;
+}
+
 .empty-thread {
   flex: 1;
 }
