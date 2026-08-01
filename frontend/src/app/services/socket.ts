@@ -11,7 +11,7 @@ export class SocketService {
   constructor() {
     this.socket = io('http://localhost:5000', {
       autoConnect: false,
-      auth: { token: localStorage.getItem('token') },
+      auth: () => ({ token: localStorage.getItem('token') }),
     });
   }
 
