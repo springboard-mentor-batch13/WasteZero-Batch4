@@ -19,17 +19,20 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+const corsOptions = {
+  origin: process.env.NODE_ENV !== 'production'
+    ? true
+    : ['http://localhost:4200', 'http://127.0.0.1:4200'],
+   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  optionsSuccessStatus: 200,
+};
+
 // Initialize Socket.IO
 const io = new Server(server, {
-  cors: {
-    origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
-    methods: ['GET', 'POST']
-  }
+  cors: corsOptions,
 });
 
-app.use(cors({
-  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('WasteZero API running...'));
