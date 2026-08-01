@@ -25,7 +25,7 @@ const corsOptions = {
   origin: process.env.NODE_ENV !== 'production'
     ? true
     : ['http://localhost:4200', 'http://127.0.0.1:4200'],
-  methods: ['GET', 'POST'],
+   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   optionsSuccessStatus: 200,
 };
 
