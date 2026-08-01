@@ -1,14 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-interface Match {
-  title: string;
-  organization: string;
-  location: string;
-  description: string;
-  percentage: number;
-}
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-match-suggestions',
@@ -17,30 +11,19 @@ interface Match {
   templateUrl: './match-suggestions.html',
   styleUrl: './match-suggestions.css',
 })
-export class MatchSuggestions {
+export class MatchSuggestions implements OnInit {
+  matches: any[] = [];
+  loading = true;
+  error = '';
 
-  matches: Match[] = [
-    {
-      title: 'Plastic Cleanup Drive',
-      organization: 'Green Earth NGO',
-      location: 'Hyderabad',
-      description: 'Help collect and recycle plastic waste in local communities.',
-      percentage: 95
-    },
-    {
-      title: 'Tree Plantation Campaign',
-      organization: 'Eco Club',
-      location: 'Visakhapatnam',
-      description: 'Join volunteers planting trees across the city.',
-      percentage: 89
-    },
-    {
-      title: 'Beach Cleanup',
-      organization: 'Blue Ocean Foundation',
-      location: 'Vizag',
-      description: 'Participate in cleaning beaches and protecting marine life.',
-      percentage: 84
-    }
-  ];
+  constructor(private http: HttpClient, private auth: AuthService) {}
 
+  ngOnInit() {
+    if (this.auth.getUser()?.role !== 'volunteer') return;
+
+    this.http.get<any>('http://localhost:5000/api/communication/matches').subscribe({
+      next: (res) => { this.matches = res.data || []; this.loading = false; },
+      error: (err) => { this.error = err.error?.message || 'Failed to load matches'; this.loading = false; }
+    });
+  }
 }
