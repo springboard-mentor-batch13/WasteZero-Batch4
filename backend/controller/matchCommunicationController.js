@@ -1,5 +1,7 @@
 import Opportunity from '../models/Opportunity.js';
 import Message from '../models/Message.js';
+import User from '../models/User.js';
+import { getAllowedContactIds } from '../utils/communicationAccess.js';
 
 // 1. Volunteer Matching Algorithm
 export const getMatchedOpportunities = async (req, res) => {
@@ -89,6 +91,38 @@ export const getMessages = async (req, res) => {
       page,
       limit,
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getContacts = async (req, res) => {
+  try {
+    const allowedIds = await getAllowedContactIds(req.user);
+
+    const contacts = await User.find({ _id: { $in: allowedIds } })
+      .select('name email role')
+      .lean();
+
+    // Get last message for each contact
+    const contactsWithMessages = await Promise.all(
+      contacts.map(async (contact) => {
+        const lastMsg = await Message.findOne({
+          $or: [
+            { sender_id: req.user._id, receiver_id: contact._id },
+            { sender_id: contact._id, receiver_id: req.user._id },
+          ],
+        }).sort({ createdAt: -1 }).lean();
+
+        return {
+          ...contact,
+          lastMessage: lastMsg?.content || '',
+          lastMessageAt: lastMsg?.createdAt || null,
+        };
+      })
+    );
+
+    res.json({ success: true, data: contactsWithMessages });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
