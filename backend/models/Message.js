@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema(
   {
+    demo_key: { type: String, default: null },
     sender_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -35,6 +36,7 @@ const messageSchema = new mongoose.Schema(
 // Indexes
 messageSchema.index({ sender_id: 1, receiver_id: 1, createdAt: -1 });
 messageSchema.index({ receiver_id: 1, readAt: 1 });
+messageSchema.index({ demo_key: 1 }, { sparse: true });
 
 const Message = mongoose.model('Message', messageSchema);
 
