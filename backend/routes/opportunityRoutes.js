@@ -7,10 +7,12 @@ import {
   updateOpportunity,
   deleteOpportunity,
   applyForOpportunity,
+  getOpportunityApplications,
+  updateApplicationStatus,
   getUserApplications,
+  getDashboardData,
 } from "../controller/opportunityController.js";
-
-import { protect, ngoOrAdmin } from "../middleware/authMiddleware.js";
+import { protect, ngoOrAdmin, volunteerOnly } from "../middleware/authMiddleware.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
@@ -20,7 +22,15 @@ router
   .get(protect, getOpportunities)
   .post(protect, ngoOrAdmin, upload.single("image"), createOpportunity);
 
-router.get("/my-applications", protect, getUserApplications);
+router.get("/dashboard", protect, getDashboardData);
+
+router.get("/my-applications", protect, volunteerOnly, getUserApplications);
+
+router.route("/applications/:applicationId/status")
+  .put(protect, ngoOrAdmin, updateApplicationStatus)
+  .patch(protect, ngoOrAdmin, updateApplicationStatus);
+
+router.get("/:id/applications", protect, ngoOrAdmin, getOpportunityApplications);
 
 router
   .route("/:id")
@@ -28,6 +38,6 @@ router
   .put(protect, ngoOrAdmin, upload.single("image"), updateOpportunity)
   .delete(protect, ngoOrAdmin, deleteOpportunity);
 
-router.post("/:id/apply", protect, applyForOpportunity);
+router.post("/:id/apply", protect, volunteerOnly, applyForOpportunity);
 
 export default router;

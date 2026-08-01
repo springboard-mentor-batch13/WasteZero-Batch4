@@ -27,6 +27,10 @@ sendForgotPasswordOtp(email: string): Observable<any> {
   return this.http.post(`${this.api}/forgot-password/send`, { email });
 }
 
+sendRegisterOtp(email: string): Observable<any> {
+  return this.http.post(`${this.api}/register/send`, { email });
+}
+
 resetForgotPassword(data: {
   email: string;
   otp: string;

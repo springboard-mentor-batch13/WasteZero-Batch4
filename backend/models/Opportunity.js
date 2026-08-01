@@ -4,7 +4,7 @@ const opportunitySchema = new mongoose.Schema(
   {
     ngo_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Links this opportunity to a specific User (the NGO)
+      ref: 'User',
       required: true
     },
     title: {
@@ -38,6 +38,12 @@ const opportunitySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+//Indexes for faster queries
+opportunitySchema.index({ ngo_id: 1 });
+opportunitySchema.index({ status: 1 });
+opportunitySchema.index({ location: 1 });
+opportunitySchema.index({ title: 'text', description: 'text', required_skills: 'text' }); 
 
 const Opportunity = mongoose.model('Opportunity', opportunitySchema);
 export default Opportunity;

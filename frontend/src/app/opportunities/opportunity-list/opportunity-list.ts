@@ -6,6 +6,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { OpportunityService } from '../opportunity.service';
 import { Opportunity } from '../opportunity.model';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-opportunity-list',
@@ -24,6 +25,7 @@ export class OpportunityList implements OnInit, OnDestroy {
   cities: string[] = [];
   applyingId = '';
   appliedIds: Set<string> = new Set();
+  applicationStatuses = new Map<string, 'pending' | 'accepted' | 'rejected'>();
 
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -34,13 +36,25 @@ export class OpportunityList implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,  
     private cdr: ChangeDetectorRef,
+    private toast: ToastService,
   ) {}
 
-  get userRole() { return this.auth.getUser()?.role; }
-  get canManage() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+get userRole() { return this.auth.getUser()?.role; }
+  get canCreate() { return this.userRole === 'admin' || this.userRole === 'ngo'; }
+  get isVolunteer() { return this.userRole === 'volunteer'; }
+  get totalCount() { return this.opportunities.length; }
+
+  canManageOpp(opp: Opportunity): boolean {
+    const user = this.auth.getUser();
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    const ownerId = (opp.ngo_id as any)?._id || opp.ngo_id;
+    return user.role === 'ngo' && ownerId === user._id;
+  }
+  get openCount() { return this.opportunities.filter(opp => opp.status === 'open').length; }
+  get cityCount() { return this.cities.length; }
 
   ngOnInit() {
-    // reads ?search= from navbar and pre-fills search box
     this.route.queryParams.subscribe(params => {
       if (params['search']) {
         this.search = params['search'];
@@ -99,11 +113,13 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.opportunityService.getMyApplications().subscribe({
       next: (applications: any[]) => {
         this.appliedIds.clear();
+        this.applicationStatuses.clear();
         applications.forEach(app => {
           const opportunityId = typeof app.opportunity_id === 'object'
             ? app.opportunity_id._id
             : app.opportunity_id;
           this.appliedIds.add(opportunityId);
+          this.applicationStatuses.set(opportunityId, app.status || 'pending');
         });
         this.cdr.detectChanges();
       },
@@ -117,7 +133,7 @@ export class OpportunityList implements OnInit, OnDestroy {
 
   clearSearch() {
     this.search = '';
-    this.router.navigate(['/opportunities']);  //clears query param too
+    this.router.navigate(['/opportunities']);
   }
 
   deleteOpportunity(id: string) {
@@ -137,11 +153,13 @@ export class OpportunityList implements OnInit, OnDestroy {
     this.opportunityService.apply(id).subscribe({
       next: () => {
         this.appliedIds.add(id);
+        this.applicationStatuses.set(id, 'pending');
         this.applyingId = '';
+        this.toast.success('Application sent successfully');
         this.loadMyApplications();
       },
       error: (err) => {
-        alert(err.error?.message || 'Failed to apply');
+        this.toast.error(err.error?.message || 'Failed to apply');
         this.applyingId = '';
         this.cdr.detectChanges();
       },
@@ -151,6 +169,41 @@ export class OpportunityList implements OnInit, OnDestroy {
   statusColor(status: string): string {
     return status === 'open' ? '#2e7d32' : status === 'closed' ? '#c62828' : '#e65100';
   }
+
+  applicationStatus(oppId: string) {
+    return this.applicationStatuses.get(oppId);
+  }
+
+  applicationStatusLabel(oppId: string) {
+    const status = this.applicationStatus(oppId);
+    if (status === 'accepted') return 'Accepted';
+    if (status === 'rejected') return 'Rejected';
+    if (status === 'pending') return 'Pending';
+    return '';
+  }
+
+  applicationStatusClass(oppId: string) {
+    return `application-chip ${this.applicationStatus(oppId) || ''}`;
+  }
+
+  excerpt(text: string): string {
+    if (!text) return '';
+    return text.length > 110 ? `${text.slice(0, 110)}...` : text;
+  }
+
+  ngoLabel(opp: Opportunity): string {
+  const ngo = opp.ngo_id;
+
+  if (!ngo) return 'Unknown NGO';
+
+  // If ngo_id is populated (object)
+  if (typeof ngo === 'object' && ngo._id) {
+    return ngo._id.slice(-6);
+  }
+
+  // If ngo_id is just a string
+  return String(ngo).slice(-6);
+}
 
   imageFor(opp: Opportunity): string {
     if (opp.image_url) return opp.image_url;

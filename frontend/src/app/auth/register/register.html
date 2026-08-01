@@ -1,23 +1,27 @@
 <div class="auth-split">
+  <button class="auth-theme-toggle" type="button" (click)="toggleTheme()">
+    {{ theme === 'dark' ? 'Light mode' : 'Dark mode' }}
+  </button>
+
   <aside class="auth-hero">
     <div class="hero-content">
-      <div class="hero-logo">♻️ WasteZero</div>
+      <div class="hero-logo">WasteZero</div>
       <h2>Join the movement for a cleaner planet</h2>
       <p class="lead">
         Create your account to schedule smart waste pickups, track your recycling impact,
         and connect with collectors and NGOs near you.
       </p>
       <ul class="hero-points">
-        <li><span class="tick">✓</span> Schedule pickups in seconds</li>
-        <li><span class="tick">✓</span> Categorize plastic, organic &amp; e-waste</li>
-        <li><span class="tick">✓</span> Get matched with agents by location</li>
-        <li><span class="tick">✓</span> Track your personal recycling stats</li>
+        <li><span class="tick">OK</span> Schedule pickups in seconds</li>
+        <li><span class="tick">OK</span> Categorize plastic, organic &amp; e-waste</li>
+        <li><span class="tick">OK</span> Get matched with agents by location</li>
+        <li><span class="tick">OK</span> Track your personal recycling stats</li>
       </ul>
 
       <div class="hero-stats">
         <div><strong>12K+</strong><span>Pickups done</span></div>
         <div><strong>850+</strong><span>Active agents</span></div>
-        <div><strong>4.9★</strong><span>User rating</span></div>
+        <div><strong>4.9/5</strong><span>User rating</span></div>
       </div>
     </div>
   </aside>
@@ -25,61 +29,97 @@
   <div class="auth-form-side">
     <div class="auth-form">
       <div class="auth-head">
-        <span class="mini-logo">♻️ WasteZero</span>
+        <span class="mini-logo">WasteZero</span>
+        <p class="auth-badge">For volunteers and NGOs</p>
         <h1>Create your account</h1>
         <p>It's free and takes less than a minute.</p>
       </div>
 
-      <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+      <form [formGroup]="registerForm" (ngSubmit)="otpSent ? onRegister() : sendOtp()">
         @if (error) {
           <div class="form-error">{{ error }}</div>
+        }
+        @if (otpNotice) {
+          <div class="form-success">{{ otpNotice }}</div>
         }
 
         <div class="field">
           <label>Full name</label>
-          <input formControlName="name" placeholder="Jane Doe">
+          <input formControlName="name" placeholder="Jane Doe" [readonly]="otpSent">
         </div>
 
         <div class="field">
           <label>Email address</label>
-          <input formControlName="email" type="email" placeholder="you@example.com">
+          <input formControlName="email" type="email" placeholder="you@example.com" [readonly]="otpSent">
         </div>
 
         <div class="form-row">
           <div class="field">
             <label>Create a password</label>
             <div class="password-wrap">
-              <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="At least 6 characters">
+              <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="At least 6 characters and 1 number" [readonly]="otpSent">
               <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
-                {{ showPassword ? '🙈' : '👁️' }}
+                {{ showPassword ? 'Hide' : 'Show' }}
               </button>
             </div>
+            <small>Use at least 6 characters and include one number.</small>
           </div>
           <div class="field">
             <label>Confirm password</label>
-            <input formControlName="confirmPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Re-enter password">
+            <div class="password-wrap">
+              <input formControlName="confirmPassword" [type]="showPassword ? 'text' : 'password'" placeholder="Re-enter password" [readonly]="otpSent">
+              <button type="button" class="toggle-pass" (click)="showPassword = !showPassword">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="field">
             <label>Role</label>
-            <select formControlName="role">
+            <select formControlName="role" [attr.disabled]="otpSent ? true : null">
               <option value="volunteer">Volunteer</option>
               <option value="ngo">NGO</option>
-              <option value="admin">Admin</option>   
             </select>
           </div>
           <div class="field">
             <label>Location</label>
-            <input formControlName="location" placeholder="City / area">
+            <input formControlName="location" placeholder="City / area" [readonly]="otpSent">
           </div>
         </div>
 
-        <button class="btn-primary" type="submit" [disabled]="loading">
-          {{ loading ? 'Creating account…' : 'Create account' }}
-        </button>
+        @if (!otpSent) {
+          <button class="btn-primary" type="submit" [disabled]="sendingOtp">
+            {{ sendingOtp ? 'Sending OTP...' : 'Verify email' }}
+          </button>
+        } @else {
+          <div class="field otp-field" [formGroup]="otpForm">
+            <label>Email verification OTP</label>
+            <input formControlName="otp" inputmode="numeric" placeholder="6 digit OTP" maxlength="6">
+            @if (otpError) {
+              <small class="otp-error">{{ otpError }}</small>
+            } @else if (devOtp) {
+              <small class="dev-otp">Local OTP: <strong>{{ devOtp }}</strong></small>
+            } @else {
+              <small>We sent a 6 digit code to {{ otpVerifiedEmail }}. It's valid for 10 minutes.</small>
+            }
+          </div>
+
+          <div class="otp-actions">
+            <button class="btn-secondary" type="button" (click)="editDetails()">Edit details</button>
+            <button class="btn-primary" type="submit" [disabled]="loading">
+              {{ loading ? 'Creating account...' : 'Create account' }}
+            </button>
+          </div>
+        }
       </form>
+
+      <div class="auth-trust">
+        <span>Secure signup</span>
+        <span>Role based access</span>
+        <span>Local impact</span>
+      </div>
 
       <p class="auth-alt">
         Already have an account? <a routerLink="/login">Sign in</a>

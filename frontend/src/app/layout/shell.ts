@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/rou
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { AppTheme, ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-shell',
@@ -15,12 +16,15 @@ export class Shell {
   user: any;
   sidebarOpen = false;
   searchQuery = '';
+  theme: AppTheme = 'light';
 
   constructor(
     public auth: AuthService,
     private router: Router,
+    private themeService: ThemeService,
   ) {
     this.user = this.auth.getUser();
+    this.theme = this.themeService.theme;
   }
 
   get initial() {
@@ -41,6 +45,10 @@ export class Shell {
       });
       this.searchQuery = '';
     }
+  }
+
+  toggleTheme() {
+    this.theme = this.themeService.toggle();
   }
 
   logout() {

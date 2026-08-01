@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { OtpService } from '../../services/otp.service';
@@ -15,13 +15,16 @@ export class ForgotPassword {
   resetForm: FormGroup;
   error = '';
   success = '';
+  devOtp = '';
   loading = false;
   otpSent = false;
   email = '';
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
     private otpService: OtpService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.requestForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -29,7 +32,7 @@ export class ForgotPassword {
 
     this.resetForm = this.fb.group({
       otp: ['', [Validators.required, Validators.minLength(6)]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6), Validators.pattern(/\d/)]],
       confirmPassword: ['', Validators.required],
     });
   }
@@ -49,11 +52,17 @@ export class ForgotPassword {
       next: (res) => {
         this.otpSent = true;
         this.success = res.message || 'OTP sent to your email.';
+        this.devOtp = res.otp || '';
+        if (this.devOtp) {
+          this.resetForm.patchValue({ otp: this.devOtp });
+        }
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.error = err.error?.message || 'Could not send OTP.';
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -69,6 +78,11 @@ export class ForgotPassword {
       return;
     }
 
+    if (!/\d/.test(this.resetForm.value.newPassword)) {
+      this.error = 'Password must contain at least one number';
+      return;
+    }
+
     this.loading = true;
     this.error = '';
     this.success = '';
@@ -81,10 +95,12 @@ export class ForgotPassword {
         this.success = res.message || 'Password reset successfully. You can sign in now.';
         this.loading = false;
         this.resetForm.reset();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.error = err.error?.message || 'Could not reset password.';
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }

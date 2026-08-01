@@ -11,6 +11,11 @@ import { OpportunityList } from './opportunities/opportunity-list/opportunity-li
 import { CreateOpportunity } from './opportunities/create-opportunity/create-opportunity';
 import { EditOpportunity } from './opportunities/edit-opportunity/edit-opportunity';
 import { OpportunityDetail } from './opportunities/opportunity-detail/opportunity-detail';
+import { ApplicationsComponent } from './applications/applications';
+import { MatchSuggestions } from './match-suggestions/match-suggestions';
+import { Messages } from './messages/messages';
+import { Notifications } from './notifications/notifications';
+import { SchedulePickup } from './schedule-pickup/schedule-pickup';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },

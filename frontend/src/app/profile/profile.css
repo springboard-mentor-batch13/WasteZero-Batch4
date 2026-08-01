@@ -1,7 +1,7 @@
 .profile-page {
-  max-width: 580px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 8px 0 24px;
   box-sizing: border-box;
 }
 
@@ -12,21 +12,23 @@
 }
 
 .profile-card {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(20, 70, 40, 0.09);
-  padding: 24px 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
+  padding: 28px;
   box-sizing: border-box;
 }
 
-/* ── Header ── */
 .profile-header {
+  background: linear-gradient(135deg, var(--green-light), transparent);
+  border: 1px solid var(--border);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding-bottom: 18px;
+  padding: 18px;
   margin-bottom: 18px;
-  border-bottom: 1px solid var(--border);
 }
 
 .avatar {
@@ -65,40 +67,41 @@
   text-transform: capitalize;
 }
 
-/* ── Tabs ── */
 .tabs {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   display: flex;
-  border-bottom: 2px solid var(--border);
+  padding: 4px;
   margin-bottom: 20px;
 }
 
 .tab-btn {
-  padding: 8px 24px;
+  flex: 1;
+  padding: 10px 18px;
   border: none;
-  background: none;
+  border-radius: 9px;
+  background: transparent;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s;
   font-family: inherit;
 }
 
 .tab-btn.active {
   color: var(--green-dark);
+  background: var(--surface);
   font-weight: 700;
-  border-bottom-color: var(--green);
 }
 
 .tab-btn:hover:not(.active) {
   color: var(--ink);
 }
 
-/* ── Section ── */
 .section-title {
-  font-size: 0.97rem;
+  font-size: 1.08rem;
   font-weight: 700;
   margin: 0 0 3px;
   color: var(--ink);
@@ -110,7 +113,6 @@
   margin: 0 0 16px;
 }
 
-/* ── Fields ── */
 .field {
   margin-bottom: 14px;
 }
@@ -133,7 +135,7 @@
   border-radius: 9px;
   font-size: 0.92rem;
   font-family: inherit;
-  background: #f9fcf9;
+  background: var(--input-bg);
   transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
@@ -143,11 +145,11 @@
   outline: none;
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
-  background: #fff;
+  background: var(--surface);
 }
 
 .field input[readonly] {
-  background: #f0f3f0;
+  background: var(--input-muted);
   color: var(--muted);
   cursor: not-allowed;
 }
@@ -164,7 +166,6 @@
   color: var(--muted);
 }
 
-/* ── Eye Toggle ── */
 .input-eye {
   position: relative;
   display: flex;
@@ -194,7 +195,6 @@
   color: var(--ink);
 }
 
-/* ── Alerts ── */
 .alert {
   padding: 9px 12px;
   border-radius: 9px;
@@ -214,13 +214,12 @@
   border: 1px solid #f5c6c2;
 }
 
-/* ── OTP box ── */
 .otp-info {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #f0f9f1;
-  border: 1px solid #c8e6c9;
+  background: var(--green-light);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 18px;
@@ -238,13 +237,12 @@
   line-height: 1.5;
 }
 
-/* ── Buttons ── */
 .btn-primary {
   width: 100%;
   padding: 11px;
   border: none;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #43a047 0%, var(--green-dark) 100%);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3da35b 0%, #175d35 100%);
   color: #fff;
   font-size: 0.93rem;
   font-weight: 600;

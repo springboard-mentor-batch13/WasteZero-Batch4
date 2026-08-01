@@ -3,6 +3,13 @@ import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 
+const hasCloudinaryConfig = () =>
+  Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET,
+  );
+
 const uploadToCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -19,16 +26,45 @@ const uploadToCloudinary = (buffer) => {
   });
 };
 
+const fileToDataUrl = (file) => {
+  if (!file) return "";
+  return `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
+};
+
+const getOpportunityImageUrl = async (file) => {
+  if (!file) return "";
+
+  if (hasCloudinaryConfig()) {
+    try {
+      const uploaded = await uploadToCloudinary(file.buffer);
+      return uploaded.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload failed:", error.message);
+    }
+  }
+
+  return fileToDataUrl(file);
+};
+
+const canManageOpportunity = (opportunity, user) => {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  const ngoId = opportunity.ngo_id?._id || opportunity.ngo_id;
+  return ngoId.toString() === user._id.toString();
+};
+
+const isOpportunityOwner = (opportunity, user) => {
+  if (!user || user.role !== "ngo") return false;
+  const ngoId = opportunity.ngo_id?._id || opportunity.ngo_id;
+  return ngoId.toString() === user._id.toString();
+};
+
 const createOpportunity = async (req, res) => {
   const { title, description, required_skills, duration, location, date } =
     req.body;
 
   try {
-    let image_url = "";
-    if (req.file) {
-      const uploaded = await uploadToCloudinary(req.file.buffer);
-      image_url = uploaded.secure_url;
-    }
+    const image_url = await getOpportunityImageUrl(req.file);
     const opportunity = await Opportunity.create({
       ngo_id: req.user._id,
       title,
@@ -54,24 +90,32 @@ const getOpportunities = async (req, res) => {
     const { status, search, city } = req.query;
     let query = {};
 
-    // Filter by status
+    // NGOs manage their own workboard; volunteers and admins can browse all.
+    if (req.user.role === 'ngo') {
+      query.ngo_id = req.user._id;
+    }
+
     if (status && status !== 'all') {
       query.status = status;
     }
 
-    // Filter by city
     if (city && city !== 'all') {
       query.location = { $regex: city, $options: 'i' };
     }
 
-    // Search across title, description, location and skills
     if (search) {
-      query.$or = [
+      const searchConditions = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { location: { $regex: search, $options: 'i' } },
         { required_skills: { $regex: search, $options: 'i' } },
       ];
+
+      // Only search location if city filter is not already applied
+      if (!city || city === 'all') {
+        searchConditions.push({ location: { $regex: search, $options: 'i' } });
+      }
+
+      query.$or = searchConditions;
     }
 
     const opportunities = await Opportunity.find(query)
@@ -92,6 +136,9 @@ const getOpportunityById = async (req, res) => {
     );
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+    if (req.user.role === 'ngo' && !isOpportunityOwner(opportunity, req.user)) {
+      return res.status(403).json({ message: 'NGOs can only view their own opportunities' });
+    }
     res.json(opportunity);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -103,6 +150,11 @@ const updateOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     if (req.body.title) opportunity.title = req.body.title;
 
     if (req.body.description) opportunity.description = req.body.description;
@@ -122,8 +174,7 @@ const updateOpportunity = async (req, res) => {
     }
 
     if (req.file) {
-      const uploaded = await uploadToCloudinary(req.file.buffer);
-      opportunity.image_url = uploaded.secure_url;
+      opportunity.image_url = await getOpportunityImageUrl(req.file);
     }
     const updated = await opportunity.save();
     res.json(updated);
@@ -137,6 +188,11 @@ const deleteOpportunity = async (req, res) => {
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!canManageOpportunity(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to modify this opportunity" });
+    }
+
     await Application.deleteMany({ opportunity_id: req.params.id });
     await opportunity.deleteOne();
     res.json({ message: "Opportunity and related applications deleted" });
@@ -147,6 +203,18 @@ const deleteOpportunity = async (req, res) => {
 
 const applyForOpportunity = async (req, res) => {
   try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can apply for opportunities' });
+    }
+
+    const opportunity = await Opportunity.findById(req.params.id);
+    if (!opportunity)
+      return res.status(404).json({ message: "Opportunity not found" });
+
+    if (opportunity.status !== "open") {
+      return res.status(400).json({ message: "This opportunity is not open for applications" });
+    }
+
     const existing = await Application.findOne({
       opportunity_id: req.params.id,
       volunteer_id: req.user._id,
@@ -162,12 +230,146 @@ const applyForOpportunity = async (req, res) => {
   }
 };
 
+const getOpportunityApplications = async (req, res) => {
+  try {
+    const opportunity = await Opportunity.findById(req.params.id).populate(
+      "ngo_id",
+      "name email",
+    );
+    if (!opportunity)
+      return res.status(404).json({ message: "Opportunity not found" });
+
+    const canReview = isOpportunityOwner(opportunity, req.user);
+    const canViewStatus = req.user?.role === "admin";
+
+    if (!canReview && !canViewStatus) {
+      return res.status(403).json({ message: "Not authorized to view these applications" });
+    }
+
+    let applicationsQuery = Application.find({
+      opportunity_id: req.params.id,
+    })
+      .populate("reviewed_by", "name email role")
+      .sort({ createdAt: -1 });
+
+    if (canReview) {
+      applicationsQuery = applicationsQuery.populate("volunteer_id", "name email role location skills");
+    }
+
+    const applications = await applicationsQuery;
+    const summary = {
+      total: applications.length,
+      pending: applications.filter((application) => application.status === "pending").length,
+      accepted: applications.filter((application) => application.status === "accepted").length,
+      rejected: applications.filter((application) => application.status === "rejected").length,
+      ngo: opportunity.ngo_id,
+    };
+
+    res.json({
+      mode: canReview ? "review" : "admin",
+      summary,
+      applications,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateApplicationStatus = async (req, res) => {
+  try {
+    const { status, remark, rejection_remark } = req.body;
+    if (!["accepted", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Status must be accepted or rejected" });
+    }
+
+    const application = await Application.findById(req.params.applicationId);
+    if (!application)
+      return res.status(404).json({ message: "Application not found" });
+
+    const opportunity = await Opportunity.findById(application.opportunity_id);
+    if (!opportunity)
+      return res.status(404).json({ message: "Opportunity not found" });
+
+    if (!isOpportunityOwner(opportunity, req.user)) {
+      return res.status(403).json({ message: "Not authorized to update this application" });
+    }
+
+    application.status = status;
+    application.reviewed_by = req.user._id;
+    application.reviewed_at = new Date();
+
+    if (status === 'rejected') {
+      application.rejection_remark = rejection_remark || remark || '';
+    }
+
+    const updated = await application.save();
+    await updated.populate("volunteer_id", "name email role location skills");
+    await updated.populate("reviewed_by", "name email role");
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getUserApplications = async (req, res) => {
   try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can view volunteer applications' });
+    }
     const apps = await Application.find({
       volunteer_id: req.user._id,
-    }).populate("opportunity_id");
+    })
+      .populate("opportunity_id", "title ngo_id status")
+      .populate("reviewed_by", "name email role");
     res.json(apps);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getDashboardData = async (req, res) => {
+  try {
+    const { role, _id: userId } = req.user;
+
+    if (role === 'ngo') {
+      const ngoOpportunities = await Opportunity.find({ ngo_id: userId }).select('_id');
+      const oppIds = ngoOpportunities.map(opp => opp._id);
+
+      const applications = await Application.find({ opportunity_id: { $in: oppIds } })
+        .populate('opportunity_id', 'title description location status')
+        .populate('volunteer_id', 'name email phone location skills')
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    if (role === 'volunteer') {
+      const applications = await Application.find({ volunteer_id: userId })
+        .populate({
+          path: 'opportunity_id',
+          select: 'title location ngo_id',
+          populate: { path: 'ngo_id', select: 'name email' }
+        })
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    if (role === 'admin') {
+      const applications = await Application.find()
+        .populate({
+          path: 'opportunity_id',
+          select: 'title ngo_id',
+          populate: { path: 'ngo_id', select: 'name email' }
+        })
+        .populate('volunteer_id', 'name email')
+        .sort({ createdAt: -1 });
+
+      return res.json({ success: true, data: applications });
+    }
+
+    return res.status(403).json({ message: 'Unauthorized role' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -180,5 +382,8 @@ export {
   updateOpportunity,
   deleteOpportunity,
   applyForOpportunity,
+  getOpportunityApplications,
+  updateApplicationStatus,
   getUserApplications,
+  getDashboardData,
 };
