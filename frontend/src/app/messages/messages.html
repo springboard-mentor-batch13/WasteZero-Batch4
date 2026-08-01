@@ -45,7 +45,9 @@
               [class.active]="activeContact?._id === contact._id"
               (click)="selectContact(contact)"
             >
-              <span class="contact-avatar">{{ contactInitial(contact) }}</span>
+              <span class="contact-avatar" [class.is-online]="isContactOnline(contact._id)">
+                {{ contactInitial(contact) }}
+              </span>
               <span class="contact-copy">
                 <span class="contact-top">
                   <strong>{{ contact.name }}</strong>
@@ -72,7 +74,9 @@
             <strong>{{ activeContact.name }}</strong>
             <span>{{ activeContact.role }} · {{ activeContact.email }}</span>
           </div>
-          <span class="online-label"><i></i> Available</span>
+          <span class="online-label" [class.offline]="!isContactOnline(activeContact._id)">
+            <i></i> {{ isContactOnline(activeContact._id) ? 'Available' : 'Offline' }}
+          </span>
         </header>
 
         <div class="message-thread">
@@ -88,6 +92,9 @@
             @for (message of messages; track message._id || message.timestamp) {
               <div class="bubble-row" [class.mine]="message.sender_id === currentUserId">
                 <div class="bubble">
+                  @if (message.context && message.context.kind !== 'general' && message.context.label) {
+                    <span class="context-chip">Re: {{ message.context.label }}</span>
+                  }
                   <p>{{ message.content }}</p>
                   <span class="message-meta">
                     <time>{{ message.timestamp | date:'shortTime' }}</time>

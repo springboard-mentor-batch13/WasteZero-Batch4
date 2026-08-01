@@ -3,7 +3,8 @@ import express from 'express';
 import {
   getMatchedOpportunities,
   getMessages,
-  getContacts
+  getContacts,
+  getSupportContact
 } from '../controller/matchCommunicationController.js';
 
 import {
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get('/matches',protect,volunteerOnly,getMatchedOpportunities);
 
 router.get('/contacts', protect, getContacts);
+router.get('/support-contact', protect, getSupportContact);
 
 // Logged-in users can only fetch a conversation involving themselves
 router.get(

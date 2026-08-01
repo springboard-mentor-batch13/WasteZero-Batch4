@@ -4,7 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
-import jwt from 'jsonwebtoken'; // 1. Added JWT import
+import jwt from 'jsonwebtoken';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -12,6 +12,10 @@ import otpRoutes from './routes/otpRoutes.js';
 import opportunityRoutes from './routes/opportunityRoutes.js';
 import matchCommunicationRoutes from './routes/matchCommunicationRoutes.js';
 import Message from './models/Message.js';
+import User from './models/User.js';
+import Pickup from './models/Pickup.js';
+import Application from './models/Application.js';
+import { canCommunicateWith } from './utils/communicationAccess.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pickupRoutes from './routes/pickupRoutes.js';
 
@@ -63,58 +67,184 @@ io.use((socket, next) => {
     return next(new Error('Authentication error: Invalid or expired token'));
   }
 });
+const onlineUsers = new Map(); 
+
+const isOnline = (userId) => onlineUsers.has(userId) && onlineUsers.get(userId).size > 0;
+
+const markOnline = (userId, socketId) => {
+  if (!onlineUsers.has(userId)) onlineUsers.set(userId, new Set());
+  onlineUsers.get(userId).add(socketId);
+};
+
+const markOffline = (userId, socketId) => {
+  const sockets = onlineUsers.get(userId);
+  if (!sockets) return false;
+  sockets.delete(socketId);
+  if (sockets.size === 0) {
+    onlineUsers.delete(userId);
+    return true; // fully offline now
+  }
+  return false;
+};
 
 // Socket.IO Connection Handling
-io.on('connection', (socket) => {
-  console.log(`Authenticated user connected: ${socket.id} (User ID: ${socket.user.id || socket.user._id})`);
+io.on('connection', async (socket) => {
+  const userId = String(socket.user.id || socket.user._id);
+  console.log(`Authenticated user connected: ${socket.id} (User ID: ${userId})`);
 
-  socket.on('join_room', (userId) => {
-    // Authed user joins their own room or room passed
-    const roomId = userId || socket.user.id || socket.user._id;
-    socket.join(roomId);
-    console.log(`User joined room: ${roomId}`);
+  socket.join(userId);
+  const wasOffline = !isOnline(userId);
+  markOnline(userId, socket.id);
+
+  if (wasOffline) {
+    socket.broadcast.emit('user_status', { userId, status: 'online' });
+
+    try {
+      const pending = await Message.find({ receiver_id: userId, status: 'sent' });
+      if (pending.length) {
+        await Message.updateMany(
+          { receiver_id: userId, status: 'sent' },
+          { $set: { status: 'delivered' } }
+        );
+        const bySender = new Map();
+        pending.forEach((msg) => {
+          const sId = String(msg.sender_id);
+          if (!bySender.has(sId)) bySender.set(sId, []);
+          bySender.get(sId).push(String(msg._id));
+        });
+        bySender.forEach((messageIds, senderId) => {
+          io.to(senderId).emit('message_delivered', { messageIds });
+        });
+      }
+    } catch (err) {
+      console.error('Error reconciling delivered messages:', err);
+    }
+  }
+
+  socket.emit('online_users', { userIds: Array.from(onlineUsers.keys()) });
+
+  socket.on('join_room', (requestedUserId) => {
+    if (String(requestedUserId) === userId) {
+      socket.join(userId);
+    }
   });
 
-socket.on('send_message', async (data) => {
-  try {
-    const { receiver_id, content } = data;
-    const sender_id = socket.user.id || socket.user._id;
-
-    // Validation
-    if (!receiver_id) {
-      return socket.emit('error_message', {
-        message: 'Receiver ID is required.'
-      });
+  const resolveMessageContext = async (rawContext, senderId) => {
+    if (!rawContext || !rawContext.type || rawContext.type === 'general') {
+      return { kind: 'general', refId: null, label: '' };
     }
 
-    if (!content || !content.trim()) {
-      return socket.emit('error_message', {
-        message: 'Message cannot be empty.'
-      });
+    const label = String(rawContext.label || '').slice(0, 200);
+
+    if (rawContext.type === 'pickup' && rawContext.refId) {
+      const pickup = await Pickup.findOne({
+        _id: rawContext.refId,
+        requester_id: senderId,
+      }).select('_id');
+      if (pickup) return { kind: 'pickup', refId: pickup._id, label };
     }
 
-    const newMessage = new Message({
-      sender_id,
-      receiver_id,
-      content: content.trim(),
-    });
+    if (rawContext.type === 'opportunity' && rawContext.refId) {
+      const application = await Application.findOne({
+        _id: rawContext.refId,
+        $or: [{ volunteer_id: senderId }, { ngo_id: senderId }],
+      }).select('_id');
+      if (application) return { kind: 'opportunity', refId: application._id, label };
+    }
 
-    await newMessage.save();
+    return { kind: 'general', refId: null, label: '' };
+  };
 
-    io.to(receiver_id).emit('receive_message', newMessage);
-    io.to(sender_id).emit('receive_message', newMessage);
+  socket.on('send_message', async (data) => {
+    try {
+      const { receiver_id, content, context: rawContext } = data || {};
+      const sender_id = userId;
 
-  } catch (error) {
-    console.error('Error handling socket message:', error);
+      // Validation
+      if (!receiver_id) {
+        return socket.emit('message_error', { message: 'Receiver ID is required.' });
+      }
 
-    socket.emit('error_message', {
-      message: 'Failed to send message.'
-    });
-  }
-});
+      if (!content || !content.trim()) {
+        return socket.emit('message_error', { message: 'Message cannot be empty.' });
+      }
+
+      if (String(receiver_id) === sender_id) {
+        return socket.emit('message_error', { message: 'You cannot message yourself.' });
+      }
+
+      const senderUser = await User.findById(sender_id).select('role');
+      if (!senderUser) {
+        return socket.emit('message_error', { message: 'Your account could not be verified.' });
+      }
+
+      const allowed = await canCommunicateWith(senderUser, receiver_id);
+      if (!allowed) {
+        return socket.emit('message_error', {
+          message: 'You can only message this contact once a volunteer application has been accepted.'
+        });
+      }
+
+      const status = isOnline(String(receiver_id)) ? 'delivered' : 'sent';
+      const context = await resolveMessageContext(rawContext, sender_id);
+
+      const newMessage = new Message({
+        sender_id,
+        receiver_id,
+        content: content.trim(),
+        status,
+        context,
+      });
+
+      await newMessage.save();
+
+      io.to(String(receiver_id)).emit('receive_message', newMessage);
+      io.to(sender_id).emit('receive_message', newMessage);
+
+    } catch (error) {
+      console.error('Error handling socket message:', error);
+      socket.emit('message_error', { message: 'Failed to send message.' });
+    }
+  });
+
+  socket.on('mark_messages_read', async (data) => {
+    try {
+      const { senderId } = data || {};
+      if (!senderId) return;
+
+      const readAt = new Date();
+      const unread = await Message.find({
+        sender_id: senderId,
+        receiver_id: userId,
+        readAt: null,
+      }).select('_id');
+
+      if (!unread.length) return;
+
+      const messageIds = unread.map((m) => String(m._id));
+
+      await Message.updateMany(
+        { _id: { $in: messageIds } },
+        { $set: { readAt, status: 'read' } }
+      );
+
+      io.to(String(senderId)).emit('messages_read', { messageIds, readAt });
+      io.to(userId).emit('messages_read', { messageIds, readAt });
+    } catch (error) {
+      console.error('Error marking messages read:', error);
+    }
+  });
 
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
+    const fullyOffline = markOffline(userId, socket.id);
+    if (fullyOffline) {
+      socket.broadcast.emit('user_status', {
+        userId,
+        status: 'offline',
+        lastSeen: new Date(),
+      });
+    }
   });
 });
 

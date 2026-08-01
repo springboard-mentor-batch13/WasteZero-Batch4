@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { finalize, Subscription, timeout } from 'rxjs';
 import { MessageService } from '../services/message';
 import { SocketService } from '../services/socket';
@@ -22,6 +23,11 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   status?: 'sent' | 'delivered' | 'read';
+  context?: {
+    kind: 'pickup' | 'opportunity' | 'general';
+    refId?: string | null;
+    label?: string;
+  };
 }
 
 @Component({
@@ -41,24 +47,33 @@ export class Messages implements OnInit, OnDestroy {
   loadingContacts = true;
   loadingMessages = false;
   error = '';
+  onlineContactIds = new Set<string>();
 
   private messageSubscription?: Subscription;
   private readSubscription?: Subscription;
+  private deliveredSubscription?: Subscription;
+  private statusSubscription?: Subscription;
+  private onlineSnapshotSubscription?: Subscription;
+  private reconnectSubscription?: Subscription;
   private errorSubscription?: Subscription;
+  private isFirstConnect = true;
 
   constructor(
     private messageService: MessageService,
     private socketService: SocketService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getUser();
     if (!this.currentUser) return;
 
+    const pendingContactId = this.route.snapshot.queryParamMap.get('contactId');
+
     this.socketService.joinRoom(this.currentUser._id);
-    this.loadContacts();
+    this.loadContacts(pendingContactId);
 
     this.messageSubscription = this.socketService.receiveMessage().subscribe((message: ChatMessage) => {
       const partnerId = message.sender_id === this.currentUser._id
@@ -84,6 +99,42 @@ export class Messages implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
+    this.deliveredSubscription = this.socketService.messageDelivered().subscribe(({ messageIds }) => {
+      const deliveredIds = new Set(messageIds);
+      this.messages = this.messages.map((message) =>
+        message._id && deliveredIds.has(message._id) && message.status !== 'read'
+          ? { ...message, status: 'delivered' }
+          : message,
+      );
+      this.cdr.detectChanges();
+    });
+
+    // Online/offline presence, like WhatsApp's "Available" / last seen.
+    this.onlineSnapshotSubscription = this.socketService.onlineUsersSnapshot().subscribe(({ userIds }) => {
+      this.onlineContactIds = new Set(userIds);
+      this.cdr.detectChanges();
+    });
+
+    this.statusSubscription = this.socketService.userStatus().subscribe(({ userId, status }) => {
+      if (status === 'online') {
+        this.onlineContactIds.add(userId);
+      } else {
+        this.onlineContactIds.delete(userId);
+      }
+      this.cdr.detectChanges();
+    });
+
+    this.reconnectSubscription = this.socketService.connected().subscribe(() => {
+      if (this.isFirstConnect) {
+        this.isFirstConnect = false;
+        return;
+      }
+      if (this.activeContact) {
+        this.loadMessages();
+      }
+      this.loadContacts();
+    });
+
     this.errorSubscription = this.socketService.messageError().subscribe(({ message }) => {
       this.error = message;
       this.cdr.detectChanges();
@@ -93,7 +144,15 @@ export class Messages implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.messageSubscription?.unsubscribe();
     this.readSubscription?.unsubscribe();
+    this.deliveredSubscription?.unsubscribe();
+    this.statusSubscription?.unsubscribe();
+    this.onlineSnapshotSubscription?.unsubscribe();
+    this.reconnectSubscription?.unsubscribe();
     this.errorSubscription?.unsubscribe();
+  }
+
+  isContactOnline(contactId: string | undefined | null): boolean {
+    return !!contactId && this.onlineContactIds.has(contactId);
   }
 
   get filteredContacts(): ChatContact[] {
@@ -123,7 +182,7 @@ export class Messages implements OnInit, OnDestroy {
     this.loadMessages();
   }
 
-  loadContacts(): void {
+  loadContacts(pendingContactId: string | null = null): void {
     this.loadingContacts = true;
     this.error = '';
 
@@ -138,6 +197,16 @@ export class Messages implements OnInit, OnDestroy {
       .subscribe({
       next: (res: any) => {
         this.contacts = res.data || [];
+
+        if (pendingContactId) {
+          const target = this.contacts.find((contact) => contact._id === pendingContactId);
+          if (target) {
+            this.selectContact(target);
+            return;
+          }
+          setTimeout(() => this.loadContacts(pendingContactId), 800);
+          return;
+        }
 
         if (!this.activeContact && this.contacts.length) {
           this.selectContact(this.contacts[0]);

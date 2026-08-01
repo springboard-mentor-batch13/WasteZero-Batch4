@@ -20,28 +20,6 @@ const seedDemoMessages = async () => {
   const now = Date.now();
   const demoMessages = [];
 
-  // Admin support conversations are available to every account.
-  for (const [index, volunteer] of volunteers.entries()) {
-    demoMessages.push({
-      demo_key: `admin-volunteer-welcome-${volunteer._id}`,
-      sender_id: admin._id,
-      receiver_id: volunteer._id,
-      content: `Welcome ${volunteer.name}! Your WasteZero volunteer account is ready.`,
-      timestamp: new Date(now - (90 + index * 10) * 60 * 1000),
-    });
-  }
-
-  for (const [index, ngo] of ngos.entries()) {
-    demoMessages.push({
-      demo_key: `admin-ngo-welcome-${ngo._id}`,
-      sender_id: admin._id,
-      receiver_id: ngo._id,
-      content: `Welcome ${ngo.name}! You can review and assign scheduled pickups from your dashboard.`,
-      timestamp: new Date(now - (80 + index * 10) * 60 * 1000),
-    });
-  }
-
-  // Volunteer–NGO demo chats are created only for accepted applications.
   const acceptedApplications = await Application.find({ status: 'accepted' }).lean();
   const acceptedOpportunities = await Opportunity.find({
     _id: { $in: acceptedApplications.map(({ opportunity_id }) => opportunity_id) },

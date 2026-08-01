@@ -1,7 +1,7 @@
 import Opportunity from '../models/Opportunity.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
-import { getAllowedContactIds } from '../utils/communicationAccess.js';
+import { getAllowedContactIds, canCommunicateWith, getSupportAdmin } from '../utils/communicationAccess.js';
 
 // 1. Volunteer Matching Algorithm
 export const getMatchedOpportunities = async (req, res) => {
@@ -65,6 +65,14 @@ export const getMessages = async (req, res) => {
     const currentUserId = req.user._id; // Securely extract current user
     const { userId: otherUserId } = req.params; // Person they are chatting with
 
+    const allowed = await canCommunicateWith(req.user, otherUserId);
+    if (!allowed) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only message this contact once a volunteer application has been accepted.',
+      });
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 
@@ -75,15 +83,10 @@ export const getMessages = async (req, res) => {
         { sender_id: otherUserId, receiver_id: currentUserId },
       ],
     })
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
-    // Mark unread incoming messages as read
-    await Message.updateMany(
-      { sender_id: otherUserId, receiver_id: currentUserId, readAt: null },
-      { $set: { readAt: new Date() } }
-    );
 
     res.status(200).json({
       success: true,
@@ -91,6 +94,22 @@ export const getMessages = async (req, res) => {
       page,
       limit,
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const getSupportContact = async (req, res) => {
+  try {
+    if (req.user.role === 'admin') {
+      return res.status(400).json({ success: false, message: 'Admins do not have a support contact.' });
+    }
+
+    const admin = await getSupportAdmin();
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'No support agent is available right now.' });
+    }
+
+    res.status(200).json({ success: true, data: admin });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -112,7 +131,7 @@ export const getContacts = async (req, res) => {
             { sender_id: req.user._id, receiver_id: contact._id },
             { sender_id: contact._id, receiver_id: req.user._id },
           ],
-        }).sort({ createdAt: 1 }).lean();
+        }).sort({ createdAt: -1 }).lean();
 
         return {
           ...contact,

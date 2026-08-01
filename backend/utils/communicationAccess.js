@@ -1,6 +1,31 @@
 import Application from '../models/Application.js';
 import Opportunity from '../models/Opportunity.js';
 import User from '../models/User.js';
+import Message from '../models/Message.js';
+
+const getActiveAdminThreadIds = async (userId) => {
+  const threads = await Message.find({
+    $or: [{ sender_id: userId }, { receiver_id: userId }],
+  })
+    .select('sender_id receiver_id')
+    .lean();
+
+  if (!threads.length) return [];
+
+  const partnerIds = [
+    ...new Set(
+      threads.map(({ sender_id, receiver_id }) =>
+        String(sender_id) === String(userId) ? String(receiver_id) : String(sender_id),
+      ),
+    ),
+  ];
+
+  const admins = await User.find({ _id: { $in: partnerIds }, role: 'admin' })
+    .select('_id')
+    .lean();
+
+  return admins.map(({ _id }) => _id.toString());
+};
 
 export const getAllowedContactIds = async (user) => {
   if (user.role === 'admin') {
@@ -8,8 +33,8 @@ export const getAllowedContactIds = async (user) => {
     return users.map(({ _id }) => _id.toString());
   }
 
-  const adminIds = (await User.find({ role: 'admin' }).select('_id').lean())
-    .map(({ _id }) => _id.toString());
+  const activeAdminIds = await getActiveAdminThreadIds(user._id);
+
 
   if (user.role === 'volunteer') {
     const applications = await Application.find({
@@ -21,7 +46,7 @@ export const getAllowedContactIds = async (user) => {
       .select('ngo_id')
       .lean();
     return [...new Set([
-      ...adminIds,
+      ...activeAdminIds,
       ...opportunities.map(({ ngo_id }) => ngo_id.toString()),
     ])];
   }
@@ -34,12 +59,17 @@ export const getAllowedContactIds = async (user) => {
       status: 'accepted',
     }).select('volunteer_id').lean();
     return [...new Set([
-      ...adminIds,
+      ...activeAdminIds,
       ...applications.map(({ volunteer_id }) => volunteer_id.toString()),
     ])];
   }
 
   return [];
+};
+
+export const getSupportAdmin = async () => {
+  const admin = await User.findOne({ role: 'admin' }).select('_id name email role').lean();
+  return admin || null;
 };
 
 export const canCommunicateWith = async (user, contactId) => {

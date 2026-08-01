@@ -15,6 +15,7 @@ import { MatchSuggestions } from './match-suggestions/match-suggestions';
 import { Messages } from './messages/messages';
 import { Notifications } from './notifications/notifications';
 import { SchedulePickup } from './schedule-pickup/schedule-pickup';
+import { Support } from './support/support';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -32,6 +33,7 @@ export const routes: Routes = [
       { path: 'messages', component: Messages },
       { path: 'notifications', component: Notifications },
       { path: 'schedule-pickup', component: SchedulePickup },
+      { path: 'support', component: Support },
 
   { path: 'opportunities', component: OpportunityList },
   { path: 'opportunities/create', component: CreateOpportunity },

@@ -186,12 +186,36 @@
   font-weight: 800;
   height: 40px;
   place-items: center;
+  position: relative;
 }
 
 .contact-avatar.large {
   border-radius: 14px;
   flex-basis: 44px;
   height: 44px;
+}
+
+.contact-avatar.is-online::after {
+  background: var(--green);
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  bottom: -2px;
+  content: '';
+  height: 10px;
+  position: absolute;
+  right: -2px;
+  width: 10px;
+}
+
+.online-label.offline {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.online-label.offline i {
+  background: var(--muted);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--muted) 16%, transparent);
 }
 
 .contact-copy {
@@ -337,6 +361,24 @@
   line-height: 1.45;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.context-chip {
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 30%, transparent);
+  border-radius: 999px;
+  color: var(--green-dark);
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  padding: 3px 9px;
+}
+
+.bubble-row.mine .context-chip {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
 }
 
 .bubble time {

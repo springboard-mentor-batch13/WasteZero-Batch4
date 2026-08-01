@@ -1,0 +1,88 @@
+<section class="support-page">
+  <header class="page-heading">
+    <p class="eyebrow">Settings</p>
+    <h1>Help &amp; Support</h1>
+    <p>Tell us what this is about, then describe your concern. Our team will follow up in Messages.</p>
+  </header>
+
+  <div class="support-card">
+    @if (error) {
+      <div class="support-error">{{ error }}</div>
+    }
+
+    @if (step === 1) {
+      <p class="step-label">What's this concern about?</p>
+      <div class="category-grid">
+        <button type="button" class="category-card" (click)="chooseCategory('pickup')">
+          <span class="ic">PK</span>
+          <span class="category-copy">
+            <strong>Schedule Pickup</strong>
+            <span>An issue with a pickup you booked</span>
+          </span>
+        </button>
+        <button type="button" class="category-card" (click)="chooseCategory('opportunity')">
+          <span class="ic">OP</span>
+          <span class="category-copy">
+            <strong>Opportunity / Application</strong>
+            <span>An issue with an opportunity you applied to</span>
+          </span>
+        </button>
+      </div>
+    }
+
+    @if (step === 2) {
+      <button type="button" class="back-link" (click)="goBack()">&larr; Back</button>
+      <p class="step-label">
+        {{ category === 'pickup' ? 'Which pickup is this about?' : 'Which application is this about?' }}
+      </p>
+
+      @if (loadingItems) {
+        <p class="muted">Loading...</p>
+      } @else if (error) {
+        <button type="button" class="back-link" (click)="chooseCategory(category!)">Retry</button>
+      } @else if (!items.length) {
+        <p class="muted">
+          {{ category === 'pickup' ? "You don't have any pickups yet." : "You don't have any applications yet." }}
+        </p>
+      } @else {
+        <div class="item-list">
+          @for (item of items; track item.id) {
+            <button type="button" class="item-row" (click)="chooseItem(item)">
+              <span class="item-copy">
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.sublabel }}</span>
+              </span>
+              <span class="chevron">&rsaquo;</span>
+            </button>
+          }
+        </div>
+      }
+    }
+    @if (step === 3 && selectedItem) {
+      <button type="button" class="back-link" (click)="goBack()">&larr; Back</button>
+      <p class="step-label">Regarding: {{ selectedItem.label }}</p>
+
+      <label for="concern">Describe your concern</label>
+      <textarea
+        id="concern"
+        name="concern"
+        rows="6"
+        [(ngModel)]="concern"
+        placeholder="Tell us what's going on and we'll get back to you..."
+      ></textarea>
+
+      <button
+        type="button"
+        class="submit-btn"
+        [disabled]="!concern.trim() || submitting"
+        (click)="submit()"
+      >
+        {{ submitting ? 'Sending...' : 'Send to Support' }}
+      </button>
+
+      <p class="support-note">
+        This opens a private chat with our support team, tagged to this {{ category }}. You'll find it under Messages afterward.
+      </p>
+    }
+  </div>
+</section>

@@ -56,11 +56,12 @@
         <span class="label">Settings</span>
         <em>soon</em>
       </span>
-      <span class="item soon">
-        <span class="ic">HP</span>
-        <span class="label">Help &amp; Support</span>
-        <em>soon</em>
-      </span>
+      @if (user?.role !== 'admin') {
+        <a routerLink="/support" routerLinkActive="active" (click)="sidebarOpen = false">
+          <span class="ic">HP</span>
+          <span class="label">Help &amp; Support</span>
+        </a>
+      }
       <span class="item soon">
         <span class="ic">AD</span>
         <span class="label">Admin Panel</span>
