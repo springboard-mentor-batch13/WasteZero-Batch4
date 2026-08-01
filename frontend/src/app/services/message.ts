@@ -13,7 +13,11 @@ export class MessageService {
     return this.http.get(`${this.apiUrl}/contacts`);
   }
 
-  getMessages(user1: string, user2: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/messages/${user1}/${user2}`);
+  // getMessages(user1: string, user2: string): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/messages/${user1}/${user2}`);
+  // }
+
+   getMessages(otherUserId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/messages/${otherUserId}`);
   }
 }
