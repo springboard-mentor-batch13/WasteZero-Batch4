@@ -1,114 +1,94 @@
 import Opportunity from '../models/Opportunity.js';
 import Message from '../models/Message.js';
-import Notification from '../models/Notification.js';
-import User from '../models/User.js';
-import { canCommunicateWith, getAllowedContactIds } from '../utils/communicationAccess.js';
 
+// 1. Volunteer Matching Algorithm
 export const getMatchedOpportunities = async (req, res) => {
   try {
-    const { location, skills } = req.query;
-    let query = { status: 'open' };
-    if (location) {
-      query.location = { $regex: location, $options: 'i' };
-    }
-    if (skills) {
-      const skillsArray = skills.split(',').map(s => s.trim());
-      query.required_skills = { $in: skillsArray };
-    }
-    const matchedOpportunities = await Opportunity.find(query);
-    res.status(200).json({ success: true, data: matchedOpportunities });
+    const volunteer = req.user; // Authenticated user attached by protect middleware
+
+    // Fetch all active open opportunities
+    const opportunities = await Opportunity.find({ status: 'open' });
+
+    // Calculate dynamic match scores using volunteer profile
+    const scoredOpportunities = opportunities.map((opp) => {
+      let score = 0;
+
+      // Factor 1: Waste Type Match (40% Weight)
+      const userWaste = volunteer.preferredWasteTypes || volunteer.wasteTypes || [];
+      const oppWaste = opp.wasteTypes || opp.waste_types || [];
+      const commonWaste = userWaste.filter((type) => oppWaste.includes(type));
+      if (commonWaste.length > 0) {
+        score += 40 * (commonWaste.length / Math.max(oppWaste.length, 1));
+      }
+
+      // Factor 2: Skills Match (40% Weight)
+      const userSkills = volunteer.skills || [];
+      const oppSkills = opp.required_skills || opp.requiredSkills || [];
+      const commonSkills = userSkills.filter((skill) => oppSkills.includes(skill));
+      if (commonSkills.length > 0) {
+        score += 40 * (commonSkills.length / Math.max(oppSkills.length, 1));
+      }
+
+      // Factor 3: Location Match (20% Weight)
+      if (
+        volunteer.location &&
+        opp.location &&
+        volunteer.location.toLowerCase().trim() === opp.location.toLowerCase().trim()
+      ) {
+        score += 20;
+      }
+
+      return {
+        ...opp._doc,
+        matchScore: Math.round(score),
+      };
+    });
+
+    // Sort opportunities by highest match score first
+    scoredOpportunities.sort((a, b) => b.matchScore - a.matchScore);
+
+    res.status(200).json({
+      success: true,
+      count: scoredOpportunities.length,
+      data: scoredOpportunities,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
+// 2. Get Messages (Secured to Logged-in User + Ownership Check)
 export const getMessages = async (req, res) => {
   try {
-    const { user1, user2 } = req.params;
+    const currentUserId = req.user._id; // Securely extract current user
+    const { userId: otherUserId } = req.params; // Person they are chatting with
 
-    if (![user1, user2].includes(req.user._id.toString())) {
-      return res.status(403).json({ success: false, message: 'You cannot access this conversation.' });
-    }
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
 
-    const contactId = user1 === req.user._id.toString() ? user2 : user1;
-    if (!(await canCommunicateWith(req.user, contactId))) {
-      return res.status(403).json({
-        success: false,
-        message: 'Chat becomes available after the volunteer application is accepted.',
-      });
-    }
-
+    // Fetch messages where logged-in user is strictly a participant
     const messages = await Message.find({
       $or: [
-        { sender_id: user1, receiver_id: user2 },
-        { sender_id: user2, receiver_id: user1 }
-      ]
-    }).sort({ timestamp: 1 });
-    res.status(200).json({ success: true, data: messages });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const getConversationContacts = async (req, res) => {
-  try {
-    const currentUserId = req.user._id;
-    const allowedContactIds = await getAllowedContactIds(req.user);
-    const users = await User.find({ _id: { $in: allowedContactIds } })
-      .select('name email role')
-      .sort({ name: 1 })
-      .lean();
-
-    const recentMessages = await Message.find({
-      $or: [{ sender_id: currentUserId }, { receiver_id: currentUserId }],
+        { sender_id: currentUserId, receiver_id: otherUserId },
+        { sender_id: otherUserId, receiver_id: currentUserId },
+      ],
     })
-      .sort({ timestamp: -1 })
-      .lean();
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    const latestByUser = new Map();
-    for (const message of recentMessages) {
-      const partnerId = (
-        message.sender_id.toString() === currentUserId.toString()
-          ? message.receiver_id
-          : message.sender_id
-      ).toString();
+    // Mark unread incoming messages as read
+    await Message.updateMany(
+      { sender_id: otherUserId, receiver_id: currentUserId, readAt: null },
+      { $set: { readAt: new Date() } }
+    );
 
-      if (!latestByUser.has(partnerId)) {
-        latestByUser.set(partnerId, message);
-      }
-    }
-
-    const contacts = users
-      .map((user) => {
-        const latest = latestByUser.get(user._id.toString());
-        return {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          lastMessage: latest?.content || '',
-          lastMessageAt: latest?.timestamp || null,
-        };
-      })
-      .sort((a, b) => {
-        if (a.lastMessageAt && b.lastMessageAt) {
-          return new Date(b.lastMessageAt) - new Date(a.lastMessageAt);
-        }
-        if (a.lastMessageAt) return -1;
-        if (b.lastMessageAt) return 1;
-        return a.name.localeCompare(b.name);
-      });
-
-    res.status(200).json({ success: true, data: contacts });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const getNotifications = async (req, res) => {
-  try {
-    const notifications = await Notification.find({ user_id: req.params.userId }).sort({ sent_at: -1 });
-    res.status(200).json({ success: true, data: notifications });
+    res.status(200).json({
+      success: true,
+      data: messages.reverse(),
+      page,
+      limit,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

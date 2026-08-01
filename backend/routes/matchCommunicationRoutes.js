@@ -1,16 +1,25 @@
 import express from 'express';
-const router = express.Router();
-import { 
-  getConversationContacts,
-  getMatchedOpportunities, 
-  getMessages, 
-  getNotifications 
-} from '../controller/matchCommunicationController.js';
-import { protect } from '../middleware/authMiddleware.js';
 
-router.get('/match', protect, getMatchedOpportunities);
-router.get('/contacts', protect, getConversationContacts);
-router.get('/messages/:user1/:user2', protect, getMessages);
-router.get('/notifications/:userId', protect, getNotifications);
+import {
+  getMatchedOpportunities,
+  getMessages
+} from '../controller/matchCommunicationController.js';
+
+import {
+  protect,
+  volunteerOnly
+} from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// Logged-in volunteers only
+router.get('/matches',protect,volunteerOnly,getMatchedOpportunities);
+
+// Logged-in users can only fetch a conversation involving themselves
+router.get(
+  '/messages/:userId',
+  protect,
+  getMessages
+);
 
 export default router;
