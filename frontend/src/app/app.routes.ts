@@ -1,3 +1,4 @@
+import { roleGuard } from './guards/role.guard';
 import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login';
 import { Register } from './auth/register/register';
@@ -25,17 +26,30 @@ export const routes: Routes = [
     component: Shell,
     canActivate: [authGuard],
     children: [
-      { path: 'dashboard', component: Dashboard },
-      { path: 'match-suggestions', component: MatchSuggestions },
-      { path: 'applications', component: ApplicationsComponent },
-      { path: 'profile', component: Profile },
-      { path: 'messages', component: Messages },
-      { path: 'notifications', component: Notifications },
-      { path: 'schedule-pickup', component: SchedulePickup },
+  { path: 'dashboard', component: Dashboard },
+  { path: 'profile', component: Profile },
 
+  // Opportunity routes
   { path: 'opportunities', component: OpportunityList },
-  { path: 'opportunities/create', component: CreateOpportunity },
-  { path: 'opportunities/edit/:id', component: EditOpportunity },
+
+  {
+    path: 'opportunities/create',
+    component: CreateOpportunity,
+    canActivate: [roleGuard],
+    data: {
+      roles: ['ngo', 'admin'],
+    },
+  },
+
+  {
+    path: 'opportunities/edit/:id',
+    component: EditOpportunity,
+    canActivate: [roleGuard],
+    data: {
+      roles: ['ngo', 'admin'],
+    },
+  },
+
   { path: 'opportunities/:id', component: OpportunityDetail },
 
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
