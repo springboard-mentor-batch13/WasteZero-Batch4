@@ -122,7 +122,10 @@ export const updatePickupStatus = async (req, res) => {
       return res.status(404).json({ message: 'Pickup request not found.' });
     }
 
+    //Free up volunteer when pickup is completed or cancelled
     if (['completed', 'cancelled'].includes(status) && pickup.assigned_to) {
+      await User.findByIdAndUpdate(pickup.assigned_to._id, { isAvailable: true });
+
       await notifyUser({
         userId: pickup.assigned_to._id,
         type: 'pickup_status',
@@ -152,7 +155,20 @@ export const offerPickup = async (req, res) => {
     if (!volunteer || volunteer.role !== 'volunteer') {
       return res.status(400).json({ message: 'You can only offer a pickup to a volunteer.' });
     }
-    if (!volunteer.isAvailable) {
+
+    //Check if volunteer already has an active assigned pickup
+    const activePickup = await Pickup.findOne({
+      assigned_to: volunteer._id,
+      status: { $in: ['offered', 'assigned'] },
+    });
+
+    if (activePickup) {
+      return res.status(400).json({
+        message: `${volunteer.name} already has an active pickup assigned. They must complete or decline it first.`,
+      });
+    }
+
+    if (volunteer.isAvailable === false) {
       return res.status(400).json({ message: `${volunteer.name} is not available right now.` });
     }
 
@@ -202,9 +218,12 @@ export const respondToOffer = async (req, res) => {
 
     if (accept) {
       pickup.status = 'assigned';
+      //Mark volunteer as unavailable when they accept
+      await User.findByIdAndUpdate(req.user._id, { isAvailable: false });
     } else {
       pickup.status = 'scheduled';
       pickup.assigned_to = null;
+      // Keep volunteer available when they decline
     }
     await pickup.save();
 

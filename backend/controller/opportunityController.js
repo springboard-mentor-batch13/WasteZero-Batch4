@@ -272,41 +272,44 @@ const applyForOpportunity = async (req, res) => {
 
 const getOpportunityApplications = async (req, res) => {
   try {
-    const opportunity = await Opportunity.findById(req.params.id).populate(
-      "ngo_id",
-      "name email",
-    );
+    const opportunity = await Opportunity.findById(req.params.id)
+      .populate("ngo_id", "name email");
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
 
-    const canReview = isOpportunityOwner(opportunity, req.user);
-    const canViewStatus = req.user?.role === "admin";
+    const isOwner = isOpportunityOwner(opportunity, req.user);
+    const isAdminOwner = req.user?.role === "admin" &&
+      opportunity.ngo_id?._id?.toString() === req.user._id.toString();
+    const isAdminViewing = req.user?.role === "admin" && !isAdminOwner;
 
-    if (!canReview && !canViewStatus) {
+    if (!isOwner && !isAdminOwner && !isAdminViewing) {
       return res.status(403).json({ message: "Not authorized to view these applications" });
     }
 
-    let applicationsQuery = Application.find({
-      opportunity_id: req.params.id,
-    })
+    const canReview = isOwner || isAdminOwner;
+
+    let applicationsQuery = Application.find({ opportunity_id: req.params.id })
       .populate("reviewed_by", "name email role")
       .sort({ createdAt: -1 });
 
     if (canReview) {
-      applicationsQuery = applicationsQuery.populate("volunteer_id", "name email role location skills");
+      applicationsQuery = applicationsQuery.populate(
+        "volunteer_id", "name email role location skills"
+      );
     }
 
     const applications = await applicationsQuery;
     const summary = {
       total: applications.length,
-      pending: applications.filter((application) => application.status === "pending").length,
-      accepted: applications.filter((application) => application.status === "accepted").length,
-      rejected: applications.filter((application) => application.status === "rejected").length,
+      pending: applications.filter(a => a.status === "pending").length,
+      accepted: applications.filter(a => a.status === "accepted").length,
+      rejected: applications.filter(a => a.status === "rejected").length,
       ngo: opportunity.ngo_id,
     };
 
     res.json({
       mode: canReview ? "review" : "admin",
+      canReview,
       summary,
       applications,
     });
@@ -329,9 +332,14 @@ const updateApplicationStatus = async (req, res) => {
     const opportunity = await Opportunity.findById(application.opportunity_id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
+    const isOwner = isOpportunityOwner(opportunity, req.user);
+    const isAdminOwner = req.user.role === 'admin' &&
+      opportunity.ngo_id.toString() === req.user._id.toString();
 
-    if (!isOpportunityOwner(opportunity, req.user)) {
-      return res.status(403).json({ message: "Not authorized to update this application" });
+    if (!isOwner && !isAdminOwner) {
+      return res.status(403).json({
+        message: "Not authorized — you can only review applications for opportunities you created"
+      });
     }
 
     application.status = status;
@@ -345,6 +353,16 @@ const updateApplicationStatus = async (req, res) => {
     const updated = await application.save();
     await updated.populate("volunteer_id", "name email role location skills");
     await updated.populate("reviewed_by", "name email role");
+
+    // Notify volunteer about decision
+    await notifyUser({
+      userId: application.volunteer_id,
+      type: 'application_update',
+      message: status === 'accepted'
+        ? `Your application for "${opportunity.title}" has been accepted!`
+        : `Your application for "${opportunity.title}" was not accepted.`,
+      link: `/opportunities/${opportunity._id}`,
+    });
 
     res.json(updated);
   } catch (error) {

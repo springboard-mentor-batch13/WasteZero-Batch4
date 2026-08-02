@@ -20,6 +20,11 @@ const notificationSchema = new mongoose.Schema(
       trim: true
     },
 
+    link: { 
+      type: String, 
+      default: '' 
+    },
+    
     // Added for "mark all as read"
     readAt: {
       type: Date,
