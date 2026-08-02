@@ -26,6 +26,10 @@ export class AuthService {
     return this.http.put(`${this.api}/users/profile`, data);
   }
 
+  updateAvailability(isAvailable: boolean): Observable<any> {
+    return this.http.patch(`${this.api}/users/availability`, { isAvailable });
+  }
+
   saveAuth(res: any) {
     localStorage.setItem('token', res.token);
     localStorage.setItem('user', JSON.stringify(res));

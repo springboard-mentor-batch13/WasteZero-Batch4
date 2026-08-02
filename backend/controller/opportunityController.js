@@ -2,6 +2,8 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
+import User from "../models/User.js";
+import { notifyUser } from "../utils/notify.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -84,6 +86,33 @@ const createOpportunity = async (req, res) => {
       date,
       image_url,
     });
+
+    try {
+      const oppWasteTypes = opportunity.wasteTypes || [];
+      let recipients = await User.find({
+        role: 'volunteer',
+        ...(oppWasteTypes.length ? { preferredWasteTypes: { $in: oppWasteTypes } } : {}),
+      }).select('_id');
+
+      if (!recipients.length) {
+        recipients = await User.find({ role: 'volunteer' }).select('_id');
+      }
+
+      await Promise.all(
+        recipients.map((volunteer) =>
+          notifyUser({
+            userId: volunteer._id,
+            type: 'new_opportunity',
+            message: `New opportunity posted: ${opportunity.title} in ${opportunity.location}.`,
+            link: `/opportunities/${opportunity._id}`,
+          }),
+        ),
+      );
+    } catch (notifyError) {
+      // Never let a notification failure block opportunity creation itself.
+      console.error('Error notifying volunteers of new opportunity:', notifyError);
+    }
+
     res.status(201).json(opportunity);
   } catch (error) {
     res.status(500).json({ message: error.message });

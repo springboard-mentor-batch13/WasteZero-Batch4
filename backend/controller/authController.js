@@ -86,11 +86,17 @@ const updateUserProfile = async (req, res) => {
       user.location = req.body.location !== undefined ? req.body.location : user.location;
       user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
       user.skills = req.body.skills || user.skills;
+      if (req.body.preferredWasteTypes !== undefined) {
+        user.preferredWasteTypes = Array.isArray(req.body.preferredWasteTypes)
+          ? req.body.preferredWasteTypes
+          : user.preferredWasteTypes;
+      }
       if (req.body.password) user.password = req.body.password;
       const updated = await user.save();
       res.json({
         _id: updated._id, name: updated.name, email: updated.email,
         role: updated.role, location: updated.location, skills: updated.skills, bio: updated.bio,
+        preferredWasteTypes: updated.preferredWasteTypes, isAvailable: updated.isAvailable,
         token: generateToken(updated._id),
       });
     } else {
@@ -101,4 +107,26 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-export{ registerUser, loginUser, getUserProfile, updateUserProfile };
+const updateAvailability = async (req, res) => {
+  try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers have an availability status.' });
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isAvailable = !!req.body.isAvailable;
+    const updated = await user.save();
+
+    res.json({
+      _id: updated._id, name: updated.name, email: updated.email,
+      role: updated.role, location: updated.location, skills: updated.skills, bio: updated.bio,
+      preferredWasteTypes: updated.preferredWasteTypes, isAvailable: updated.isAvailable,
+      token: generateToken(updated._id),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export{ registerUser, loginUser, getUserProfile, updateUserProfile, updateAvailability };

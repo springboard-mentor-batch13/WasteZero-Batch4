@@ -202,7 +202,7 @@
 .history-head button { padding: 8px 12px; }
 .pickup-list { display: flex; flex-direction: column; gap: 11px; }
 .pickup-item {
-  align-items: center;
+  align-items: flex-start;
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 13px;
@@ -246,6 +246,7 @@
   text-transform: capitalize;
 }
 .status.scheduled { background: #e3f2fd; color: #1565c0; }
+.status.offered { background: #fff8e1; color: #9a7b00; }
 .status.assigned { background: #fff3e0; color: #a45a00; }
 .status.completed { background: var(--green-light); color: var(--green-dark); }
 .status.cancelled { background: #fdecea; color: var(--danger); }
@@ -403,4 +404,93 @@
 .badge.location-match {
   background: color-mix(in srgb, var(--green) 12%, var(--surface));
   color: var(--green-dark);
+}
+
+.availability-toggle {
+  align-items: center;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 8px;
+  padding: 9px 16px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.availability-toggle .dot {
+  background: var(--muted);
+  border-radius: 50%;
+  height: 9px;
+  width: 9px;
+}
+
+.availability-toggle.online {
+  background: var(--green-light);
+  border-color: var(--green);
+  color: var(--green-dark);
+}
+
+.availability-toggle.online .dot {
+  background: var(--green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 22%, transparent);
+}
+
+.availability-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.offer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.accept-btn,
+.decline-btn {
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 16px;
+}
+
+.accept-btn:disabled,
+.decline-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.accept-btn {
+  background: var(--green);
+  border: none;
+  color: #fff;
+}
+
+.decline-btn {
+  background: var(--surface);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.manage-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.offer-btn {
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  color: var(--green-dark);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 12px;
+  white-space: nowrap;
 }
