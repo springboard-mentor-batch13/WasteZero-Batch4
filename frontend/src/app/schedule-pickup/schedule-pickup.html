@@ -3,20 +3,36 @@
     <div>
       <p class="eyebrow">Waste collection</p>
       <h1>Schedule Pickup</h1>
-      <p>Request waste collection and manage your pickup activity.</p>
+      <p>{{ isVolunteer ? 'Go available to receive nearby pickup requests, and respond to offers.' : 'Request waste collection and manage your pickup activity.' }}</p>
     </div>
-    <div class="summary">
-      <span><strong>{{ scheduledCount }}</strong> Active</span>
-      <span><strong>{{ completedCount }}</strong> Completed</span>
-    </div>
+
+    @if (isVolunteer) {
+      <button
+        type="button"
+        class="availability-toggle"
+        [class.online]="isAvailable"
+        [disabled]="togglingAvailability"
+        (click)="toggleAvailability()"
+      >
+        <span class="dot"></span>
+        {{ togglingAvailability ? 'Updating...' : (isAvailable ? "You're Available" : "You're Offline") }}
+      </button>
+    } @else {
+      <div class="summary">
+        <span><strong>{{ scheduledCount }}</strong> Active</span>
+        <span><strong>{{ completedCount }}</strong> Completed</span>
+      </div>
+    }
   </header>
 
   <div class="tabs" role="tablist">
-    <button type="button" [class.active]="activeTab === 'schedule'" (click)="selectTab('schedule')">
-      Schedule New Pickup
-    </button>
+    @if (canManage) {
+      <button type="button" [class.active]="activeTab === 'schedule'" (click)="selectTab('schedule')">
+        Schedule New Pickup
+      </button>
+    }
     <button type="button" [class.active]="activeTab === 'history'" (click)="selectTab('history')">
-      Pickup History
+      {{ isVolunteer ? 'My Pickups' : 'Pickup History' }}
       @if (pickups.length) { <span>{{ pickups.length }}</span> }
     </button>
   </div>
@@ -25,7 +41,7 @@
     <div class="form-error">{{ error }}</div>
   }
 
-  @if (activeTab === 'schedule') {
+  @if (activeTab === 'schedule' && canManage) {
     <div class="request-card">
       <div class="card-head">
         <div>
@@ -107,7 +123,7 @@
       <div class="history-head">
         <div>
           <h2>{{ canManage ? 'Pickup Requests' : 'Your Pickup History' }}</h2>
-          <p>{{ canManage ? 'Review and manage collection requests.' : 'Track your scheduled and completed collections.' }}</p>
+          <p>{{ canManage ? 'Review, offer, and manage collection requests.' : 'Accept or decline offers, and track your pickups.' }}</p>
         </div>
         <button type="button" (click)="loadHistory()">Refresh</button>
       </div>
@@ -117,9 +133,11 @@
       } @else if (!pickups.length) {
         <div class="empty-state">
           <span>PK</span>
-          <strong>No pickup requests yet</strong>
-          <p>Schedule your first collection to see it here.</p>
-          <button type="button" (click)="selectTab('schedule')">Schedule Pickup</button>
+          <strong>{{ isVolunteer ? 'No pickups yet' : 'No pickup requests yet' }}</strong>
+          <p>{{ isVolunteer ? 'Go available above to start receiving nearby pickup requests.' : 'Schedule your first collection to see it here.' }}</p>
+          @if (canManage) {
+            <button type="button" (click)="selectTab('schedule')">Schedule Pickup</button>
+          }
         </div>
       } @else {
         <div class="pickup-list">
@@ -145,18 +163,89 @@
                 <div class="waste-tags">
                   @for (type of pickup.wasteTypes; track type) { <span>{{ type }}</span> }
                 </div>
+
+                @if (pickup.status === 'offered' && pickup.assigned_to) {
+                  <p class="assigned-to">Offer sent to <strong>{{ pickup.assigned_to.name }}</strong> - awaiting response</p>
+                } @else if (pickup.assigned_to) {
+                  <p class="assigned-to">Assigned to <strong>{{ pickup.assigned_to.name }}</strong></p>
+                }
+
+                @if (isVolunteer && pickup.status === 'offered') {
+                  <div class="offer-actions">
+                    <button
+                      type="button"
+                      class="accept-btn"
+                      [disabled]="respondingPickupId === pickup._id"
+                      (click)="respondToOffer(pickup, true)"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      class="decline-btn"
+                      [disabled]="respondingPickupId === pickup._id"
+                      (click)="respondToOffer(pickup, false)"
+                    >
+                      Decline
+                    </button>
+                  </div>
+                }
+
+                @if (canManage && assignPanelPickupId === pickup._id) {
+                  <div class="assign-panel">
+                    <div class="assign-panel-head">
+                      <strong>Offer to an available volunteer</strong>
+                      <button type="button" class="assign-close" (click)="closeAssignPanel()">&times;</button>
+                    </div>
+
+                    @if (loadingCandidates) {
+                      <p class="muted">Loading available volunteers...</p>
+                    } @else if (!candidates.length) {
+                      <p class="muted">No volunteers are currently available.</p>
+                    } @else {
+                      <div class="candidate-list">
+                        @for (candidate of candidates; track candidate._id) {
+                          <button
+                            type="button"
+                            class="candidate-row"
+                            [disabled]="assigningVolunteerId === candidate._id"
+                            (click)="offerToVolunteer(pickup, candidate._id)"
+                          >
+                            <span class="candidate-copy">
+                              <strong>{{ candidate.name }}</strong>
+                              <span>{{ candidate.location || 'No location set' }}</span>
+                            </span>
+                            <span class="candidate-badges">
+                              @if (candidate.matchesWasteType) {
+                                <span class="badge waste-match">Waste match</span>
+                              }
+                              @if (candidate.locationMatchScore > 0) {
+                                <span class="badge location-match">Nearby</span>
+                              }
+                              {{ assigningVolunteerId === candidate._id ? 'Sending...' : 'Offer' }}
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
               </div>
               @if (canManage) {
-                <select
-                  class="status-select"
-                  [ngModel]="pickup.status"
-                  (ngModelChange)="updateStatus(pickup, $event)"
-                >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="assigned">Assigned</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+                <div class="manage-actions">
+                  @if (pickup.status === 'scheduled') {
+                    <button type="button" class="offer-btn" (click)="openAssignPanel(pickup)">Offer to volunteer</button>
+                  }
+                  <select
+                    class="status-select"
+                    [ngModel]="pickup.status"
+                    (ngModelChange)="updateStatus(pickup, $event)"
+                  >
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
               }
             </article>
           }

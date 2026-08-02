@@ -5,16 +5,20 @@
     No notifications available.
   </div>
 
-  <div
+  <button
+    type="button"
     class="notification-card"
+    [class.unread]="!notification.readAt"
+    [class.clickable]="notification.link"
     *ngFor="let notification of notifications"
+    (click)="open(notification)"
   >
     <h4>{{ notification.title || 'Notification' }}</h4>
 
     <p>{{ notification.message }}</p>
 
     <small>
-      {{ notification.sent_at | date:'medium' }}
+      {{ (notification.createdAt || notification.sent_at) | date:'medium' }}
     </small>
-  </div>
+  </button>
 </div>

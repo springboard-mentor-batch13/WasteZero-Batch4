@@ -110,10 +110,6 @@ export const sendOtp = async (req, res) => {
   }
 };
 
-// Sends an OTP to verify an email address before an account is created.
-// This is what stops registration with fake / temporary inboxes: the OTP
-// must be read from the real inbox and submitted back before /auth/register
-// will create the user.
 export const sendRegisterOtp = async (req, res) => {
   const { email } = req.body;
 

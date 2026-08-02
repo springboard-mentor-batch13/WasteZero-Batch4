@@ -2,6 +2,8 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
+import User from "../models/User.js";
+import { notifyUser } from "../utils/notify.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -60,7 +62,7 @@ const isOpportunityOwner = (opportunity, user) => {
 };
 
 const createOpportunity = async (req, res) => {
-  const { title, description, required_skills, duration, location, date } =
+  const { title, description, required_skills, wasteTypes, duration, location, date } =
     req.body;
 
   try {
@@ -74,11 +76,43 @@ const createOpportunity = async (req, res) => {
         : required_skills
           ? JSON.parse(required_skills)
           : [],
+      wasteTypes: Array.isArray(wasteTypes)
+        ? wasteTypes
+        : wasteTypes
+          ? JSON.parse(wasteTypes)
+          : [],
       duration,
       location,
       date,
       image_url,
     });
+
+    try {
+      const oppWasteTypes = opportunity.wasteTypes || [];
+      let recipients = await User.find({
+        role: 'volunteer',
+        ...(oppWasteTypes.length ? { preferredWasteTypes: { $in: oppWasteTypes } } : {}),
+      }).select('_id');
+
+      if (!recipients.length) {
+        recipients = await User.find({ role: 'volunteer' }).select('_id');
+      }
+
+      await Promise.all(
+        recipients.map((volunteer) =>
+          notifyUser({
+            userId: volunteer._id,
+            type: 'new_opportunity',
+            message: `New opportunity posted: ${opportunity.title} in ${opportunity.location}.`,
+            link: `/opportunities/${opportunity._id}`,
+          }),
+        ),
+      );
+    } catch (notifyError) {
+      // Never let a notification failure block opportunity creation itself.
+      console.error('Error notifying volunteers of new opportunity:', notifyError);
+    }
+
     res.status(201).json(opportunity);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -171,6 +205,12 @@ const updateOpportunity = async (req, res) => {
       opportunity.required_skills = Array.isArray(req.body.required_skills)
         ? req.body.required_skills
         : JSON.parse(req.body.required_skills);
+    }
+
+    if (req.body.wasteTypes) {
+      opportunity.wasteTypes = Array.isArray(req.body.wasteTypes)
+        ? req.body.wasteTypes
+        : JSON.parse(req.body.wasteTypes);
     }
 
     if (req.file) {

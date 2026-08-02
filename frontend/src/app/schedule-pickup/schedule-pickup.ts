@@ -14,9 +14,18 @@ interface PickupRequest {
   timeSlot: string;
   wasteTypes: string[];
   notes: string;
-  status: 'scheduled' | 'assigned' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'offered' | 'assigned' | 'completed' | 'cancelled';
   requester_id?: { name: string; email: string; role: string };
-  assigned_to?: { name: string; email: string; role: string };
+  assigned_to?: { _id: string; name: string; email: string; role: string };
+}
+
+interface VolunteerCandidate {
+  _id: string;
+  name: string;
+  email: string;
+  location: string;
+  locationMatchScore: number;
+  matchesWasteType: boolean;
 }
 
 @Component({
@@ -34,6 +43,12 @@ export class SchedulePickup implements OnInit {
   error = '';
   pickups: PickupRequest[] = [];
   user: any;
+
+  // Rapido/Uber-style availability toggle - volunteers only.
+  isAvailable = false;
+  togglingAvailability = false;
+
+  respondingPickupId: string | null = null;
 
   form = {
     address: '',
@@ -61,6 +76,13 @@ export class SchedulePickup implements OnInit {
     { value: '17:00-20:00', label: 'Evening · 5:00 PM – 8:00 PM' },
   ];
 
+  // "Assign to volunteer" panel state (NGO/admin only) - which pickup it's
+  // open for, and its ranked, availability-filtered candidate list.
+  assignPanelPickupId: string | null = null;
+  candidates: VolunteerCandidate[] = [];
+  loadingCandidates = false;
+  assigningVolunteerId: string | null = null;
+
   constructor(
     private pickupService: PickupService,
     private auth: AuthService,
@@ -68,9 +90,15 @@ export class SchedulePickup implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {
     this.user = this.auth.getUser();
+    this.isAvailable = !!this.user?.isAvailable;
   }
 
   ngOnInit(): void {
+    // Volunteers don't create pickups anymore - land them straight on their
+    // own list of offered/assigned jobs instead of an empty create form.
+    if (this.isVolunteer) {
+      this.activeTab = 'history';
+    }
     this.loadHistory();
   }
 
@@ -84,12 +112,36 @@ export class SchedulePickup implements OnInit {
     return ['admin', 'ngo'].includes(this.user?.role);
   }
 
+  get isVolunteer(): boolean {
+    return this.user?.role === 'volunteer';
+  }
+
   get scheduledCount(): number {
-    return this.pickups.filter((pickup) => ['scheduled', 'assigned'].includes(pickup.status)).length;
+    return this.pickups.filter((pickup) => ['scheduled', 'offered', 'assigned'].includes(pickup.status)).length;
   }
 
   get completedCount(): number {
     return this.pickups.filter((pickup) => pickup.status === 'completed').length;
+  }
+
+  toggleAvailability(): void {
+    const next = !this.isAvailable;
+    this.togglingAvailability = true;
+    this.auth.updateAvailability(next).pipe(
+      finalize(() => {
+        this.togglingAvailability = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        this.isAvailable = res.isAvailable;
+        this.auth.saveAuth(res);
+        this.toast.success(this.isAvailable ? "You're now available for pickups" : "You're now offline");
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not update your availability.');
+      },
+    });
   }
 
   selectTab(tab: 'schedule' | 'history'): void {
@@ -178,6 +230,75 @@ export class SchedulePickup implements OnInit {
       error: (err) => {
         this.toast.error(err.error?.message || 'Could not update pickup status');
         this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // Volunteer accept/decline on an offered pickup, Rapido/Uber style.
+  respondToOffer(pickup: PickupRequest, accept: boolean): void {
+    this.respondingPickupId = pickup._id;
+    this.pickupService.respondToOffer(pickup._id, accept).pipe(
+      finalize(() => {
+        this.respondingPickupId = null;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        const updated = res.data;
+        this.pickups = accept
+          ? this.pickups.map((item) => item._id === updated._id ? updated : item)
+          : this.pickups.filter((item) => item._id !== updated._id); // no longer theirs once declined
+        this.toast.success(accept ? 'Pickup accepted' : 'Pickup declined');
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not respond to this offer.');
+      },
+    });
+  }
+
+  openAssignPanel(pickup: PickupRequest): void {
+    this.assignPanelPickupId = pickup._id;
+    this.candidates = [];
+    this.loadingCandidates = true;
+
+    this.pickupService.getCandidates(pickup._id).pipe(
+      timeout(15_000),
+      finalize(() => {
+        this.loadingCandidates = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        this.candidates = res.data || [];
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not load available volunteers.');
+        this.assignPanelPickupId = null;
+      },
+    });
+  }
+
+  closeAssignPanel(): void {
+    this.assignPanelPickupId = null;
+    this.candidates = [];
+  }
+
+  offerToVolunteer(pickup: PickupRequest, volunteerId: string): void {
+    this.assigningVolunteerId = volunteerId;
+    this.pickupService.offerPickup(pickup._id, volunteerId).pipe(
+      finalize(() => {
+        this.assigningVolunteerId = null;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        const updated = res.data;
+        this.pickups = this.pickups.map((item) => item._id === updated._id ? updated : item);
+        this.toast.success(`Offer sent to ${updated.assigned_to?.name || 'volunteer'}`);
+        this.closeAssignPanel();
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not send this offer.');
       },
     });
   }

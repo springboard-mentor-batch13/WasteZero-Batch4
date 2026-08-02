@@ -107,6 +107,16 @@ export class SocketService {
     });
   }
 
+  // Live push for in-app notifications (new message while offline, pickup
+  // assigned/status changed, etc.) - see backend/utils/notify.js.
+  notification(): Observable<any> {
+    return new Observable(observer => {
+      const handler = (notification: any) => observer.next(notification);
+      this.socket.on('notification', handler);
+      return () => this.socket.off('notification', handler);
+    });
+  }
+
   disconnect(): void {
     this.currentUserId = null;
     this.socket.disconnect();

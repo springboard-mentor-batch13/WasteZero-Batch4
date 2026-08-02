@@ -228,6 +228,20 @@
   font-weight: 700;
   padding: 7px 10px;
   cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.bell-badge {
+  background: var(--danger);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-left: 6px;
+  padding: 3px 6px;
 }
 .theme-toggle {
   align-items: center;

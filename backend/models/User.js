@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: '' },
   address: { type: String, default: '' },
   coordinates: { type: String, default: '' },
+  preferredWasteTypes: [{ type: String }],
+  isAvailable: { type: Boolean, default: false },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
