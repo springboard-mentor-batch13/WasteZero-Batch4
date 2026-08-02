@@ -145,6 +145,49 @@
                 <div class="waste-tags">
                   @for (type of pickup.wasteTypes; track type) { <span>{{ type }}</span> }
                 </div>
+                @if (pickup.assigned_to) {
+                  <p class="assigned-to">Assigned to <strong>{{ pickup.assigned_to.name }}</strong></p>
+                }
+
+                @if (canManage && assignPanelPickupId === pickup._id) {
+                  <div class="assign-panel">
+                    <div class="assign-panel-head">
+                      <strong>Assign to a volunteer</strong>
+                      <button type="button" class="assign-close" (click)="closeAssignPanel()">&times;</button>
+                    </div>
+
+                    @if (loadingCandidates) {
+                      <p class="muted">Loading volunteers...</p>
+                    } @else if (!candidates.length) {
+                      <p class="muted">No volunteers available yet.</p>
+                    } @else {
+                      <div class="candidate-list">
+                        @for (candidate of candidates; track candidate._id) {
+                          <button
+                            type="button"
+                            class="candidate-row"
+                            [disabled]="assigningVolunteerId === candidate._id"
+                            (click)="assignVolunteer(pickup, candidate._id)"
+                          >
+                            <span class="candidate-copy">
+                              <strong>{{ candidate.name }}</strong>
+                              <span>{{ candidate.location || 'No location set' }}</span>
+                            </span>
+                            <span class="candidate-badges">
+                              @if (candidate.matchesWasteType) {
+                                <span class="badge waste-match">Waste match</span>
+                              }
+                              @if (candidate.locationMatchScore > 0) {
+                                <span class="badge location-match">Nearby</span>
+                              }
+                              {{ assigningVolunteerId === candidate._id ? 'Assigning...' : 'Assign' }}
+                            </span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
               </div>
               @if (canManage) {
                 <select

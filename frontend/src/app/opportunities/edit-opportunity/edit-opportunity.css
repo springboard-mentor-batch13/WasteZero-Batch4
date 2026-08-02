@@ -88,6 +88,34 @@
     background: var(--surface);
 }
 
+.waste-type-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.waste-type-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.waste-type-chip:hover {
+    border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+}
+
+.waste-type-chip.selected {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+}
+
 .field textarea {
     resize: vertical;
     min-height: 90px;

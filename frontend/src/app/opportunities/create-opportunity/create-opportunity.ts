@@ -17,6 +17,9 @@ export class CreateOpportunity {
   error = '';
   selectedFile: File | null = null;
 
+  readonly wasteTypeOptions = ['Plastic', 'Glass', 'Electronic Waste', 'Paper', 'Metal', 'Organic Waste', 'Other'];
+  selectedWasteTypes: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private opportunityService: OpportunityService,
@@ -31,6 +34,12 @@ export class CreateOpportunity {
       location: ['', Validators.required],
       date: [''],
     });
+  }
+
+  toggleWasteType(type: string): void {
+    this.selectedWasteTypes = this.selectedWasteTypes.includes(type)
+      ? this.selectedWasteTypes.filter((t) => t !== type)
+      : [...this.selectedWasteTypes, type];
   }
 
   onFileSelected(event: Event) {
@@ -66,6 +75,8 @@ export class CreateOpportunity {
           : [],
       ),
     );
+
+    formData.append('wasteTypes', JSON.stringify(this.selectedWasteTypes));
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);

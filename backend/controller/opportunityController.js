@@ -60,7 +60,7 @@ const isOpportunityOwner = (opportunity, user) => {
 };
 
 const createOpportunity = async (req, res) => {
-  const { title, description, required_skills, duration, location, date } =
+  const { title, description, required_skills, wasteTypes, duration, location, date } =
     req.body;
 
   try {
@@ -73,6 +73,11 @@ const createOpportunity = async (req, res) => {
         ? required_skills
         : required_skills
           ? JSON.parse(required_skills)
+          : [],
+      wasteTypes: Array.isArray(wasteTypes)
+        ? wasteTypes
+        : wasteTypes
+          ? JSON.parse(wasteTypes)
           : [],
       duration,
       location,
@@ -171,6 +176,12 @@ const updateOpportunity = async (req, res) => {
       opportunity.required_skills = Array.isArray(req.body.required_skills)
         ? req.body.required_skills
         : JSON.parse(req.body.required_skills);
+    }
+
+    if (req.body.wasteTypes) {
+      opportunity.wasteTypes = Array.isArray(req.body.wasteTypes)
+        ? req.body.wasteTypes
+        : JSON.parse(req.body.wasteTypes);
     }
 
     if (req.file) {

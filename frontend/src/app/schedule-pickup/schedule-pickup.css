@@ -299,3 +299,108 @@
   .form-actions { gap: 9px; }
   .form-actions button { flex: 1; }
 }
+
+.assigned-to {
+  color: var(--green-dark);
+  font-size: 0.8rem;
+  margin: 6px 0 0;
+}
+
+.assign-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: 10px;
+  padding: 12px;
+}
+
+.assign-panel-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.assign-panel-head strong {
+  font-size: 0.85rem;
+}
+
+.assign-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.candidate-row {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 9px 12px;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.candidate-row:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: color-mix(in srgb, var(--green) 35%, var(--border));
+}
+
+.candidate-row:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.candidate-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.candidate-copy span {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.candidate-badges {
+  align-items: center;
+  color: var(--green-dark);
+  display: flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.badge {
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.badge.waste-match {
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.badge.location-match {
+  background: color-mix(in srgb, var(--green) 12%, var(--surface));
+  color: var(--green-dark);
+}

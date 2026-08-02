@@ -85,7 +85,12 @@
         <button class="theme-toggle" type="button" (click)="toggleTheme()" [attr.aria-label]="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
           <strong>{{ theme === 'dark' ? 'Light' : 'Dark' }}</strong>
         </button>
-        <button class="bell" aria-label="Notifications">Alerts</button>
+        <a routerLink="/notifications" class="bell" aria-label="Notifications">
+          Alerts
+          @if (unreadCount > 0) {
+            <span class="bell-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+          }
+        </a>
         <div class="chip">
           <div class="avatar sm">{{ initial }}</div>
           <span class="chip-name">{{ user?.name }}</span>

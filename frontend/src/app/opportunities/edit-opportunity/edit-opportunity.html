@@ -43,6 +43,23 @@
         </div>
 
         <div class="field">
+          <label>Waste Types</label>
+          <div class="waste-type-grid">
+            @for (type of wasteTypeOptions; track type) {
+              <button
+                type="button"
+                class="waste-type-chip"
+                [class.selected]="selectedWasteTypes.includes(type)"
+                (click)="toggleWasteType(type)"
+              >
+                {{ type }}
+              </button>
+            }
+          </div>
+          <small>Used to match volunteers who prefer working with this kind of waste.</small>
+        </div>
+
+        <div class="field">
           <label>Required Skills</label>
           <input formControlName="required_skills"
             placeholder="teamwork, recycling (comma separated)" />

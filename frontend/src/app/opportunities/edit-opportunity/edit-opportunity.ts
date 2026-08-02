@@ -20,6 +20,9 @@ export class EditOpportunity implements OnInit {
   selectedFile: File | null = null;
   currentImageUrl = '';
 
+  readonly wasteTypeOptions = ['Plastic', 'Glass', 'Electronic Waste', 'Paper', 'Metal', 'Organic Waste', 'Other'];
+  selectedWasteTypes: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -38,6 +41,12 @@ export class EditOpportunity implements OnInit {
     });
   }
 
+  toggleWasteType(type: string): void {
+    this.selectedWasteTypes = this.selectedWasteTypes.includes(type)
+      ? this.selectedWasteTypes.filter((t) => t !== type)
+      : [...this.selectedWasteTypes, type];
+  }
+
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -48,7 +57,7 @@ export class EditOpportunity implements OnInit {
   ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id') || '';
     this.opportunityService.getById(this.id).subscribe({
-      next: (opp) => {
+      next: (opp: any) => {
         this.currentImageUrl = opp.image_url || '';
         this.form.patchValue({
           title: opp.title,
@@ -59,6 +68,7 @@ export class EditOpportunity implements OnInit {
           date: opp.date ? opp.date.slice(0, 10) : '',
           status: opp.status,
         });
+        this.selectedWasteTypes = opp.wasteTypes || [];
         this.fetching = false;
         this.cdr.detectChanges(); 
       },
@@ -93,6 +103,7 @@ export class EditOpportunity implements OnInit {
           : [],
       ),
     );
+    formData.append('wasteTypes', JSON.stringify(this.selectedWasteTypes));
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);

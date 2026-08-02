@@ -10,6 +10,24 @@
   padding: 15px;
   margin-bottom: 15px;
   background: #fff;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: default;
+}
+
+.notification-card.unread {
+  background: var(--green-light, #eef7ee);
+  border-color: color-mix(in srgb, var(--green, #2e7d32) 30%, #ddd);
+}
+
+.notification-card.clickable {
+  cursor: pointer;
+}
+
+.notification-card.clickable:hover {
+  border-color: var(--green, #2e7d32);
 }
 
 .notification-card h4 {

@@ -16,7 +16,16 @@ interface PickupRequest {
   notes: string;
   status: 'scheduled' | 'assigned' | 'completed' | 'cancelled';
   requester_id?: { name: string; email: string; role: string };
-  assigned_to?: { name: string; email: string; role: string };
+  assigned_to?: { _id: string; name: string; email: string; role: string };
+}
+
+interface VolunteerCandidate {
+  _id: string;
+  name: string;
+  email: string;
+  location: string;
+  locationMatchScore: number;
+  matchesWasteType: boolean;
 }
 
 @Component({
@@ -34,6 +43,13 @@ export class SchedulePickup implements OnInit {
   error = '';
   pickups: PickupRequest[] = [];
   user: any;
+
+  // "Assign to volunteer" panel state - which pickup it's open for, and its
+  // ranked candidate list (waste-type match + nearest-named-location match).
+  assignPanelPickupId: string | null = null;
+  candidates: VolunteerCandidate[] = [];
+  loadingCandidates = false;
+  assigningVolunteerId: string | null = null;
 
   form = {
     address: '',
@@ -168,6 +184,13 @@ export class SchedulePickup implements OnInit {
   }
 
   updateStatus(pickup: PickupRequest, status: string): void {
+    // "Assigned" always needs a specific volunteer picked - open the panel
+    // instead of firing an incomplete request.
+    if (status === 'assigned') {
+      this.openAssignPanel(pickup);
+      return;
+    }
+
     this.pickupService.updateStatus(pickup._id, status).subscribe({
       next: (res: any) => {
         const updated = res.data;
@@ -178,6 +201,53 @@ export class SchedulePickup implements OnInit {
       error: (err) => {
         this.toast.error(err.error?.message || 'Could not update pickup status');
         this.cdr.detectChanges();
+      },
+    });
+  }
+
+  openAssignPanel(pickup: PickupRequest): void {
+    this.assignPanelPickupId = pickup._id;
+    this.candidates = [];
+    this.loadingCandidates = true;
+
+    this.pickupService.getCandidates(pickup._id).pipe(
+      timeout(15_000),
+      finalize(() => {
+        this.loadingCandidates = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        this.candidates = res.data || [];
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not load volunteers to assign.');
+        this.assignPanelPickupId = null;
+      },
+    });
+  }
+
+  closeAssignPanel(): void {
+    this.assignPanelPickupId = null;
+    this.candidates = [];
+  }
+
+  assignVolunteer(pickup: PickupRequest, volunteerId: string): void {
+    this.assigningVolunteerId = volunteerId;
+    this.pickupService.updateStatus(pickup._id, 'assigned', volunteerId).pipe(
+      finalize(() => {
+        this.assigningVolunteerId = null;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
+      next: (res: any) => {
+        const updated = res.data;
+        this.pickups = this.pickups.map((item) => item._id === updated._id ? updated : item);
+        this.toast.success(`Pickup assigned to ${updated.assigned_to?.name || 'volunteer'}`);
+        this.closeAssignPanel();
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Could not assign this pickup.');
       },
     });
   }
