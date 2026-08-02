@@ -3,6 +3,8 @@ import Message from '../models/Message.js';
 import User from '../models/User.js';
 import { getAllowedContactIds, canCommunicateWith, getSupportAdmin } from '../utils/communicationAccess.js';
 
+import { encryptMessage, decryptMessage } from '../utils/encryption.js';
+
 // 1. Volunteer Matching Algorithm
 export const getMatchedOpportunities = async (req, res) => {
   try {
@@ -77,26 +79,34 @@ export const getMessages = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
 
     // Fetch messages where logged-in user is strictly a participant
-    const messages = await Message.find({
-      $or: [
-        { sender_id: currentUserId, receiver_id: otherUserId },
-        { sender_id: otherUserId, receiver_id: currentUserId },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+ const messages = await Message.find({
+  $or: [
+    { sender_id: currentUserId, receiver_id: otherUserId },
+    { sender_id: otherUserId, receiver_id: currentUserId },
+  ],
+})
+  .sort({ createdAt: -1 })
+  .skip((page - 1) * limit)
+  .limit(limit);
 
+const decryptedMessages = messages.map((message) => ({
+  ...message.toObject(),
+  content: decryptMessage(message.content),
+}));
 
-    res.status(200).json({
-      success: true,
-      data: messages.reverse(),
-      page,
-      limit,
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
+res.status(200).json({
+  success: true,
+  data: decryptedMessages.reverse(),
+  page,
+  limit,
+});
+
+} catch (error) {
+  res.status(500).json({
+    success: false,
+    message: error.message,
+  });
+}
 };
 export const getSupportContact = async (req, res) => {
   try {
@@ -135,7 +145,7 @@ export const getContacts = async (req, res) => {
 
         return {
           ...contact,
-          lastMessage: lastMsg?.content || '',
+          lastMessage: lastMsg ? decryptMessage(lastMsg.content) : '',
           lastMessageAt: lastMsg?.createdAt || null,
         };
       })
@@ -143,6 +153,7 @@ export const getContacts = async (req, res) => {
 
     res.json({ success: true, data: contactsWithMessages });
   } catch (error) {
+     console.error(error); 
     res.status(500).json({ success: false, message: error.message });
   }
 };

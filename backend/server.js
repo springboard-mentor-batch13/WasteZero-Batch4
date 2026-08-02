@@ -18,6 +18,9 @@ import Application from './models/Application.js';
 import { canCommunicateWith } from './utils/communicationAccess.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pickupRoutes from './routes/pickupRoutes.js';
+import { encryptMessage, decryptMessage } from "./utils/encryption.js";
+
+
 
 connectDB();
 
@@ -188,18 +191,25 @@ io.on('connection', async (socket) => {
       const status = isOnline(String(receiver_id)) ? 'delivered' : 'sent';
       const context = await resolveMessageContext(rawContext, sender_id);
 
-      const newMessage = new Message({
-        sender_id,
-        receiver_id,
-        content: content.trim(),
-        status,
-        context,
-      });
+const encryptedContent = encryptMessage(content.trim());
+
+const newMessage = new Message({
+  sender_id,
+  receiver_id,
+  content: encryptedContent,
+  status,
+  context,
+});
 
       await newMessage.save();
 
-      io.to(String(receiver_id)).emit('receive_message', newMessage);
-      io.to(sender_id).emit('receive_message', newMessage);
+      const messageToSend = {
+  ...newMessage.toObject(),
+  content: decryptMessage(newMessage.content),
+};
+
+io.to(String(receiver_id)).emit('receive_message', messageToSend);
+io.to(sender_id).emit('receive_message', messageToSend);
 
     } catch (error) {
       console.error('Error handling socket message:', error);
