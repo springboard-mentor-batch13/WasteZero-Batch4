@@ -1,26 +1,31 @@
 <div class="notifications-container">
-  <h2>Notifications</h2>
+  <div class="notifications-head">
+    <h2>Notifications</h2>
+    @if (notifications.length > 0) {
+      <button type="button" class="clear-btn" [disabled]="clearing" (click)="clearAll()">
+        {{ clearing ? 'Clearing...' : 'Clear all' }}
+      </button>
+    }
+  </div>
 
-  @if (notifications.length === 0) {
-    <div class="empty">No notifications yet.</div>
-  }
+  <div *ngIf="notifications.length === 0">
+    No notifications available.
+  </div>
 
-  @for (notification of notifications; track notification._id) {
-    <button
-      type="button"
-      class="notification-card"
-      [class.unread]="!notification.readAt"
-      [class.clickable]="notification.link"
-      (click)="open(notification)"
-    >
-      <div class="notif-top">
-        <span class="notif-type">{{ notification.type | titlecase }}</span>
-        <small>{{ (notification.createdAt || notification.sent_at) | date:'medium' }}</small>
-      </div>
-      <p>{{ notification.message }}</p>
-      @if (notification.link) {
-        <span class="notif-link">Tap to view →</span>
-      }
-    </button>
-  }
+  <button
+    type="button"
+    class="notification-card"
+    [class.unread]="!notification.readAt"
+    [class.clickable]="notification.link"
+    *ngFor="let notification of notifications"
+    (click)="open(notification)"
+  >
+    <h4>{{ notification.title || 'Notification' }}</h4>
+
+    <p>{{ notification.message }}</p>
+
+    <small>
+      {{ (notification.createdAt || notification.sent_at) | date:'medium' }}
+    </small>
+  </button>
 </div>

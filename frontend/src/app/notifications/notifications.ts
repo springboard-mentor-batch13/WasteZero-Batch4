@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NotificationService } from '../services/notification';
@@ -9,13 +9,15 @@ import { SocketService } from '../services/socket';
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, TitleCasePipe],
+  imports: [CommonModule],
   templateUrl: './notifications.html',
   styleUrl: './notifications.css',
 })
 export class Notifications implements OnInit, OnDestroy {
   notifications: any[] = [];
   currentUser: any;
+  clearing = false;
+
   private notificationSub?: Subscription;
 
   constructor(
@@ -28,19 +30,28 @@ export class Notifications implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getUser();
+
     if (!this.currentUser) return;
 
-    this.notificationService.getNotifications().subscribe({
-      next: (res: any) => {
-        this.notifications = res.data || [];
-        this.cdr.detectChanges();
-        if (this.notifications.some((n) => !n.readAt)) {
-          this.notificationService.markAllRead().subscribe();
-        }
-      },
-      error: (err) => console.error(err),
-    });
+    this.notificationService
+      .getNotifications()
+      .subscribe({
+        next: (res: any) => {
+          this.notifications = res.data || [];
+          this.cdr.detectChanges();
+          // Being on this page counts as having seen them - clears the
+          // Shell's Alerts badge too, since it shares the same count.
+          if (this.notifications.some((n) => !n.readAt)) {
+            this.notificationService.markAllRead().subscribe();
+          }
+        },
+        error: (err) => {
+          console.error(err);
+        },
+      });
 
+    // New notifications that arrive while this page is open show up
+    // immediately, instead of needing a refresh.
     this.notificationSub = this.socketService.notification().subscribe((notification) => {
       this.notifications = [notification, ...this.notifications];
       this.cdr.detectChanges();
@@ -49,6 +60,22 @@ export class Notifications implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.notificationSub?.unsubscribe();
+  }
+
+  clearAll(): void {
+    if (!this.notifications.length || this.clearing) return;
+    this.clearing = true;
+    this.notificationService.clearAll().subscribe({
+      next: () => {
+        this.notifications = [];
+        this.clearing = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.clearing = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   open(notification: any): void {
