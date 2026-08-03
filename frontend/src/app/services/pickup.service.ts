@@ -1,11 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_BASE } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class PickupService {
   private http = inject(HttpClient);
-  private api = 'http://localhost:5000/api/pickups';
+  private api = `${API_BASE}/pickups`;
 
   getPickups(): Observable<any> {
     return this.http.get(this.api);

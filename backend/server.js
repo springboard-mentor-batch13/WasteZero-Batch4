@@ -15,10 +15,13 @@ import Message from './models/Message.js';
 import User from './models/User.js';
 import Pickup from './models/Pickup.js';
 import Application from './models/Application.js';
-import { canCommunicateWith } from './utils/communicationAccess.js';
+import { canCommunicateWith, getAllowedContactIds } from './utils/communicationAccess.js';
+import { readSessionToken } from './utils/authCookie.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pickupRoutes from './routes/pickupRoutes.js';
 import { encryptMessage, decryptMessage } from "./utils/encryption.js";
+import { getOnlineUserIds, isOnline, markOffline, markOnline } from './utils/presence.js';
+import { setNotifyIO } from './utils/notify.js';
 
 
 
@@ -28,10 +31,9 @@ const app = express();
 const server = http.createServer(app);
 
 const corsOptions = {
-  origin: process.env.NODE_ENV !== 'production'
-    ? true
-    : ['http://localhost:4200', 'http://127.0.0.1:4200'],
-   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true,
   optionsSuccessStatus: 200,
 };
 
@@ -39,6 +41,7 @@ const corsOptions = {
 const io = new Server(server, {
   cors: corsOptions,
 });
+setNotifyIO(io);
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -55,8 +58,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/pickups', pickupRoutes);
 
 // 2. Socket.IO JWT Authentication Middleware
-io.use((socket, next) => {
-  const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(' ')[1];
+io.use(async (socket, next) => {
+  const token = readSessionToken({ headers: socket.handshake.headers });
 
   if (!token) {
     return next(new Error('Authentication error: No token provided'));
@@ -64,43 +67,30 @@ io.use((socket, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.user = decoded; // Attach user data to socket
+    const user = await User.findById(decoded.id).select('-password');
+    if (!user) return next(new Error('Authentication error: User no longer exists'));
+    socket.user = user;
     next();
   } catch (err) {
     return next(new Error('Authentication error: Invalid or expired token'));
   }
 });
-const onlineUsers = new Map(); 
-
-const isOnline = (userId) => onlineUsers.has(userId) && onlineUsers.get(userId).size > 0;
-
-const markOnline = (userId, socketId) => {
-  if (!onlineUsers.has(userId)) onlineUsers.set(userId, new Set());
-  onlineUsers.get(userId).add(socketId);
-};
-
-const markOffline = (userId, socketId) => {
-  const sockets = onlineUsers.get(userId);
-  if (!sockets) return false;
-  sockets.delete(socketId);
-  if (sockets.size === 0) {
-    onlineUsers.delete(userId);
-    return true; // fully offline now
-  }
-  return false;
-};
-
 // Socket.IO Connection Handling
 io.on('connection', async (socket) => {
-  const userId = String(socket.user.id || socket.user._id);
+  const userId = String(socket.user._id);
   console.log(`Authenticated user connected: ${socket.id} (User ID: ${userId})`);
 
   socket.join(userId);
   const wasOffline = !isOnline(userId);
   markOnline(userId, socket.id);
 
+  const visibleContactIds = await getAllowedContactIds(socket.user);
+  socket.data.visibleContactIds = visibleContactIds;
+
   if (wasOffline) {
-    socket.broadcast.emit('user_status', { userId, status: 'online' });
+    visibleContactIds.forEach((contactId) => {
+      io.to(contactId).emit('user_status', { userId, status: 'online' });
+    });
 
     try {
       const pending = await Message.find({ receiver_id: userId, status: 'sent' });
@@ -124,7 +114,9 @@ io.on('connection', async (socket) => {
     }
   }
 
-  socket.emit('online_users', { userIds: Array.from(onlineUsers.keys()) });
+  socket.emit('online_users', {
+    userIds: getOnlineUserIds().filter((onlineId) => visibleContactIds.includes(onlineId)),
+  });
 
   socket.on('join_room', (requestedUserId) => {
     if (String(requestedUserId) === userId) {
@@ -191,25 +183,25 @@ io.on('connection', async (socket) => {
       const status = isOnline(String(receiver_id)) ? 'delivered' : 'sent';
       const context = await resolveMessageContext(rawContext, sender_id);
 
-const encryptedContent = encryptMessage(content.trim());
+      const encryptedContent = encryptMessage(content.trim());
 
-const newMessage = new Message({
-  sender_id,
-  receiver_id,
-  content: encryptedContent,
-  status,
-  context,
-});
+      const newMessage = new Message({
+        sender_id,
+        receiver_id,
+        content: encryptedContent,
+        status,
+        context,
+      });
 
       await newMessage.save();
 
       const messageToSend = {
-  ...newMessage.toObject(),
-  content: decryptMessage(newMessage.content),
-};
+        ...newMessage.toObject(),
+        content: decryptMessage(newMessage.content),
+      };
 
-io.to(String(receiver_id)).emit('receive_message', messageToSend);
-io.to(sender_id).emit('receive_message', messageToSend);
+      io.to(String(receiver_id)).emit('receive_message', messageToSend);
+      io.to(sender_id).emit('receive_message', messageToSend);
 
     } catch (error) {
       console.error('Error handling socket message:', error);
@@ -249,10 +241,12 @@ io.to(sender_id).emit('receive_message', messageToSend);
     console.log(`User disconnected: ${socket.id}`);
     const fullyOffline = markOffline(userId, socket.id);
     if (fullyOffline) {
-      socket.broadcast.emit('user_status', {
-        userId,
-        status: 'offline',
-        lastSeen: new Date(),
+      (socket.data.visibleContactIds || []).forEach((contactId) => {
+        io.to(contactId).emit('user_status', {
+          userId,
+          status: 'offline',
+          lastSeen: new Date(),
+        });
       });
     }
   });

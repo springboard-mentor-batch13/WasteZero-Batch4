@@ -30,6 +30,15 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    archivedAt: {
+      type: Date,
+      default: null,
+    },
+    opportunity_snapshot: {
+      title: { type: String, default: '' },
+      ngo_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      deletedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

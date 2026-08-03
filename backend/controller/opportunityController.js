@@ -233,9 +233,41 @@ const deleteOpportunity = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to modify this opportunity" });
     }
 
-    await Application.deleteMany({ opportunity_id: req.params.id });
+    const affectedApplications = await Application.find({
+      opportunity_id: req.params.id,
+      status: { $in: ['pending', 'accepted'] },
+    }).select('volunteer_id status');
+
+    await Promise.all(
+      affectedApplications.map((application) =>
+        notifyUser({
+          userId: application.volunteer_id,
+          type: 'opportunity_deleted',
+          message: `The opportunity "${opportunity.title}" was removed by its organizer. Your ${application.status} application has been archived.`,
+          link: '/applications',
+        }),
+      ),
+    );
+
+    const archivedAt = new Date();
+    await Application.updateMany(
+      { opportunity_id: req.params.id },
+      {
+        $set: {
+          archivedAt,
+          opportunity_snapshot: {
+            title: opportunity.title,
+            ngo_id: opportunity.ngo_id,
+            deletedAt: archivedAt,
+          },
+        },
+      },
+    );
     await opportunity.deleteOne();
-    res.json({ message: "Opportunity and related applications deleted" });
+    res.json({
+      message: 'Opportunity deleted; related applications were archived and volunteers notified.',
+      notifiedApplicants: affectedApplications.length,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -379,6 +411,7 @@ const getUserApplications = async (req, res) => {
       volunteer_id: req.user._id,
     })
       .populate("opportunity_id", "title ngo_id status")
+      .populate("opportunity_snapshot.ngo_id", "name email")
       .populate("reviewed_by", "name email role");
     res.json(apps);
   } catch (error) {

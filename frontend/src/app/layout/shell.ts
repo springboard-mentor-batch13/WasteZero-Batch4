@@ -87,6 +87,7 @@ export class Shell implements OnInit, OnDestroy {
   }
 
   logout() {
+    this.socketService.disconnect();
     this.auth.logout();
     this.router.navigate(['/login']);
   }

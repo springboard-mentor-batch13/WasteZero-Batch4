@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_BASE } from './api.config';
 
 @Injectable({ providedIn: 'root' })
 export class OtpService {
-  private api = 'http://localhost:5000/api/otp';
+  private api = `${API_BASE}/otp`;
 
   constructor(private http: HttpClient) {}
 

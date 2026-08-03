@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Opportunity } from './opportunity.model';
+import { API_BASE } from '../services/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class OpportunityService {
-  private api = 'http://localhost:5000/api/opportunities';
+  private api = `${API_BASE}/opportunities`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,14 +1,13 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { readSessionToken } from '../utils/authCookie.js';
 
 const protect = async (req,res,next)=>{
     let token;
 
-    if(req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
-    {
+    token = readSessionToken(req);
+    if(token) {
         try{
-            token = req.headers.authorization.split(" ")[1];
-
             const decode = jwt.verify(token,process.env.JWT_SECRET);
 
             req.user = await User.findById(decode.id).select('-password');
@@ -23,7 +22,7 @@ const protect = async (req,res,next)=>{
         }
     }
 
-    else if(!token){
+    else {
         return res.status(401).json({ message: 'Not authorized - no token provided' });
     }
 }

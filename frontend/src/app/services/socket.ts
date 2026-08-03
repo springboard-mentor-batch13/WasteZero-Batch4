@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Observable } from 'rxjs';
+import { API_ORIGIN } from './api.config';
 
 @Injectable({
   providedIn: 'root'
@@ -10,9 +11,9 @@ export class SocketService {
   private currentUserId: string | null = null;
 
   constructor() {
-    this.socket = io('http://localhost:5000', {
+    this.socket = io(API_ORIGIN, {
       autoConnect: false,
-      auth: () => ({ token: localStorage.getItem('token') }),
+      withCredentials: true,
     });
 
     // The server auto-joins the room on every 'connect', but every
@@ -31,7 +32,6 @@ export class SocketService {
 
   joinRoom(userId: string): void {
     this.currentUserId = userId;
-    this.socket.auth = { token: localStorage.getItem('token') };
     if (!this.socket.connected) this.socket.connect();
     this.socket.emit('join_room', userId);
   }
