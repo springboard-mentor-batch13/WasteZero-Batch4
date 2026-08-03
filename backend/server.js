@@ -21,7 +21,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import pickupRoutes from './routes/pickupRoutes.js';
 import { encryptMessage, decryptMessage } from "./utils/encryption.js";
 import { getOnlineUserIds, isOnline, markOffline, markOnline } from './utils/presence.js';
-import { setNotifyIO } from './utils/notify.js';
+import { notifyUser, setNotifyIO } from './utils/notify.js';
 
 
 
@@ -202,6 +202,18 @@ io.on('connection', async (socket) => {
 
       io.to(String(receiver_id)).emit('receive_message', messageToSend);
       io.to(sender_id).emit('receive_message', messageToSend);
+
+      try {
+        const senderProfile = await User.findById(sender_id).select('name').lean();
+        await notifyUser({
+          userId: receiver_id,
+          type: 'new_message',
+          message: `New message from ${senderProfile?.name || 'a WasteZero user'}.`,
+          link: `/messages?contactId=${sender_id}`,
+        });
+      } catch (notifyError) {
+        console.error('Error creating new-message notification:', notifyError);
+      }
 
     } catch (error) {
       console.error('Error handling socket message:', error);

@@ -1,6 +1,6 @@
 import Pickup from '../models/Pickup.js';
 import User from '../models/User.js';
-import { notifyUser } from '../utils/notify.js';
+import { notifyAdmins, notifyUser } from '../utils/notify.js';
 import { locationMatchScore } from '../utils/locationMatch.js';
 
 const VALID_WASTE_TYPES = new Set([
@@ -57,6 +57,17 @@ export const createPickup = async (req, res) => {
 
     const populatedPickup = await Pickup.findById(pickup._id)
       .populate('requester_id', 'name email role');
+
+    try {
+      await notifyAdmins({
+        type: 'pickup_scheduled',
+        message: `${req.user.name} scheduled a ${selectedWasteTypes.join(', ')} pickup in ${pickup.city}.`,
+        link: '/schedule-pickup',
+        excludeUserId: req.user._id,
+      });
+    } catch (notifyError) {
+      console.error('Error notifying admins of scheduled pickup:', notifyError);
+    }
 
     res.status(201).json({
       success: true,

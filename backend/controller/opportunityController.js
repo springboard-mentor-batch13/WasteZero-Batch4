@@ -3,7 +3,7 @@ import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 import User from "../models/User.js";
-import { notifyUser } from "../utils/notify.js";
+import { notifyAdmins, notifyUser } from "../utils/notify.js";
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -108,6 +108,13 @@ const createOpportunity = async (req, res) => {
           }),
         ),
       );
+
+      await notifyAdmins({
+        type: 'new_opportunity',
+        message: `${req.user.name} posted a new opportunity: ${opportunity.title}.`,
+        link: `/opportunities/${opportunity._id}`,
+        excludeUserId: req.user._id,
+      });
     } catch (notifyError) {
       // Never let a notification failure block opportunity creation itself.
       console.error('Error notifying volunteers of new opportunity:', notifyError);
@@ -296,6 +303,26 @@ const applyForOpportunity = async (req, res) => {
       opportunity_id: req.params.id,
       volunteer_id: req.user._id,
     });
+
+    try {
+      await Promise.all([
+        notifyUser({
+          userId: opportunity.ngo_id,
+          type: 'new_application',
+          message: `${req.user.name} applied for "${opportunity.title}".`,
+          link: `/opportunities/${opportunity._id}`,
+        }),
+        notifyAdmins({
+          type: 'new_application',
+          message: `${req.user.name} applied for "${opportunity.title}".`,
+          link: `/opportunities/${opportunity._id}`,
+          excludeUserId: opportunity.ngo_id,
+        }),
+      ]);
+    } catch (notifyError) {
+      console.error('Error notifying users of new application:', notifyError);
+    }
+
     res.status(201).json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
