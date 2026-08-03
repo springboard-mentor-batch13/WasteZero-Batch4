@@ -3,36 +3,31 @@
     <div>
       <p class="eyebrow">Waste collection</p>
       <h1>Schedule Pickup</h1>
-      <p>{{ isVolunteer ? 'Go available to receive nearby pickup requests, and respond to offers.' : 'Request waste collection and manage your pickup activity.' }}</p>
+      <p>
+        @if (isVolunteer) {
+          Schedule a pickup for your recyclable waste and track it until an NGO collects it.
+        } @else if (isNgo) {
+          Accept pickups volunteers have scheduled, and manage the ones you've taken on.
+        } @else {
+          Read-only view of every pickup, which NGO accepted it, and which volunteer requested it.
+        }
+      </p>
     </div>
 
-    @if (isVolunteer) {
-      <button
-        type="button"
-        class="availability-toggle"
-        [class.online]="isAvailable"
-        [disabled]="togglingAvailability"
-        (click)="toggleAvailability()"
-      >
-        <span class="dot"></span>
-        {{ togglingAvailability ? 'Updating...' : (isAvailable ? "You're Available" : "You're Offline") }}
-      </button>
-    } @else {
-      <div class="summary">
-        <span><strong>{{ scheduledCount }}</strong> Active</span>
-        <span><strong>{{ completedCount }}</strong> Completed</span>
-      </div>
-    }
+    <div class="summary">
+      <span><strong>{{ scheduledCount }}</strong> Active</span>
+      <span><strong>{{ completedCount }}</strong> Completed</span>
+    </div>
   </header>
 
   <div class="tabs" role="tablist">
-    @if (canManage) {
+    @if (isVolunteer) {
       <button type="button" [class.active]="activeTab === 'schedule'" (click)="selectTab('schedule')">
         Schedule New Pickup
       </button>
     }
     <button type="button" [class.active]="activeTab === 'history'" (click)="selectTab('history')">
-      {{ isVolunteer ? 'My Pickups' : 'Pickup History' }}
+      {{ isVolunteer ? 'My Pickups' : (isNgo ? 'Pickup Requests' : 'All Pickups') }}
       @if (pickups.length) { <span>{{ pickups.length }}</span> }
     </button>
   </div>
@@ -41,7 +36,7 @@
     <div class="form-error">{{ error }}</div>
   }
 
-  @if (activeTab === 'schedule' && canManage) {
+  @if (activeTab === 'schedule' && isVolunteer) {
     <div class="request-card">
       <div class="card-head">
         <div>
@@ -122,8 +117,16 @@
     <div class="history-card">
       <div class="history-head">
         <div>
-          <h2>{{ canManage ? 'Pickup Requests' : 'Your Pickup History' }}</h2>
-          <p>{{ canManage ? 'Review, offer, and manage collection requests.' : 'Accept or decline offers, and track your pickups.' }}</p>
+          <h2>
+            @if (isVolunteer) { Your Pickup History }
+            @else if (isNgo) { Pickup Requests }
+            @else { All Pickups }
+          </h2>
+          <p>
+            @if (isVolunteer) { Track the pickups you've scheduled. }
+            @else if (isNgo) { Accept or decline requests, and manage what you've taken on. }
+            @else { Monitor which NGO accepted which volunteer's pickup. }
+          </p>
         </div>
         <button type="button" (click)="loadHistory()">Refresh</button>
       </div>
@@ -133,9 +136,13 @@
       } @else if (!pickups.length) {
         <div class="empty-state">
           <span>PK</span>
-          <strong>{{ isVolunteer ? 'No pickups yet' : 'No pickup requests yet' }}</strong>
-          <p>{{ isVolunteer ? 'Go available above to start receiving nearby pickup requests.' : 'Schedule your first collection to see it here.' }}</p>
-          @if (canManage) {
+          <strong>No pickups yet</strong>
+          <p>
+            @if (isVolunteer) { Schedule your first collection to see it here. }
+            @else if (isNgo) { No pickups are waiting for a response right now. }
+            @else { No pickups have been scheduled yet. }
+          </p>
+          @if (isVolunteer) {
             <button type="button" (click)="selectTab('schedule')">Schedule Pickup</button>
           }
         </div>
@@ -156,7 +163,7 @@
                 <div class="meta">
                   <span>{{ pickup.pickupDate | date:'mediumDate' }}</span>
                   <span>{{ pickup.timeSlot }}</span>
-                  @if (canManage && pickup.requester_id) {
+                  @if (!isVolunteer && pickup.requester_id) {
                     <span>Requested by {{ pickup.requester_id.name }}</span>
                   }
                 </div>
@@ -164,19 +171,17 @@
                   @for (type of pickup.wasteTypes; track type) { <span>{{ type }}</span> }
                 </div>
 
-                @if (pickup.status === 'offered' && pickup.assigned_to) {
-                  <p class="assigned-to">Offer sent to <strong>{{ pickup.assigned_to.name }}</strong> - awaiting response</p>
-                } @else if (pickup.assigned_to) {
-                  <p class="assigned-to">Assigned to <strong>{{ pickup.assigned_to.name }}</strong></p>
+                @if (pickup.assigned_to) {
+                  <p class="assigned-to">Accepted by <strong>{{ pickup.assigned_to.name }}</strong></p>
                 }
 
-                @if (isVolunteer && pickup.status === 'offered') {
+                @if (isPendingForNgo(pickup)) {
                   <div class="offer-actions">
                     <button
                       type="button"
                       class="accept-btn"
                       [disabled]="respondingPickupId === pickup._id"
-                      (click)="respondToOffer(pickup, true)"
+                      (click)="respondToPickup(pickup, true)"
                     >
                       Accept
                     </button>
@@ -184,67 +189,31 @@
                       type="button"
                       class="decline-btn"
                       [disabled]="respondingPickupId === pickup._id"
-                      (click)="respondToOffer(pickup, false)"
+                      (click)="respondToPickup(pickup, false)"
                     >
-                      Decline
+                      Reject
                     </button>
                   </div>
                 }
-
-                @if (canManage && assignPanelPickupId === pickup._id) {
-                  <div class="assign-panel">
-                    <div class="assign-panel-head">
-                      <strong>Offer to an available volunteer</strong>
-                      <button type="button" class="assign-close" (click)="closeAssignPanel()">&times;</button>
-                    </div>
-
-                    @if (loadingCandidates) {
-                      <p class="muted">Loading available volunteers...</p>
-                    } @else if (!candidates.length) {
-                      <p class="muted">No volunteers are currently available.</p>
-                    } @else {
-                      <div class="candidate-list">
-                        @for (candidate of candidates; track candidate._id) {
-                          <button
-                            type="button"
-                            class="candidate-row"
-                            [disabled]="assigningVolunteerId === candidate._id"
-                            (click)="offerToVolunteer(pickup, candidate._id)"
-                          >
-                            <span class="candidate-copy">
-                              <strong>{{ candidate.name }}</strong>
-                              <span>{{ candidate.location || 'No location set' }}</span>
-                            </span>
-                            <span class="candidate-badges">
-                              @if (candidate.matchesWasteType) {
-                                <span class="badge waste-match">Waste match</span>
-                              }
-                              @if (candidate.locationMatchScore > 0) {
-                                <span class="badge location-match">Nearby</span>
-                              }
-                              {{ assigningVolunteerId === candidate._id ? 'Sending...' : 'Offer' }}
-                            </span>
-                          </button>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
               </div>
-              @if (canManage) {
+
+              @if (isAcceptedByThisNgo(pickup)) {
                 <div class="manage-actions">
-                  @if (pickup.status === 'scheduled') {
-                    <button type="button" class="offer-btn" (click)="openAssignPanel(pickup)">Offer to volunteer</button>
-                  }
                   <select
                     class="status-select"
                     [ngModel]="pickup.status"
                     (ngModelChange)="updateStatus(pickup, $event)"
                   >
-                    <option value="scheduled">Scheduled</option>
+                    <option value="assigned" disabled>Assigned</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
+                </div>
+              }
+
+              @if (isVolunteer && pickup.status === 'scheduled') {
+                <div class="manage-actions">
+                  <button type="button" class="decline-btn" (click)="updateStatus(pickup, 'cancelled')">Cancel</button>
                 </div>
               }
             </article>
