@@ -1,7 +1,5 @@
 import Pickup from '../models/Pickup.js';
-import User from '../models/User.js';
 import { notifyUser } from '../utils/notify.js';
-import { locationMatchScore } from '../utils/locationMatch.js';
 
 const VALID_WASTE_TYPES = new Set([
   'Plastic',
@@ -12,10 +10,13 @@ const VALID_WASTE_TYPES = new Set([
   'Organic Waste',
   'Other',
 ]);
+
+// Only volunteers create pickups - like a user dropping waste into a
+// recycle bin, the volunteer is the one who initiates the request.
 export const createPickup = async (req, res) => {
   try {
-    if (!['admin', 'ngo'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Only NGOs and admins can schedule a pickup.' });
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can schedule a pickup.' });
     }
 
     const { address, city, pickupDate, timeSlot, wasteTypes, notes } = req.body;
@@ -74,13 +75,21 @@ export const createPickup = async (req, res) => {
 export const getPickups = async (req, res) => {
   try {
     let query = {};
+
     if (req.user.role === 'volunteer') {
-      // Volunteers only ever see jobs offered/assigned to them - they don't
-      // request pickups themselves anymore.
-      query = { assigned_to: req.user._id };
-    } else if (req.user.role === 'ngo') {
+      // Volunteers see only the pickups they created.
       query = { requester_id: req.user._id };
-    } // admin sees everything
+    } else if (req.user.role === 'ngo') {
+      // NGOs see the pool of unclaimed pickups they haven't rejected yet,
+      // plus whichever pickups they've personally accepted.
+      query = {
+        $or: [
+          { status: 'scheduled', rejectedBy: { $ne: req.user._id } },
+          { assigned_to: req.user._id },
+        ],
+      };
+    }
+    // admin: no filter - sees everything, read-only.
 
     const pickups = await Pickup.find(query)
       .populate('requester_id', 'name email role')
@@ -93,169 +102,75 @@ export const getPickups = async (req, res) => {
   }
 };
 
-export const updatePickupStatus = async (req, res) => {
+// NGO accepts an unclaimed pickup.
+export const acceptPickup = async (req, res) => {
   try {
-    if (!['admin', 'ngo'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Only NGOs and admins can update pickup status.' });
-    }
-
-    const { status } = req.body;
-    if (!['scheduled', 'completed', 'cancelled'].includes(status)) {
-      return res.status(400).json({
-        message: 'Invalid status. To assign a volunteer, use the offer endpoint instead.',
-      });
-    }
-
-    const update = { status };
-    if (status === 'scheduled') {
-      update.assigned_to = null;
-    }
-
-    const pickup = await Pickup.findByIdAndUpdate(req.params.id, update, {
-      new: true,
-      runValidators: true,
-    })
-      .populate('requester_id', 'name email role')
-      .populate('assigned_to', 'name email role');
-
-    if (!pickup) {
-      return res.status(404).json({ message: 'Pickup request not found.' });
-    }
-
-    //Free up volunteer when pickup is completed or cancelled
-    if (['completed', 'cancelled'].includes(status) && pickup.assigned_to) {
-      await User.findByIdAndUpdate(pickup.assigned_to._id, { isAvailable: true });
-
-      await notifyUser({
-        userId: pickup.assigned_to._id,
-        type: 'pickup_status',
-        message: `The pickup in ${pickup.city} was marked ${status}.`,
-        link: '/schedule-pickup',
-      });
-    }
-
-    res.json({ success: true, message: 'Pickup status updated.', data: pickup });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const offerPickup = async (req, res) => {
-  try {
-    if (!['admin', 'ngo'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Only NGOs and admins can offer a pickup to a volunteer.' });
-    }
-
-    const { volunteerId } = req.body;
-    if (!volunteerId) {
-      return res.status(400).json({ message: 'Select a volunteer to offer this pickup to.' });
-    }
-
-    const volunteer = await User.findById(volunteerId).select('_id role name isAvailable');
-    if (!volunteer || volunteer.role !== 'volunteer') {
-      return res.status(400).json({ message: 'You can only offer a pickup to a volunteer.' });
-    }
-
-    //Check if volunteer already has an active assigned pickup
-    const activePickup = await Pickup.findOne({
-      assigned_to: volunteer._id,
-      status: { $in: ['offered', 'assigned'] },
-    });
-
-    if (activePickup) {
-      return res.status(400).json({
-        message: `${volunteer.name} already has an active pickup assigned. They must complete or decline it first.`,
-      });
-    }
-
-    if (volunteer.isAvailable === false) {
-      return res.status(400).json({ message: `${volunteer.name} is not available right now.` });
+    if (req.user.role !== 'ngo') {
+      return res.status(403).json({ message: 'Only NGOs can accept a pickup.' });
     }
 
     const pickup = await Pickup.findOneAndUpdate(
-      { _id: req.params.id, status: { $in: ['scheduled'] } },
-      { status: 'offered', assigned_to: volunteer._id },
+      { _id: req.params.id, status: 'scheduled' },
+      { status: 'assigned', assigned_to: req.user._id },
       { new: true, runValidators: true },
     )
       .populate('requester_id', 'name email role')
       .populate('assigned_to', 'name email role');
 
     if (!pickup) {
-      return res.status(409).json({ message: 'This pickup already has an offer out, or is no longer available to assign.' });
+      return res.status(409).json({ message: 'This pickup is no longer available to accept.' });
     }
-
-    await notifyUser({
-      userId: volunteer._id,
-      type: 'pickup_offer',
-      message: `New pickup request in ${pickup.city} on ${new Date(pickup.pickupDate).toLocaleDateString()}. Accept or decline in Schedule Pickup.`,
-      link: '/schedule-pickup',
-    });
-
-    res.json({ success: true, message: 'Offer sent to volunteer.', data: pickup });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// The volunteer's Accept/Decline response to an offered pickup.
-export const respondToOffer = async (req, res) => {
-  try {
-    if (req.user.role !== 'volunteer') {
-      return res.status(403).json({ message: 'Only volunteers can respond to a pickup offer.' });
-    }
-
-    const { accept } = req.body;
-    const pickup = await Pickup.findById(req.params.id)
-      .populate('requester_id', 'name email role')
-      .populate('assigned_to', 'name email role');
-
-    if (!pickup) {
-      return res.status(404).json({ message: 'Pickup request not found.' });
-    }
-    if (pickup.status !== 'offered' || String(pickup.assigned_to?._id) !== String(req.user._id)) {
-      return res.status(409).json({ message: 'This offer is no longer available to you.' });
-    }
-
-    if (accept) {
-      pickup.status = 'assigned';
-      //Mark volunteer as unavailable when they accept
-      await User.findByIdAndUpdate(req.user._id, { isAvailable: false });
-    } else {
-      pickup.status = 'scheduled';
-      pickup.assigned_to = null;
-      // Keep volunteer available when they decline
-    }
-    await pickup.save();
 
     if (pickup.requester_id) {
       await notifyUser({
         userId: pickup.requester_id._id,
         type: 'pickup_response',
-        message: accept
-          ? `${req.user.name} accepted the pickup in ${pickup.city}.`
-          : `${req.user.name} declined the pickup in ${pickup.city}. Offer it to someone else.`,
+        message: `${req.user.name} accepted your pickup in ${pickup.city}.`,
         link: '/schedule-pickup',
       });
     }
 
-    const updated = await Pickup.findById(pickup._id)
-      .populate('requester_id', 'name email role')
-      .populate('assigned_to', 'name email role');
-
-    res.json({
-      success: true,
-      message: accept ? 'Pickup accepted.' : 'Pickup declined.',
-      data: updated,
-    });
+    res.json({ success: true, message: 'Pickup accepted.', data: pickup });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const getPickupCandidates = async (req, res) => {
+// NGO rejects a pickup - it stays in the pool for other NGOs, it's just
+// removed from this NGO's queue.
+export const rejectPickup = async (req, res) => {
   try {
-    if (!['admin', 'ngo'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Only NGOs and admins can view assignment candidates.' });
+    if (req.user.role !== 'ngo') {
+      return res.status(403).json({ message: 'Only NGOs can reject a pickup.' });
+    }
+
+    const pickup = await Pickup.findOneAndUpdate(
+      { _id: req.params.id, status: 'scheduled' },
+      { $addToSet: { rejectedBy: req.user._id } },
+      { new: true, runValidators: true },
+    )
+      .populate('requester_id', 'name email role')
+      .populate('assigned_to', 'name email role');
+
+    if (!pickup) {
+      return res.status(409).json({ message: 'This pickup is no longer available to reject.' });
+    }
+
+    res.json({ success: true, message: 'Pickup declined.', data: pickup });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// The accepting NGO marks a pickup completed/cancelled, or the volunteer
+// cancels their own pickup before it's been accepted. Admin is read-only.
+export const updatePickupStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['completed', 'cancelled'].includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid status. Use accept/reject to respond to a pickup instead.',
+      });
     }
 
     const pickup = await Pickup.findById(req.params.id);
@@ -263,34 +178,39 @@ export const getPickupCandidates = async (req, res) => {
       return res.status(404).json({ message: 'Pickup request not found.' });
     }
 
-    const volunteers = await User.find({ role: 'volunteer', isAvailable: true })
-      .select('name email location preferredWasteTypes');
+    const isOwnPickup = String(pickup.requester_id) === String(req.user._id);
+    const isAssignedNgo = pickup.assigned_to && String(pickup.assigned_to) === String(req.user._id);
 
-    const ranked = volunteers.map((volunteer) => {
-      const matchesWasteType = (volunteer.preferredWasteTypes || []).some((type) =>
-        (pickup.wasteTypes || []).includes(type),
-      );
-      const cityScore = locationMatchScore(volunteer.location, pickup.city);
-      const addressScore = locationMatchScore(volunteer.location, pickup.address);
-      const locationScore = Math.max(cityScore, addressScore);
+    if (status === 'cancelled') {
+      // A volunteer can cancel their own pickup any time; the NGO handling
+      // it can also cancel once they've accepted it.
+      if (!(req.user.role === 'volunteer' && isOwnPickup) && !(req.user.role === 'ngo' && isAssignedNgo)) {
+        return res.status(403).json({ message: 'You are not authorized to cancel this pickup.' });
+      }
+    } else if (status === 'completed') {
+      // Only the NGO that accepted the pickup can mark it complete.
+      if (!(req.user.role === 'ngo' && isAssignedNgo)) {
+        return res.status(403).json({ message: 'Only the accepting NGO can mark this pickup completed.' });
+      }
+    }
 
-      return {
-        _id: volunteer._id,
-        name: volunteer.name,
-        email: volunteer.email,
-        location: volunteer.location,
-        locationMatchScore: locationScore,
-        matchesWasteType,
-      };
-    });
+    pickup.status = status;
+    await pickup.save();
 
-    ranked.sort((a, b) => {
-      if (a.matchesWasteType !== b.matchesWasteType) return a.matchesWasteType ? -1 : 1;
-      if (b.locationMatchScore !== a.locationMatchScore) return b.locationMatchScore - a.locationMatchScore;
-      return a.name.localeCompare(b.name);
-    });
+    const updated = await Pickup.findById(pickup._id)
+      .populate('requester_id', 'name email role')
+      .populate('assigned_to', 'name email role');
 
-    res.json({ success: true, data: ranked });
+    if (['completed', 'cancelled'].includes(status) && updated.requester_id) {
+      await notifyUser({
+        userId: updated.requester_id._id,
+        type: 'pickup_status',
+        message: `Your pickup in ${updated.city} was marked ${status}.`,
+        link: '/schedule-pickup',
+      });
+    }
+
+    res.json({ success: true, message: 'Pickup status updated.', data: updated });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
