@@ -99,8 +99,6 @@
             <input formControlName="otp" inputmode="numeric" placeholder="6 digit OTP" maxlength="6">
             @if (otpError) {
               <small class="otp-error">{{ otpError }}</small>
-            } @else if (devOtp) {
-              <small class="dev-otp">Local OTP: <strong>{{ devOtp }}</strong></small>
             } @else {
               <small>We sent a 6 digit code to {{ otpVerifiedEmail }}. It's valid for 10 minutes.</small>
             }

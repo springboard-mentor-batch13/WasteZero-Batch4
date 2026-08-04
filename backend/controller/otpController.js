@@ -42,22 +42,15 @@ const createOtpForEmail = async (email) => {
 };
 
 const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
-  const isDevelopment = process.env.NODE_ENV !== 'production';
   const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
   const genericMessage = 'If the request is valid, an OTP has been sent.';
 
-  const developmentResponse = () => ({
-    message: genericMessage,
-    // Local development has no configured mail transport. Returning the code
-    // here keeps registration/reset testable; production never exposes it.
-    ...(isDevelopment ? { otp } : {}),
-  });
-
   if (!canSendEmail) {
-    if (isDevelopment) {
-      console.info(`[development] OTP generated for ${email}: ${otp}`);
-    }
-    return res.json(developmentResponse());
+    console.error('OTP email delivery is not configured. Set EMAIL_USER and EMAIL_PASS.');
+    await Otp.deleteMany({ email });
+    return res.status(503).json({
+      message: 'OTP email delivery is temporarily unavailable. Please contact support.',
+    });
   }
 
   try {
@@ -65,12 +58,10 @@ const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
     return res.json({ message: genericMessage });
   } catch (error) {
     console.error('Email error:', error.message);
-
-    if (isDevelopment) {
-      console.info(`[development] OTP fallback for ${email}: ${otp}`);
-      return res.json(developmentResponse());
-    }
-    return res.json({ message: genericMessage });
+    await Otp.deleteMany({ email });
+    return res.status(502).json({
+      message: 'We could not deliver the OTP email. Please try again shortly.',
+    });
   }
 };
 
