@@ -3,9 +3,8 @@ import {
   createPickup,
   getPickups,
   updatePickupStatus,
-  getPickupCandidates,
-  offerPickup,
-  respondToOffer,
+  acceptPickup,
+  rejectPickup,
 } from '../controller/pickupController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -16,8 +15,7 @@ router.route('/')
   .post(protect, createPickup);
 
 router.patch('/:id/status', protect, updatePickupStatus);
-router.get('/:id/candidates', protect, getPickupCandidates);
-router.patch('/:id/offer', protect, offerPickup);
-router.patch('/:id/respond', protect, respondToOffer);
+router.patch('/:id/accept', protect, acceptPickup);
+router.patch('/:id/reject', protect, rejectPickup);
 
 export default router;

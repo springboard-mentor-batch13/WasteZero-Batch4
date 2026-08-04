@@ -79,7 +79,7 @@ export class ApplicationsComponent implements OnInit {
         this.isLoading = false;
         this.applications = res.data || [];
 
-        if (this.role === 'ngo') {
+        if (this.role === 'ngo' || this.role === 'admin') {
           this.groupApplicationsByOpportunity();
         }
         this.cdr.detectChanges();

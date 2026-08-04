@@ -42,15 +42,21 @@ const pickupSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['scheduled', 'offered', 'assigned', 'completed', 'cancelled'],
+      enum: ['scheduled', 'assigned', 'completed', 'cancelled'],
       default: 'scheduled',
       index: true,
     },
+    // The NGO that accepted this pickup.
     assigned_to: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
     },
+   
+    rejectedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
   },
   { timestamps: true },
 );

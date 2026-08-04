@@ -4,6 +4,33 @@
   padding: 20px;
 }
 
+.notifications-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.notifications-head h2 {
+  margin: 0;
+}
+
+.clear-btn {
+  background: none;
+  border: 1px solid var(--danger, #c62828);
+  border-radius: 8px;
+  color: var(--danger, #c62828);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+}
+
+.clear-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .notification-card {
   border: 1px solid #ddd;
   border-radius: 8px;

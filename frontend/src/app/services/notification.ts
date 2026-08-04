@@ -30,6 +30,12 @@ export class NotificationService {
     );
   }
 
+  clearAll(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/`).pipe(
+      tap(() => this.unreadCountSubject.next(0)),
+    );
+  }
+
   // Called from the Shell when a 'notification' socket event arrives, so
   // the Alerts badge updates live without needing a page visit/refresh.
   incrementUnread(): void {

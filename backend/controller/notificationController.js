@@ -20,7 +20,22 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// Mark all notifications as read
+// Delete all notifications for the logged-in user (the "Clear" button)
+export const clearNotifications = async (req, res) => {
+  try {
+    const result = await Notification.deleteMany({ user_id: req.user._id });
+    res.status(200).json({
+      success: true,
+      message: 'All notifications cleared.',
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 export const markAllNotificationsRead = async (req, res) => {
   try {
     const result = await Notification.updateMany(
