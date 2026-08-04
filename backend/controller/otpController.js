@@ -46,11 +46,18 @@ const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
   const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
   const genericMessage = 'If the request is valid, an OTP has been sent.';
 
+  const developmentResponse = () => ({
+    message: genericMessage,
+    // Local development has no configured mail transport. Returning the code
+    // here keeps registration/reset testable; production never exposes it.
+    ...(isDevelopment ? { otp } : {}),
+  });
+
   if (!canSendEmail) {
     if (isDevelopment) {
       console.info(`[development] OTP generated for ${email}: ${otp}`);
     }
-    return res.json({ message: genericMessage });
+    return res.json(developmentResponse());
   }
 
   try {
@@ -59,7 +66,10 @@ const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
   } catch (error) {
     console.error('Email error:', error.message);
 
-    if (isDevelopment) console.info(`[development] OTP fallback for ${email}: ${otp}`);
+    if (isDevelopment) {
+      console.info(`[development] OTP fallback for ${email}: ${otp}`);
+      return res.json(developmentResponse());
+    }
     return res.json({ message: genericMessage });
   }
 };

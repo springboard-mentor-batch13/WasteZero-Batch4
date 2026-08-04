@@ -25,7 +25,7 @@ const validateRegister = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please enter a valid email address')
-    .normalizeEmail(),
+    .customSanitizer((value) => value.trim().toLowerCase()),
 
   body('password')
     .notEmpty().withMessage('Password is required')
@@ -48,7 +48,7 @@ const validateLogin = [
     .trim()
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please enter a valid email')
-    .normalizeEmail(),
+    .customSanitizer((value) => value.trim().toLowerCase()),
 
   body('password')
     .notEmpty().withMessage('Password is required'),
