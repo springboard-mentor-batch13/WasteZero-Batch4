@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { API_BASE } from './api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotificationService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:5000/api/notifications';
+  private apiUrl = `${API_BASE}/notifications`;
 
   // Shared across the app (Shell's Alerts badge + the Notifications page)
   // so both stay in sync without polling each other.

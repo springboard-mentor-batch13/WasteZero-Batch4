@@ -3,7 +3,21 @@ import Message from '../models/Message.js';
 import User from '../models/User.js';
 import { getAllowedContactIds, canCommunicateWith, getSupportAdmin } from '../utils/communicationAccess.js';
 
-import { encryptMessage, decryptMessage } from '../utils/encryption.js';
+import { decryptMessage, MessageDecryptionError } from '../utils/encryption.js';
+
+const UNAVAILABLE_MESSAGE = 'Encrypted message unavailable';
+
+// A key rotation or one damaged legacy record must not take the whole
+// conversations API offline. Never expose ciphertext to the client; mark the
+// affected record so the UI can explain why only that message is unavailable.
+const decryptForResponse = (content) => {
+  try {
+    return { content: decryptMessage(content), decryptionError: false };
+  } catch (error) {
+    if (!(error instanceof MessageDecryptionError)) throw error;
+    return { content: UNAVAILABLE_MESSAGE, decryptionError: true };
+  }
+};
 
 // 1. Volunteer Matching Algorithm
 export const getMatchedOpportunities = async (req, res) => {
@@ -91,7 +105,7 @@ export const getMessages = async (req, res) => {
 
 const decryptedMessages = messages.map((message) => ({
   ...message.toObject(),
-  content: decryptMessage(message.content),
+  ...decryptForResponse(message.content),
 }));
 
 res.status(200).json({
@@ -143,9 +157,14 @@ export const getContacts = async (req, res) => {
           ],
         }).sort({ createdAt: -1 }).lean();
 
+        const preview = lastMsg
+          ? decryptForResponse(lastMsg.content)
+          : { content: '', decryptionError: false };
+
         return {
           ...contact,
-          lastMessage: lastMsg ? decryptMessage(lastMsg.content) : '',
+          lastMessage: preview.content,
+          lastMessageUnavailable: preview.decryptionError,
           lastMessageAt: lastMsg?.createdAt || null,
         };
       })

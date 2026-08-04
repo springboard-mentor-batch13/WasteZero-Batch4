@@ -42,33 +42,25 @@ const createOtpForEmail = async (email) => {
 };
 
 const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
-  const isDevelopment = process.env.NODE_ENV !== 'production';
   const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  const genericMessage = 'If the request is valid, an OTP has been sent.';
 
   if (!canSendEmail) {
-    return res.json({
-      message: isDevelopment
-        ? 'Email is not configured. Use the OTP shown below to continue.'
-        : 'Email service is not configured. Please try again later.',
-      otp: isDevelopment ? otp : undefined,
+    console.error('OTP email delivery is not configured. Set EMAIL_USER and EMAIL_PASS.');
+    await Otp.deleteMany({ email });
+    return res.status(503).json({
+      message: 'OTP email delivery is temporarily unavailable. Please contact support.',
     });
   }
 
   try {
     await sendEmail({ to: email, subject, text });
-    return res.json({ message: `OTP sent to ${email}` });
+    return res.json({ message: genericMessage });
   } catch (error) {
     console.error('Email error:', error.message);
-
-    if (isDevelopment) {
-      return res.json({
-        message: 'Email could not be delivered. Use the OTP shown below to continue.',
-        otp,
-      });
-    }
-
+    await Otp.deleteMany({ email });
     return res.status(502).json({
-      message: 'Could not send OTP email. Please try again later.',
+      message: 'We could not deliver the OTP email. Please try again shortly.',
     });
   }
 };
@@ -126,7 +118,7 @@ export const sendRegisterOtp = async (req, res) => {
 
     const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
-      return res.status(400).json({ message: 'An account with this email already exists' });
+      return res.json({ message: 'If the request is valid, an OTP has been sent.' });
     }
 
     const otp = await createOtpForEmail(normalizedEmail);
@@ -153,7 +145,9 @@ export const sendForgotPasswordOtp = async (req, res) => {
   try {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
-    if (!user) return res.status(404).json({ message: 'No account found with this email' });
+    if (!user) {
+      return res.json({ message: 'If the request is valid, an OTP has been sent.' });
+    }
 
     const otp = await createOtpForEmail(user.email);
 
@@ -184,7 +178,7 @@ export const resetForgotPassword = async (req, res) => {
   try {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: normalizedEmail });
-    if (!user) return res.status(404).json({ message: 'No account found with this email' });
+    if (!user) return res.status(400).json({ message: 'Invalid or expired reset request.' });
 
     const otpRecord = await Otp.findOne({ email: user.email });
     if (!otpRecord)

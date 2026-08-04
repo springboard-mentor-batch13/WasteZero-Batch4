@@ -1,8 +1,6 @@
-import jwt from 'jsonwebtoken';
 import User from "../models/User.js";
 import { isDisposableEmail, verifyEmailOtp } from './otpController.js';
-
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+import { clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
 
 // Only these roles are self-service at signup. Admin accounts are never
 // created through the public registration form.
@@ -17,9 +15,6 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Temporary or disposable email addresses are not allowed. Please use a real email address.' });
     }
 
-    const userExists = await User.findOne({ email: normalizedEmail });
-    if (userExists) return res.status(400).json({ message: 'User already exists' });
-
     if (!otp) {
       return res.status(400).json({ message: 'Email verification OTP is required. Please verify your email first.' });
     }
@@ -27,6 +22,13 @@ const registerUser = async (req, res) => {
     const otpCheck = await verifyEmailOtp(normalizedEmail, otp);
     if (!otpCheck.valid) {
       return res.status(400).json({ message: otpCheck.message });
+    }
+
+    // Check only after OTP ownership is proven, so this endpoint cannot be
+    // used to enumerate registered email addresses.
+    const userExists = await User.findOne({ email: normalizedEmail });
+    if (userExists) {
+      return res.status(400).json({ message: 'Registration could not be completed.' });
     }
 
     const safeRole = REGISTERABLE_ROLES.includes(role) ? role : 'volunteer';
@@ -39,10 +41,10 @@ const registerUser = async (req, res) => {
       bio: bio || '',
     });
 
+    setAuthCookie(res, user._id);
     res.status(201).json({
       _id: user._id, name: user.name, email: user.email,
       role: user.role, location: user.location, skills: user.skills, bio: user.bio,
-      token: generateToken(user._id),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -54,10 +56,10 @@ const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
+      setAuthCookie(res, user._id);
       res.json({
         _id: user._id, name: user.name, email: user.email,
         role: user.role, location: user.location, skills: user.skills, bio: user.bio,
-        token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -97,7 +99,6 @@ const updateUserProfile = async (req, res) => {
         _id: updated._id, name: updated.name, email: updated.email,
         role: updated.role, location: updated.location, skills: updated.skills, bio: updated.bio,
         preferredWasteTypes: updated.preferredWasteTypes, isAvailable: updated.isAvailable,
-        token: generateToken(updated._id),
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -122,11 +123,15 @@ const updateAvailability = async (req, res) => {
       _id: updated._id, name: updated.name, email: updated.email,
       role: updated.role, location: updated.location, skills: updated.skills, bio: updated.bio,
       preferredWasteTypes: updated.preferredWasteTypes, isAvailable: updated.isAvailable,
-      token: generateToken(updated._id),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export{ registerUser, loginUser, getUserProfile, updateUserProfile, updateAvailability };
+const logoutUser = (req, res) => {
+  clearAuthCookie(res);
+  res.json({ message: 'Signed out successfully' });
+};
+
+export{ registerUser, loginUser, logoutUser, getUserProfile, updateUserProfile, updateAvailability };

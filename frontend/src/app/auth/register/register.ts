@@ -18,7 +18,6 @@ export class Register {
   error = '';
   otpError = '';
   otpNotice = '';
-  devOtp = '';
   loading = false;
   sendingOtp = false;
   showPassword = false;
@@ -87,10 +86,6 @@ export class Register {
         this.otpSent = true;
         this.otpVerifiedEmail = email;
         this.otpNotice = res.message || `OTP sent to ${email}`;
-        this.devOtp = res.otp || '';
-        if (this.devOtp) {
-          this.otpForm.patchValue({ otp: this.devOtp });
-        }
         this.sendingOtp = false;
         this.cdr.detectChanges();
       },
@@ -106,7 +101,6 @@ export class Register {
     this.otpSent = false;
     this.otpError = '';
     this.otpNotice = '';
-    this.devOtp = '';
     this.otpForm.reset();
   }
 

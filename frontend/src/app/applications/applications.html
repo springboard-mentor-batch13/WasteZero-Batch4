@@ -103,7 +103,7 @@
           <tbody>
             @for (app of applications; track app._id) {
               <tr>
-                <td>{{ app.opportunity_id?.title || 'N/A' }}</td>
+                <td>{{ getOpportunityTitle(app) }}</td>
                 <td>{{ getNgoDisplay(app) }}</td>
                 <td><span class="badge" [class]="app.status">{{ app.status }}</span></td>
                 <td>
@@ -144,7 +144,7 @@
           <tbody>
             @for (app of applications; track app._id) {
               <tr>
-                <td>{{ app.opportunity_id?.title || 'N/A' }}</td>
+                <td>{{ getOpportunityTitle(app) }}</td>
                 <td>{{ app.volunteer_id?.name || 'N/A' }} ({{ app.volunteer_id?.email }})</td>
                 <td>{{ getNgoDisplay(app) }}</td>
                 <td><span class="badge" [class]="app.status">{{ app.status }}</span></td>

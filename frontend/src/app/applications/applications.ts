@@ -23,6 +23,12 @@ interface Application {
     skills?: string[];
   };
   ngo_id?: { _id: string; name: string; email: string };
+  opportunity_snapshot?: {
+    title?: string;
+    ngo_id?: { _id: string; name: string; email: string } | string;
+    deletedAt?: string;
+  };
+  archivedAt?: string;
   status: 'pending' | 'accepted' | 'rejected';
   rejection_remark?: string;
 }
@@ -89,10 +95,10 @@ export class ApplicationsComponent implements OnInit {
   groupApplicationsByOpportunity(): void {
     this.groupedOpportunities = {};
     this.applications.forEach(app => {
-      const oppId = app.opportunity_id?._id || 'unknown';
+      const oppId = app.opportunity_id?._id || `archived-${app._id}`;
       if (!this.groupedOpportunities[oppId]) {
         this.groupedOpportunities[oppId] = {
-          title: app.opportunity_id?.title || 'Opportunity Details',
+          title: app.opportunity_id?.title || app.opportunity_snapshot?.title || 'Archived opportunity',
           applications: []
         };
       }
@@ -152,7 +158,9 @@ export class ApplicationsComponent implements OnInit {
   }
 
   getNgoDisplay(app: Application): string {
-    const ngo = app.opportunity_id?.ngo_id || app.ngo_id;
+    const snapshotNgo = app.opportunity_snapshot?.ngo_id;
+    const ngo = app.opportunity_id?.ngo_id || app.ngo_id ||
+      (typeof snapshotNgo === 'object' ? snapshotNgo : undefined);
     if (!ngo) return 'N/A';
     
     const ngoName = ngo.name || ngo.email || 'NGO';
@@ -160,6 +168,10 @@ export class ApplicationsComponent implements OnInit {
     const lastSixId = rawId.length >= 6 ? rawId.slice(-6).toUpperCase() : rawId;
     
     return lastSixId ? `${ngoName} (${lastSixId})` : ngoName;
+  }
+
+  getOpportunityTitle(app: Application): string {
+    return app.opportunity_id?.title || app.opportunity_snapshot?.title || 'Archived opportunity';
   }
 
   get ObjectKeys(): string[] {
