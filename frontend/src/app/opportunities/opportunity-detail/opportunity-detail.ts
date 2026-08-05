@@ -117,9 +117,16 @@ export class OpportunityDetail implements OnInit {
   }
 
   get postedId() {
-    const id = this.opportunity?.ngo_id?._id || this.opportunity?.ngo_id;
-    return id ? String(id).slice(-6).toUpperCase() : 'N/A';
+  const ngo = this.opportunity?.ngo_id;
+
+  if (!ngo) return 'N/A';
+
+  if (typeof ngo === 'object') {
+    return ngo.name || ngo.email || (ngo._id ? String(ngo._id).slice(-6).toUpperCase() : 'N/A');
   }
+
+  return String(ngo).slice(-6).toUpperCase();
+}
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id') || '';
