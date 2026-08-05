@@ -55,28 +55,48 @@ get userRole() { return this.auth.getUser()?.role; }
   get cityCount() { return this.cities.length; }
 
   ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      if (params['search']) {
-        this.search = params['search'];
-      }
+  this.loadCities();
+
+  this.route.queryParams.subscribe(params => {
+    if (params['search']) {
+      this.search = params['search'];
+    }
+    this.loadOpportunities();
+  });
+
+  this.searchSubject
+    .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+    .subscribe(() => {
       this.loadOpportunities();
     });
 
-    this.searchSubject
-      .pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.loadOpportunities();
-      });
-
-    if (this.auth.getUser()?.role === 'volunteer') {
-      this.loadMyApplications();
-    }
+  if (this.auth.getUser()?.role === 'volunteer') {
+    this.loadMyApplications();
   }
+}
+
+   
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  loadCities() {
+  this.opportunityService.getAll().subscribe({
+    next: (data) => {
+      const allCities = data
+        .map(o => o.location?.trim())
+        .filter(Boolean) as string[];
+
+      this.cities = [...new Set(allCities)].sort();
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Failed to load cities', err);
+    }
+  });
+}
 
   loadOpportunities() {
     this.loading = true;
@@ -91,10 +111,7 @@ get userRole() { return this.auth.getUser()?.role; }
       next: (data) => {
         this.opportunities = data;
 
-        const allCities = data
-          .map(o => o.location?.trim())
-          .filter(Boolean) as string[];
-        this.cities = [...new Set(allCities)].sort();
+        
 
         this.loading = false;
         this.cdr.detectChanges();
