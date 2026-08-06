@@ -16,7 +16,9 @@
       <div class="stat-card">
         <div class="stat-top">
           <div class="stat-ic" [style.background]="s.tint">{{ s.icon }}</div>
-          <span class="trend" [class.down]="!s.up">{{ s.up ? '+' : '-' }} {{ s.change }}</span>
+          @if (s.change) {
+            <span class="trend" [class.down]="!s.up">{{ s.up ? '+' : '-' }} {{ s.change }}</span>
+          }
         </div>
         <strong class="stat-value">{{ s.value }}</strong>
         <span class="stat-label">{{ s.label }}</span>
@@ -25,26 +27,6 @@
   </div>
 
   <div class="panels">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Recycling progress</h2>
-        <span class="muted">This month</span>
-      </div>
-      <div class="bars">
-        @for (c of categories; track c.label) {
-          <div class="bar-row">
-            <div class="bar-label">
-              <span>{{ c.icon }} {{ c.label }}</span>
-              <span class="pct">{{ c.pct }}%</span>
-            </div>
-            <div class="bar">
-              <div class="bar-fill" [style.width.%]="c.pct" [style.background]="c.color"></div>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-
     <div class="panel">
       <div class="panel-head">
         <h2>Quick actions</h2>
@@ -61,46 +43,4 @@
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-head">
-      <h2>Recent activity</h2>
-      <a class="link soon">View all</a>
-    </div>
-    <ul class="activity">
-      @for (a of activity; track a.text) {
-        <li>
-          <span class="dot" [class]="a.dot"></span>
-          <span class="a-text">{{ a.text }}</span>
-          <em>{{ a.time }}</em>
-        </li>
-      }
-    </ul>
-  </div>
-
-  <div class="panel">
-  <div class="panel-head">
-    <h2>Suggested Matches</h2>
-    <span class="muted">Based on your profile</span>
-  </div>
-
-  <div class="match-list">
-    @for (match of matchSuggestions; track match.title) {
-      <div class="match-card">
-
-        <div class="match-info">
-          <h4>{{ match.title }}</h4>
-
-          <p>{{ match.ngo }}</p>
-
-          <small>{{ match.location }}</small>
-        </div>
-
-        <div class="match-score">
-          {{ match.match }}%
-        </div>
-
-      </div>
-    }
-  </div>
-</div>
 </section>
