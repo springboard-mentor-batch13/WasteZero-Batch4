@@ -223,13 +223,11 @@ get userRole() { return this.auth.getUser()?.role; }
       return (ngo as any).email;
     }
 
-    if ((ngo as any)._id) {
-      return (ngo as any)._id.slice(-6);
-    }
+    if ((ngo as any)._id) return 'WasteZero NGO';
   }
 
   // If ngo_id is just a string
-  return String(ngo).slice(-6);
+  return 'WasteZero NGO';
 }
 
   imageFor(opp: Opportunity): string {

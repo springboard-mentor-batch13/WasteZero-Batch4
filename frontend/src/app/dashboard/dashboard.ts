@@ -22,13 +22,6 @@ interface QuickAction {
   soon?: boolean;
 }
 
-interface MatchSuggestion {
-  title: string;
-  ngo: string;
-  location: string;
-  match: number;
-}
-
 interface Application {
   _id: string;
   opportunity_id?: {
@@ -59,6 +52,11 @@ interface GroupedOpportunity {
 interface DashboardSummary {
   totalPickups: number;
   completedPickups: number;
+  assignedPickups: number;
+  opportunityCount: number;
+  activeOpportunityCount: number;
+  applicationCount: number;
+  acceptedApplicationCount: number;
 }
 
 @Component({
@@ -75,49 +73,15 @@ export class Dashboard implements OnInit {
   stats: Stat[] = [];
   actions: QuickAction[] = [];
 
-  matchSuggestions: MatchSuggestion[] = [
-  {
-    title: 'Plastic Cleanup Drive',
-    ngo: 'Green Earth',
-    location: 'Hyderabad',
-    match: 95
-  },
-  {
-    title: 'Tree Plantation',
-    ngo: 'Eco Club',
-    location: 'Visakhapatnam',
-    match: 88
-  },
-  {
-    title: 'Beach Cleanup',
-    ngo: 'Blue Ocean',
-    location: 'Vizag',
-    match: 82
-  }
-];
-
   applications: Application[] = [];
   groupedOpportunities: Record<string, GroupedOpportunity> = {};
   selectedOpportunityId: string | null = null;
   isLoading: boolean = false;
-  pickupSummary: DashboardSummary = { totalPickups: 0, completedPickups: 0 };
+  pickupSummary: DashboardSummary = this.emptySummary();
 
   showRejectModal: boolean = false;
   selectedAppIdForReject: string | null = null;
   rejectionRemark: string = '';
-
-  categories = [
-    { label: 'Plastic', icon: 'PL', pct: 72, color: '#43a047' },
-    { label: 'Organic', icon: 'OR', pct: 54, color: '#8bc34a' },
-    { label: 'E-waste', icon: 'EW', pct: 38, color: '#26a69a' },
-    { label: 'Paper', icon: 'PA', pct: 61, color: '#66bb6a' },
-  ];
-
-  activity = [
-    { text: 'Plastic pickup completed', time: '2 days ago', dot: 'green' },
-    { text: 'New opportunity nearby', time: '4 days ago', dot: 'blue' },
-    { text: 'Profile updated', time: 'last week', dot: 'amber' },
-  ];
 
   constructor(
     private auth: AuthService,
@@ -142,23 +106,20 @@ export class Dashboard implements OnInit {
       next: (res) => {
         this.isLoading = false;
         this.applications = res.data || [];
-        this.pickupSummary = res.summary || { totalPickups: 0, completedPickups: 0 };
+        this.pickupSummary = { ...this.emptySummary(), ...(res.summary || {}) };
 
         if (this.role === 'ngo') {
           this.groupApplicationsByOpportunity();
         }
 
-        const openOppsCount = this.role === 'ngo' 
-          ? Object.keys(this.groupedOpportunities).length 
-          : this.applications.length;
-
-        this.stats = this.statsForRole(this.role, openOppsCount);
+        this.stats = this.statsForRole(this.role);
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoading = false;
         console.error('Error fetching dashboard summary data:', err);
-        this.stats = this.statsForRole(this.role, 0);
+        this.pickupSummary = this.emptySummary();
+        this.stats = this.statsForRole(this.role);
         this.cdr.detectChanges();
       },
     });
@@ -241,30 +202,41 @@ export class Dashboard implements OnInit {
     return "Here's your recycling overview and application status.";
   }
 
-  private statsForRole(role: string, metricCount: number = 0): Stat[] {
+  private statsForRole(role: string): Stat[] {
     if (role === 'admin') {
       return [
-        { label: 'Total Applications', value: this.applications.length, icon: 'US', tint: '#e8f5e9', change: '8%', up: true },
-        { label: 'System Opportunities', value: metricCount, icon: 'OP', tint: '#e3f2fd', change: '12%', up: true },
-        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'PK', tint: '#f1f8e9', change: '5%', up: true },
-        { label: 'Open Reports', value: 7, icon: 'RP', tint: '#fff3e0', change: '3%', up: false },
+        { label: 'Total Applications', value: this.pickupSummary.applicationCount, icon: 'US', tint: '#e8f5e9', change: '', up: true },
+        { label: 'System Opportunities', value: this.pickupSummary.opportunityCount, icon: 'OP', tint: '#e3f2fd', change: '', up: true },
+        { label: 'Total Pickups', value: this.pickupSummary.totalPickups, icon: 'PK', tint: '#f1f8e9', change: '', up: true },
+        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'OK', tint: '#fff3e0', change: '', up: true },
       ];
     }
     if (role === 'ngo') {
       return [
-        { label: 'Active Opportunities', value: metricCount, icon: 'OP', tint: '#e8f5e9', change: '2', up: true },
-        { label: 'Total Applicants', value: this.applications.length, icon: 'AP', tint: '#e3f2fd', change: '15%', up: true },
-        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'PK', tint: '#f1f8e9', change: '9%', up: true },
-        { label: 'Messages', value: 9, icon: 'MS', tint: '#fff3e0', change: '4', up: true },
+        { label: 'Active Opportunities', value: this.pickupSummary.activeOpportunityCount, icon: 'OP', tint: '#e8f5e9', change: '', up: true },
+        { label: 'Total Applicants', value: this.pickupSummary.applicationCount, icon: 'AP', tint: '#e3f2fd', change: '', up: true },
+        { label: 'Assigned Pickups', value: this.pickupSummary.assignedPickups, icon: 'PK', tint: '#f1f8e9', change: '', up: true },
+        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'OK', tint: '#fff3e0', change: '', up: true },
       ];
     }
     return [
-      { label: 'Total Pickups', value: this.pickupSummary.totalPickups, icon: 'PK', tint: '#e8f5e9', change: '7%', up: true },
-      { label: 'Recycled Items', value: 635, icon: 'RC', tint: '#e3f2fd', change: '12%', up: true },
-      { label: 'Applied Opportunities', value: this.applications.length, icon: 'OP', tint: '#f1f8e9', change: '3', up: true },
-      { label: 'Messages', value: 5, icon: 'MS', tint: '#fff3e0', change: '1', up: false },
-      
+      { label: 'Total Pickups', value: this.pickupSummary.totalPickups, icon: 'PK', tint: '#e8f5e9', change: '', up: true },
+      { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'OK', tint: '#e3f2fd', change: '', up: true },
+      { label: 'Applied Opportunities', value: this.pickupSummary.applicationCount, icon: 'OP', tint: '#f1f8e9', change: '', up: true },
+      { label: 'Accepted Applications', value: this.pickupSummary.acceptedApplicationCount, icon: 'AP', tint: '#fff3e0', change: '', up: true },
     ];
+  }
+
+  private emptySummary(): DashboardSummary {
+    return {
+      totalPickups: 0,
+      completedPickups: 0,
+      assignedPickups: 0,
+      opportunityCount: 0,
+      activeOpportunityCount: 0,
+      applicationCount: 0,
+      acceptedApplicationCount: 0,
+    };
   }
 
   private actionsForRole(role: string): QuickAction[] {
