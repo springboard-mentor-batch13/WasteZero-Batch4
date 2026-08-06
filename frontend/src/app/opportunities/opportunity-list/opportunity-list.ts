@@ -197,8 +197,18 @@ get userRole() { return this.auth.getUser()?.role; }
   if (!ngo) return 'Unknown NGO';
 
   // If ngo_id is populated (object)
-  if (typeof ngo === 'object' && ngo._id) {
-    return ngo._id.slice(-6);
+  if (typeof ngo === 'object') {
+    if ((ngo as any).name) {
+      return (ngo as any).name;
+    }
+
+    if ((ngo as any).email) {
+      return (ngo as any).email;
+    }
+
+    if ((ngo as any)._id) {
+      return (ngo as any)._id.slice(-6);
+    }
   }
 
   // If ngo_id is just a string
