@@ -3,6 +3,7 @@ import streamifier from "streamifier";
 import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 import User from "../models/User.js";
+import Pickup from "../models/Pickup.js";
 import { notifyAdmins, notifyUser } from "../utils/notify.js";
 
 const hasCloudinaryConfig = () =>
@@ -454,6 +455,17 @@ const getDashboardData = async (req, res) => {
   try {
     const { role, _id: userId } = req.user;
 
+    const pickupQuery = role === 'ngo'
+      ? { assigned_to: userId }
+      : role === 'volunteer'
+        ? { requester_id: userId }
+        : {};
+    const [totalPickups, completedPickups] = await Promise.all([
+      Pickup.countDocuments(pickupQuery),
+      Pickup.countDocuments({ ...pickupQuery, status: 'completed' }),
+    ]);
+    const summary = { totalPickups, completedPickups };
+
     if (role === 'ngo') {
       const ngoOpportunities = await Opportunity.find({ ngo_id: userId }).select('_id');
       const oppIds = ngoOpportunities.map(opp => opp._id);
@@ -463,7 +475,7 @@ const getDashboardData = async (req, res) => {
         .populate('volunteer_id', 'name email phone location skills')
         .sort({ createdAt: -1 });
 
-      return res.json({ success: true, data: applications });
+      return res.json({ success: true, data: applications, summary });
     }
 
     if (role === 'volunteer') {
@@ -475,7 +487,7 @@ const getDashboardData = async (req, res) => {
         })
         .sort({ createdAt: -1 });
 
-      return res.json({ success: true, data: applications });
+      return res.json({ success: true, data: applications, summary });
     }
 
     if (role === 'admin') {
@@ -488,7 +500,7 @@ const getDashboardData = async (req, res) => {
         .populate('volunteer_id', 'name email')
         .sort({ createdAt: -1 });
 
-      return res.json({ success: true, data: applications });
+      return res.json({ success: true, data: applications, summary });
     }
 
     return res.status(403).json({ message: 'Unauthorized role' });
