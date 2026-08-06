@@ -56,6 +56,11 @@ interface GroupedOpportunity {
   applications: Application[];
 }
 
+interface DashboardSummary {
+  totalPickups: number;
+  completedPickups: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -95,6 +100,7 @@ export class Dashboard implements OnInit {
   groupedOpportunities: Record<string, GroupedOpportunity> = {};
   selectedOpportunityId: string | null = null;
   isLoading: boolean = false;
+  pickupSummary: DashboardSummary = { totalPickups: 0, completedPickups: 0 };
 
   showRejectModal: boolean = false;
   selectedAppIdForReject: string | null = null;
@@ -136,6 +142,7 @@ export class Dashboard implements OnInit {
       next: (res) => {
         this.isLoading = false;
         this.applications = res.data || [];
+        this.pickupSummary = res.summary || { totalPickups: 0, completedPickups: 0 };
 
         if (this.role === 'ngo') {
           this.groupApplicationsByOpportunity();
@@ -239,7 +246,7 @@ export class Dashboard implements OnInit {
       return [
         { label: 'Total Applications', value: this.applications.length, icon: 'US', tint: '#e8f5e9', change: '8%', up: true },
         { label: 'System Opportunities', value: metricCount, icon: 'OP', tint: '#e3f2fd', change: '12%', up: true },
-        { label: 'Pickups Done', value: 96, icon: 'PK', tint: '#f1f8e9', change: '5%', up: true },
+        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'PK', tint: '#f1f8e9', change: '5%', up: true },
         { label: 'Open Reports', value: 7, icon: 'RP', tint: '#fff3e0', change: '3%', up: false },
       ];
     }
@@ -247,12 +254,12 @@ export class Dashboard implements OnInit {
       return [
         { label: 'Active Opportunities', value: metricCount, icon: 'OP', tint: '#e8f5e9', change: '2', up: true },
         { label: 'Total Applicants', value: this.applications.length, icon: 'AP', tint: '#e3f2fd', change: '15%', up: true },
-        { label: 'Pickups Done', value: 31, icon: 'PK', tint: '#f1f8e9', change: '9%', up: true },
+        { label: 'Pickups Done', value: this.pickupSummary.completedPickups, icon: 'PK', tint: '#f1f8e9', change: '9%', up: true },
         { label: 'Messages', value: 9, icon: 'MS', tint: '#fff3e0', change: '4', up: true },
       ];
     }
     return [
-      { label: 'Total Pickups', value: 28, icon: 'PK', tint: '#e8f5e9', change: '7%', up: true },
+      { label: 'Total Pickups', value: this.pickupSummary.totalPickups, icon: 'PK', tint: '#e8f5e9', change: '7%', up: true },
       { label: 'Recycled Items', value: 635, icon: 'RC', tint: '#e3f2fd', change: '12%', up: true },
       { label: 'Applied Opportunities', value: this.applications.length, icon: 'OP', tint: '#f1f8e9', change: '3', up: true },
       { label: 'Messages', value: 5, icon: 'MS', tint: '#fff3e0', change: '1', up: false },
