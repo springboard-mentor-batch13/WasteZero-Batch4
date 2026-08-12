@@ -1,10 +1,15 @@
 import User from "../models/User.js";
 import { isDisposableEmail, verifyEmailOtp } from './otpController.js';
 import { clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
+import jwt from 'jsonwebtoken';
 
 // Only these roles are self-service at signup. Admin accounts are never
 // created through the public registration form.
 const REGISTERABLE_ROLES = ['volunteer', 'ngo'];
+
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+};
 
 const registerUser = async (req, res) => {
   const { name, email, password, location, skills, bio, role, otp } = req.body;
@@ -59,7 +64,7 @@ const loginUser = async (req, res) => {
       setAuthCookie(res, user._id);
       res.json({
         _id: user._id, name: user.name, email: user.email,
-        role: user.role, location: user.location, skills: user.skills, bio: user.bio,
+        role: user.role, location: user.location, skills: user.skills, bio: user.bio,token: generateToken(user._id),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
