@@ -88,8 +88,18 @@ const updateUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (user) {
+      if (req.body.email) {
+        const normalizedEmail = req.body.email.trim().toLowerCase();
+        const duplicate = await User.exists({
+          email: normalizedEmail,
+          _id: { $ne: user._id },
+        });
+        if (duplicate) {
+          return res.status(409).json({ message: 'Email address is already in use.' });
+        }
+        user.email = normalizedEmail;
+      }
       user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
       user.location = req.body.location !== undefined ? req.body.location : user.location;
       user.bio = req.body.bio !== undefined ? req.body.bio : user.bio;
       user.skills = req.body.skills || user.skills;

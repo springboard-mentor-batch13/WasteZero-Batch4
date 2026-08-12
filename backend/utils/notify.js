@@ -17,12 +17,27 @@ export const notifyUser = async ({ userId, type, message, link = '' }) => {
   return { notification, wasOnline: isOnline(userId) };
 };
 
+export const notifyUsers = async ({ userIds, type, message, link = '' }) => {
+  const uniqueUserIds = [...new Set(userIds.map(String))];
+  if (!uniqueUserIds.length) return [];
+
+  const notifications = await Notification.insertMany(
+    uniqueUserIds.map((userId) => ({ user_id: userId, type, message, link })),
+  );
+
+  if (ioInstance) {
+    notifications.forEach((notification) => {
+      ioInstance.to(String(notification.user_id)).emit('notification', notification);
+    });
+  }
+
+  return notifications;
+};
+
 export const notifyAdmins = async ({ type, message, link = '', excludeUserId = null }) => {
   const query = { role: 'admin' };
   if (excludeUserId) query._id = { $ne: excludeUserId };
 
   const admins = await User.find(query).select('_id').lean();
-  return Promise.all(
-    admins.map(({ _id }) => notifyUser({ userId: _id, type, message, link })),
-  );
+  return notifyUsers({ userIds: admins.map(({ _id }) => _id), type, message, link });
 };

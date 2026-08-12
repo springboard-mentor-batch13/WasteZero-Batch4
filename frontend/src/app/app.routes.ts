@@ -16,6 +16,7 @@ import { Messages } from './messages/messages';
 import { Notifications } from './notifications/notifications';
 import { SchedulePickup } from './schedule-pickup/schedule-pickup';
 import { Support } from './support/support';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -27,7 +28,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'dashboard', component: Dashboard },
-      { path: 'match-suggestions', component: MatchSuggestions },
+      { path: 'match-suggestions', component: MatchSuggestions, canActivate: [roleGuard(['volunteer'])] },
       { path: 'applications', component: ApplicationsComponent },
       { path: 'profile', component: Profile },
       { path: 'messages', component: Messages },
@@ -36,8 +37,8 @@ export const routes: Routes = [
       { path: 'support', component: Support },
 
   { path: 'opportunities', component: OpportunityList },
-  { path: 'opportunities/create', component: CreateOpportunity },
-  { path: 'opportunities/edit/:id', component: EditOpportunity },
+  { path: 'opportunities/create', component: CreateOpportunity, canActivate: [roleGuard(['ngo', 'admin'])] },
+  { path: 'opportunities/edit/:id', component: EditOpportunity, canActivate: [roleGuard(['ngo', 'admin'])] },
   { path: 'opportunities/:id', component: OpportunityDetail },
 
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

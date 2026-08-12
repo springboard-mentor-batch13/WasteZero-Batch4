@@ -4,7 +4,23 @@ import Opportunity from "../models/Opportunity.js";
 import Application from "../models/Application.js";
 import User from "../models/User.js";
 import Pickup from "../models/Pickup.js";
-import { notifyAdmins, notifyUser } from "../utils/notify.js";
+import { notifyAdmins, notifyUser, notifyUsers } from "../utils/notify.js";
+
+const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const parseArrayField = (value, fieldName) => {
+  if (value === undefined || value === null || value === '') return [];
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) throw new Error();
+    return parsed;
+  } catch {
+    const error = new Error(`${fieldName} must be a valid JSON array.`);
+    error.statusCode = 400;
+    throw error;
+  }
+};
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -77,16 +93,8 @@ const createOpportunity = async (req, res) => {
       ngo_id: req.user._id,
       title,
       description,
-      required_skills: Array.isArray(required_skills)
-        ? required_skills
-        : required_skills
-          ? JSON.parse(required_skills)
-          : [],
-      wasteTypes: Array.isArray(wasteTypes)
-        ? wasteTypes
-        : wasteTypes
-          ? JSON.parse(wasteTypes)
-          : [],
+      required_skills: parseArrayField(required_skills, 'required_skills'),
+      wasteTypes: parseArrayField(wasteTypes, 'wasteTypes'),
       duration,
       location,
       date,
@@ -108,16 +116,12 @@ const createOpportunity = async (req, res) => {
         recipients = await User.find({ role: 'volunteer' }).select('_id');
       }
 
-      await Promise.all(
-        recipients.map((volunteer) =>
-          notifyUser({
-            userId: volunteer._id,
-            type: 'new_opportunity',
-            message: `New opportunity posted: ${opportunity.title} in ${opportunity.location}.`,
-            link: `/opportunities/${opportunity._id}`,
-          }),
-        ),
-      );
+      await notifyUsers({
+        userIds: recipients.map((volunteer) => volunteer._id),
+        type: 'new_opportunity',
+        message: `New opportunity posted: ${opportunity.title} in ${opportunity.location}.`,
+        link: `/opportunities/${opportunity._id}`,
+      });
 
       await notifyAdmins({
         type: 'new_opportunity',
@@ -132,7 +136,9 @@ const createOpportunity = async (req, res) => {
 
     res.status(201).json(opportunity);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.statusCode || 500).json({
+      message: error.statusCode ? error.message : 'Unable to create opportunity.',
+    });
   }
 };
 
@@ -151,19 +157,20 @@ const getOpportunities = async (req, res) => {
     }
 
     if (city && city !== 'all') {
-      query.location = { $regex: city, $options: 'i' };
+      query.location = { $regex: escapeRegex(city), $options: 'i' };
     }
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       const searchConditions = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { required_skills: { $regex: search, $options: 'i' } },
+        { title: { $regex: safeSearch, $options: 'i' } },
+        { description: { $regex: safeSearch, $options: 'i' } },
+        { required_skills: { $regex: safeSearch, $options: 'i' } },
       ];
 
       // Only search location if city filter is not already applied
       if (!city || city === 'all') {
-        searchConditions.push({ location: { $regex: search, $options: 'i' } });
+        searchConditions.push({ location: { $regex: safeSearch, $options: 'i' } });
       }
 
       query.$or = searchConditions;
@@ -219,15 +226,11 @@ const updateOpportunity = async (req, res) => {
     if (req.body.status) opportunity.status = req.body.status;
 
     if (req.body.required_skills) {
-      opportunity.required_skills = Array.isArray(req.body.required_skills)
-        ? req.body.required_skills
-        : JSON.parse(req.body.required_skills);
+      opportunity.required_skills = parseArrayField(req.body.required_skills, 'required_skills');
     }
 
     if (req.body.wasteTypes) {
-      opportunity.wasteTypes = Array.isArray(req.body.wasteTypes)
-        ? req.body.wasteTypes
-        : JSON.parse(req.body.wasteTypes);
+      opportunity.wasteTypes = parseArrayField(req.body.wasteTypes, 'wasteTypes');
     }
 
     if (req.file) {
@@ -236,7 +239,9 @@ const updateOpportunity = async (req, res) => {
     const updated = await opportunity.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.statusCode || 500).json({
+      message: error.statusCode ? error.message : 'Unable to update opportunity.',
+    });
   }
 };
 
@@ -460,11 +465,32 @@ const getDashboardData = async (req, res) => {
       : role === 'volunteer'
         ? { requester_id: userId }
         : {};
-    const [totalPickups, completedPickups] = await Promise.all([
+    const opportunityQuery = role === 'ngo' ? { ngo_id: userId } : {};
+    const applicationQuery = role === 'volunteer' ? { volunteer_id: userId } : {};
+    const [
+      totalPickups,
+      completedPickups,
+      assignedPickups,
+      opportunityCount,
+      activeOpportunityCount,
+      acceptedApplicationCount,
+    ] = await Promise.all([
       Pickup.countDocuments(pickupQuery),
       Pickup.countDocuments({ ...pickupQuery, status: 'completed' }),
+      Pickup.countDocuments({ ...pickupQuery, status: 'assigned' }),
+      Opportunity.countDocuments(opportunityQuery),
+      Opportunity.countDocuments({ ...opportunityQuery, status: 'open' }),
+      Application.countDocuments({ ...applicationQuery, status: 'accepted' }),
     ]);
-    const summary = { totalPickups, completedPickups };
+    const summary = {
+      totalPickups,
+      completedPickups,
+      assignedPickups,
+      opportunityCount,
+      activeOpportunityCount,
+      acceptedApplicationCount,
+      applicationCount: 0,
+    };
 
     if (role === 'ngo') {
       const ngoOpportunities = await Opportunity.find({ ngo_id: userId }).select('_id');
@@ -474,6 +500,8 @@ const getDashboardData = async (req, res) => {
         .populate('opportunity_id', 'title description location status')
         .populate('volunteer_id', 'name email phone location skills')
         .sort({ createdAt: -1 });
+
+      summary.applicationCount = applications.length;
 
       return res.json({ success: true, data: applications, summary });
     }
@@ -487,6 +515,8 @@ const getDashboardData = async (req, res) => {
         })
         .sort({ createdAt: -1 });
 
+      summary.applicationCount = applications.length;
+
       return res.json({ success: true, data: applications, summary });
     }
 
@@ -499,6 +529,8 @@ const getDashboardData = async (req, res) => {
         })
         .populate('volunteer_id', 'name email')
         .sort({ createdAt: -1 });
+
+      summary.applicationCount = applications.length;
 
       return res.json({ success: true, data: applications, summary });
     }
