@@ -19,6 +19,7 @@ import { canCommunicateWith, getAllowedContactIds } from './utils/communicationA
 import { readSessionToken } from './utils/authCookie.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pickupRoutes from './routes/pickupRoutes.js';
+import chatbotRoutes from './routes/chatbotRoutes.js';
 import { encryptMessage, decryptMessage } from "./utils/encryption.js";
 import { getOnlineUserIds, isOnline, markOffline, markOnline } from './utils/presence.js';
 import { notifyUser, setNotifyIO } from './utils/notify.js';
@@ -56,6 +57,7 @@ app.use('/api/opportunities', opportunityRoutes);
 app.use('/api/communication', matchCommunicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/pickups', pickupRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 2. Socket.IO JWT Authentication Middleware
 io.use(async (socket, next) => {
