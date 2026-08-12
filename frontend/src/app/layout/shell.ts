@@ -1,3 +1,4 @@
+import { ChatbotComponent } from '../chatbot/chatbot';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +12,14 @@ import { NotificationService } from '../services/notification';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, CommonModule],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    FormsModule,
+    CommonModule,
+    ChatbotComponent,
+  ],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })

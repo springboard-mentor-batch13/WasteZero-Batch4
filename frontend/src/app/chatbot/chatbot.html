@@ -1,0 +1,129 @@
+<!-- Floating Chat Button -->
+<button
+  *ngIf="!isOpen"
+  class="chat-toggle"
+  type="button"
+  (click)="toggleChat()"
+  aria-label="Open chatbot"
+>
+  <span class="chat-icon">💬</span>
+  <span class="chat-label">Chat with us</span>
+</button>
+
+<!-- Chat Window -->
+<div
+  *ngIf="isOpen"
+  class="chatbot-container"
+  role="dialog"
+  aria-label="WasteZero chatbot"
+>
+  <!-- Header -->
+  <div class="chatbot-header">
+    <div class="bot-info">
+      <div class="bot-avatar">🤖</div>
+
+      <div>
+        <h3>WasteZero Assistant</h3>
+        <span class="online-status">● Online</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button
+        type="button"
+        class="header-button"
+        (click)="clearConversation()"
+        [disabled]="isLoading"
+        title="Clear conversation"
+        aria-label="Clear conversation"
+      >
+        🗑
+      </button>
+
+      <button
+        type="button"
+        class="header-button"
+        (click)="closeChat()"
+        aria-label="Close chatbot"
+      >
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages">
+    <!-- Welcome message -->
+    <div *ngIf="messages.length === 0" class="welcome-message">
+      <div class="welcome-icon">♻️</div>
+
+      <h4>Hi! I'm WasteZero Assistant 👋</h4>
+
+      <p>
+        Ask me anything about WasteZero, waste management,
+        opportunities, pickups, or how the platform works.
+      </p>
+    </div>
+
+    <!-- Conversation -->
+    <div
+      *ngFor="let message of messages; trackBy: trackByMessage"
+      class="message-row"
+      [class.user-row]="message.role === 'user'"
+      [class.bot-row]="message.role === 'assistant'"
+    >
+      <div
+        class="message-bubble"
+        [class.user-message]="message.role === 'user'"
+        [class.bot-message]="message.role === 'assistant'"
+      >
+        {{ message.content }}
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="message-row bot-row">
+      <div class="message-bubble bot-message typing">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <textarea
+      [(ngModel)]="inputMessage"
+      (keydown)="handleKeydown($event)"
+      [maxlength]="maxLength"
+      placeholder="Type your message..."
+      rows="1"
+      [disabled]="isLoading"
+      aria-label="Chat message"
+    ></textarea>
+
+    <button
+      type="button"
+      class="send-button"
+      (click)="sendMessage()"
+      [disabled]="!inputMessage.trim() || isLoading"
+      aria-label="Send message"
+    >
+      ➤
+    </button>
+  </div>
+
+  <div class="character-count">
+    {{ inputMessage.length }}/{{ maxLength }}
+  </div>
+
+  <div class="chat-footer">
+    Powered by WasteZero
+  </div>
+</div>
