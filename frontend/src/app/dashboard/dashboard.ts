@@ -246,10 +246,10 @@ export class Dashboard implements OnInit {
     if (role === 'admin') {
       return [
         editProfile,
-        { label: 'Schedule a pickup', icon: 'PK', link: '/schedule-pickup' },
+        { label: 'Monitor pickups', icon: 'PK', link: '/schedule-pickup' },
         browseOpportunities,
-        { label: 'Manage users', icon: 'AD', link: '/admin' },
-        { label: 'View reports', icon: 'RP', link: '/admin' },
+        { label: 'Manage users', icon: 'AD', link: '/admin?tab=users' },
+        { label: 'View activity reports', icon: 'RP', link: '/admin?tab=activity' },
       ];
     }
     if (role === 'ngo') {
