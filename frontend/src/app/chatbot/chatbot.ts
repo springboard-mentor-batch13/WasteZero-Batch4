@@ -1,10 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  ChatbotService,
-  ChatMessage,
-} from '../services/chatbot.service';
+import { ChatMessage } from '../services/chatbot.service';
 
 @Component({
   selector: 'app-chatbot',
@@ -21,9 +18,21 @@ export class ChatbotComponent {
 
   messages: ChatMessage[] = [];
 
-  readonly maxLength = 2000;
+  readonly maxLength = 500;
 
-  constructor(private chatbotService: ChatbotService) {}
+  private localReply(message: string): string | null {
+    const text = message.toLowerCase();
+    if (/^(hi|hello|hey|help)[!. ]*$/.test(text)) return 'Hello! I can help you use WasteZero. Ask me about pickups, opportunities, applications, messages, notifications, profiles, or support.';
+    if (/pickup|schedule/.test(text)) return 'Open Schedule Pickup from the sidebar. Enter the pickup details and waste types, then submit the request. You can track its status on the same page.';
+    if (/opportunit/.test(text)) return 'Open Opportunities to browse or manage opportunities. Volunteers can view details and apply; NGOs and Admins can create and manage listings.';
+    if (/application/.test(text)) return 'Open Applications to view pending, accepted, or rejected applications. NGOs and Admins can review pending applications.';
+    if (/message|chat/.test(text)) return 'Open Messages and select a contact. Volunteer and NGO messaging becomes available after an application is accepted.';
+    if (/notification|alert/.test(text)) return 'Select Alerts in the top bar to view your notifications and unread updates.';
+    if (/password|otp|profile/.test(text)) return 'Open My Profile to update your details or request an OTP for changing your password.';
+    if (/admin|report|manage user/.test(text)) return 'Admins can open Admin Panel to manage users and review platform activity.';
+    if (/support/.test(text)) return 'Open Help & Support from the sidebar to report an issue related to a pickup or application.';
+    return null;
+  }
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
@@ -55,33 +64,19 @@ export class ChatbotComponent {
     });
 
     this.inputMessage = '';
-    this.isLoading = true;
 
-    const conversation = [...this.messages];
+    const reply = this.localReply(message);
+    if (reply) {
+      this.messages.push({ role: 'assistant', content: reply });
+      return;
+    }
 
-    this.chatbotService.sendMessage(message, conversation).subscribe({
-      next: (response) => {
-        this.messages.push({
-          role: 'assistant',
-          content: response.reply,
-        });
-
-        this.isLoading = false;
-      },
-
-      error: () => {
-        this.isLoading = false;
-
-        this.errorMessage =
-          'Sorry, something went wrong. Please try again.';
-
-        this.messages.push({
-          role: 'assistant',
-          content:
-            'I am unable to respond right now. Please try again later.',
-        });
-      },
+    this.messages.push({
+      role: 'assistant',
+      content: 'I can only help with WasteZero website features such as pickups, opportunities, applications, messages, notifications, profiles, and support.',
     });
+    return;
+
   }
 
   handleKeydown(event: KeyboardEvent): void {

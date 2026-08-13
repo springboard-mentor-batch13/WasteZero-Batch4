@@ -1,0 +1,51 @@
+<section class="admin-page">
+  <header class="admin-head">
+    <div><p class="eyebrow">Administration</p><h1>Admin Panel</h1><p>Manage accounts and monitor platform operations.</p></div>
+    <button type="button" (click)="loadAll()">Refresh data</button>
+  </header>
+
+  <nav class="tabs" aria-label="Admin sections">
+    <button [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">Overview</button>
+    <button [class.active]="activeTab === 'users'" (click)="activeTab = 'users'">Users</button>
+    <button [class.active]="activeTab === 'activity'" (click)="activeTab = 'activity'">Activity &amp; reports</button>
+  </nav>
+
+  @if (loading) { <div class="state">Loading Admin Panel...</div> }
+  @else if (activeTab === 'overview') {
+    <div class="metrics">
+      <article><span>Users</span><strong>{{ total(overview.users) }}</strong><small>{{ count(overview.users, 'volunteer') }} volunteers · {{ count(overview.users, 'ngo') }} NGOs</small></article>
+      <article><span>Opportunities</span><strong>{{ total(overview.opportunities) }}</strong><small>{{ count(overview.opportunities, 'open') }} open</small></article>
+      <article><span>Applications</span><strong>{{ total(overview.applications) }}</strong><small>{{ count(overview.applications, 'pending') }} awaiting review</small></article>
+      <article><span>Pickups</span><strong>{{ total(overview.pickups) }}</strong><small>{{ count(overview.pickups, 'completed') }} completed</small></article>
+      <article><span>Messages</span><strong>{{ overview.messages }}</strong><small>Platform conversations</small></article>
+    </div>
+    <div class="quick-grid">
+      <a routerLink="/opportunities">Manage opportunities <span>Open</span></a>
+      <a routerLink="/applications">Review applications <span>Open</span></a>
+      <a routerLink="/schedule-pickup">Monitor pickups <span>Open</span></a>
+      <a routerLink="/messages">Contact users <span>Open</span></a>
+    </div>
+    <div class="three-columns">
+      <article class="panel"><h2>Newest users</h2>@for (item of overview.recentUsers; track item._id) { <div class="row"><span><b>{{ item.name }}</b><small>{{ item.email }}</small></span><em>{{ item.role }}</em></div> }</article>
+      <article class="panel"><h2>Latest opportunities</h2>@for (item of overview.recentOpportunities; track item._id) { <div class="row"><span><b>{{ item.title }}</b><small>{{ item.ngo_id?.name || 'Unknown owner' }}</small></span><em>{{ item.status }}</em></div> }</article>
+      <article class="panel"><h2>Latest pickups</h2>@for (item of overview.recentPickups; track item._id) { <div class="row"><span><b>{{ item.city }}</b><small>{{ item.requester_id?.name || 'Unknown requester' }}</small></span><em>{{ item.status }}</em></div> }</article>
+    </div>
+  } @else if (activeTab === 'users') {
+    <div class="filters">
+      <input [(ngModel)]="search" (keyup.enter)="loadUsers()" placeholder="Search name, email, or location">
+      <select [(ngModel)]="role" (change)="loadUsers()"><option value="all">All roles</option><option value="volunteer">Volunteer</option><option value="ngo">NGO</option><option value="admin">Admin</option></select>
+      <select [(ngModel)]="status" (change)="loadUsers()"><option value="all">All accounts</option><option value="active">Active</option><option value="suspended">Suspended</option></select>
+      <button (click)="loadUsers()">Search</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>User</th><th>Location</th><th>Joined</th><th>Role</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      @for (user of users; track user._id) { <tr><td><b>{{ user.name }}</b><small>{{ user.email }}</small></td><td>{{ user.location || '—' }}</td><td>{{ user.createdAt | date:'mediumDate' }}</td><td><select [ngModel]="user.role" (ngModelChange)="updateRole(user, $event)" [disabled]="updatingId === user._id || isSelf(user)"><option value="volunteer">Volunteer</option><option value="ngo">NGO</option><option value="admin">Admin</option></select></td><td><span class="status" [class.suspended]="user.isActive === false">{{ user.isActive === false ? 'Suspended' : 'Active' }}</span></td><td><button class="danger" [class.restore]="user.isActive === false" [disabled]="updatingId === user._id || isSelf(user)" (click)="toggleUser(user)">{{ user.isActive === false ? 'Reactivate' : 'Suspend' }}</button></td></tr> }
+      @empty { <tr><td colspan="6" class="state">No users match these filters.</td></tr> }
+    </tbody></table></div>
+  } @else {
+    <div class="three-columns reports">
+      <article class="panel"><h2>Application activity</h2>@for (item of activity.applications; track item._id) { <div class="row"><span><b>{{ item.volunteer_id?.name || 'Volunteer' }}</b><small>{{ item.opportunity_id?.title || item.opportunity_snapshot?.title || 'Archived opportunity' }}</small></span><em>{{ item.status }}</em></div> }</article>
+      <article class="panel"><h2>Pickup activity</h2>@for (item of activity.pickups; track item._id) { <div class="row"><span><b>{{ item.city }}</b><small>{{ item.requester_id?.name || 'Requester' }} · {{ item.pickupDate | date:'mediumDate' }}</small></span><em>{{ item.status }}</em></div> }</article>
+      <article class="panel"><h2>Notification delivery</h2>@for (item of activity.notifications; track item._id) { <div class="row"><span><b>{{ item.user_id?.name || 'User' }}</b><small>{{ item.message }}</small></span><em>{{ item.readAt ? 'read' : 'unread' }}</em></div> }</article>
+    </div>
+  }
+</section>

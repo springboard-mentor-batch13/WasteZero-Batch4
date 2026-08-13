@@ -79,6 +79,12 @@
           <small>Progress and outcomes</small>
         </span>
       </a>
+      @if (user?.role === 'admin') {
+        <a routerLink="/admin" routerLinkActive="active" (click)="sidebarOpen = false">
+          <span class="ic" aria-hidden="true">◆</span>
+          <span class="nav-copy"><strong>Admin Panel</strong><small>Users, activity, and reports</small></span>
+        </a>
+      }
     </nav>
 
     <p class="menu-label">Account</p>
