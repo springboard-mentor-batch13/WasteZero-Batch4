@@ -8,42 +8,81 @@
       <div class="avatar">{{ initial }}</div>
       <div class="user-meta">
         <strong>{{ user?.name }}</strong>
-        <span class="role">{{ user?.role }}</span>
+        <span class="role">{{ roleLabel }}</span>
       </div>
     </div>
 
-    <p class="menu-label">Overview</p>
+    <p class="menu-label">Workspace</p>
     <nav class="menu">
       <a routerLink="/dashboard" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic" aria-hidden="true">⌂</span>
-        <span class="label">Dashboard</span>
+        <span class="nav-copy"><strong>Dashboard</strong><small>Overview and activity</small></span>
       </a>
 
-    </nav>
+      @if (user?.role === 'volunteer') {
+        <a routerLink="/match-suggestions" routerLinkActive="active" (click)="sidebarOpen = false">
+          <span class="ic" aria-hidden="true">◎</span>
+          <span class="nav-copy"><strong>Match Suggestions</strong><small>Recommended opportunities</small></span>
+        </a>
+      }
 
-    <p class="menu-label">{{ user?.role === 'admin' ? 'Administration' : 'Operations' }}</p>
-    <nav class="menu">
       <a routerLink="/applications" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic" aria-hidden="true">▤</span>
-        <span class="label">Applications</span>
+        <span class="ic" aria-hidden="true">✓</span>
+        <span class="nav-copy">
+          <strong>Applications</strong>
+          <small>
+            @if (user?.role === 'admin') { Monitor all applications }
+            @else if (user?.role === 'ngo') { Review volunteer requests }
+            @else { Track your requests }
+          </small>
+        </span>
       </a>
 
       <a routerLink="/schedule-pickup" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic" aria-hidden="true">♻</span>
-        <span class="label">{{ user?.role === 'volunteer' ? 'Schedule Pickup' : 'Manage Pickups' }}</span>
+        <span class="ic" aria-hidden="true">↻</span>
+        <span class="nav-copy">
+          <strong>
+            @if (user?.role === 'admin') { All Pickups }
+            @else if (user?.role === 'ngo') { Pickup Requests }
+            @else { Schedule Pickup }
+          </strong>
+          <small>
+            @if (user?.role === 'admin') { Monitor collection activity }
+            @else if (user?.role === 'ngo') { Accept and manage pickups }
+            @else { Book a waste collection }
+          </small>
+        </span>
       </a>
       
       <a routerLink="/opportunities" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic" aria-hidden="true">◎</span>
-        <span class="label">Opportunities</span>
+        <span class="ic" aria-hidden="true">◇</span>
+        <span class="nav-copy"><strong>Opportunities</strong><small>Browse active listings</small></span>
       </a>
+      @if (user?.role === 'ngo' || user?.role === 'admin') {
+        <a routerLink="/opportunities/create" routerLinkActive="active" (click)="sidebarOpen = false">
+          <span class="ic" aria-hidden="true">＋</span>
+          <span class="nav-copy"><strong>Create Opportunity</strong><small>Publish a new listing</small></span>
+        </a>
+      }
       <a routerLink="/messages" routerLinkActive="active" (click)="sidebarOpen = false">
         <span class="ic" aria-hidden="true">✉</span>
-        <span class="label">Messages</span>
+        <span class="nav-copy"><strong>Messages</strong><small>Community conversations</small></span>
+      </a>
+      <a routerLink="/impact" routerLinkActive="active" (click)="sidebarOpen = false">
+        <span class="ic" aria-hidden="true">♻</span>
+        <span class="nav-copy">
+          <strong>
+            @if (user?.role === 'admin') { Platform Impact }
+            @else if (user?.role === 'ngo') { Organization Impact }
+            @else { My Impact }
+          </strong>
+          <small>Progress and outcomes</small>
+        </span>
       </a>
       @if (user?.role === 'admin') {
         <a routerLink="/admin" routerLinkActive="active" (click)="sidebarOpen = false">
-          <span class="ic" aria-hidden="true">⚙</span><span class="label">Admin Panel</span>
+          <span class="ic" aria-hidden="true">◆</span>
+          <span class="nav-copy"><strong>Admin Panel</strong><small>Users, activity, and reports</small></span>
         </a>
       }
     </nav>
@@ -51,13 +90,13 @@
     <p class="menu-label">Account</p>
     <nav class="menu">
       <a routerLink="/profile" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic" aria-hidden="true">●</span>
-        <span class="label">My Profile</span>
+        <span class="ic" aria-hidden="true">○</span>
+        <span class="nav-copy"><strong>Profile &amp; Settings</strong><small>{{ user?.role === 'ngo' ? 'Organization and account details' : 'Account details and preferences' }}</small></span>
       </a>
       @if (user?.role !== 'admin') {
         <a routerLink="/support" routerLinkActive="active" (click)="sidebarOpen = false">
           <span class="ic" aria-hidden="true">?</span>
-          <span class="label">Help &amp; Support</span>
+          <span class="nav-copy"><strong>Help &amp; Support</strong><small>Contact the support team</small></span>
         </a>
       }
     </nav>

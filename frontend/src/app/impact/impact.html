@@ -1,0 +1,72 @@
+<section class="impact-page">
+  <header class="impact-head">
+    <div>
+      <p class="eyebrow">Measured progress</p>
+      <h1>{{ isAdmin ? 'Platform Impact' : (isNgo ? 'Organization Impact' : 'My Impact') }}</h1>
+      <p>
+        @if (isAdmin) {
+          Monitor opportunities, applications, and waste collection activity across WasteZero.
+        } @else if (isNgo) {
+          Track the opportunities, applications, and waste pickups your organization manages.
+        } @else {
+          See your participation in WasteZero opportunities and waste collections.
+        }
+      </p>
+    </div>
+    <button type="button" (click)="loadImpact()" [disabled]="loading">Refresh</button>
+  </header>
+
+  @if (error) {
+    <div class="impact-error">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <div class="impact-empty">Loading impact information...</div>
+  } @else {
+    <div class="impact-grid">
+      @if (isAdmin) {
+        <article><span>OP</span><strong>{{ summary.opportunityCount }}</strong><p>Total opportunities</p></article>
+        <article><span>AP</span><strong>{{ summary.applicationCount }}</strong><p>Total applications</p></article>
+        <article><span>PK</span><strong>{{ summary.totalPickups }}</strong><p>Total pickups</p></article>
+        <article><span>OK</span><strong>{{ summary.completedPickups }}</strong><p>Completed pickups</p></article>
+      } @else if (isNgo) {
+        <article><span>OP</span><strong>{{ summary.activeOpportunityCount }}</strong><p>Active opportunities</p></article>
+        <article><span>AP</span><strong>{{ summary.applicationCount }}</strong><p>Volunteer applications</p></article>
+        <article><span>PK</span><strong>{{ summary.assignedPickups }}</strong><p>Assigned pickups</p></article>
+        <article><span>OK</span><strong>{{ summary.completedPickups }}</strong><p>Completed pickups</p></article>
+      } @else {
+        <article><span>PK</span><strong>{{ summary.totalPickups }}</strong><p>Pickup requests</p></article>
+        <article><span>OK</span><strong>{{ summary.completedPickups }}</strong><p>Completed pickups</p></article>
+        <article><span>AP</span><strong>{{ summary.applicationCount }}</strong><p>Applications submitted</p></article>
+        <article><span>AC</span><strong>{{ summary.acceptedApplicationCount }}</strong><p>Applications accepted</p></article>
+      }
+    </div>
+
+    <div class="progress-grid">
+      <article class="progress-card">
+        <div><strong>Pickup completion</strong><span>{{ completionRate }}%</span></div>
+        <div class="track"><i [style.width.%]="completionRate"></i></div>
+        <p>{{ summary.completedPickups }} of {{ summary.totalPickups }} pickups completed.</p>
+      </article>
+      <article class="progress-card">
+        <div><strong>Application acceptance</strong><span>{{ acceptanceRate }}%</span></div>
+        <div class="track"><i [style.width.%]="acceptanceRate"></i></div>
+        <p>{{ summary.acceptedApplicationCount }} of {{ summary.applicationCount }} applications accepted.</p>
+      </article>
+    </div>
+
+    @if (isAdmin) {
+      <div class="impact-actions">
+        <a routerLink="/opportunities">Review opportunities</a>
+        <a routerLink="/applications">Monitor applications</a>
+        <a routerLink="/schedule-pickup">View all pickups</a>
+      </div>
+    } @else if (isNgo) {
+      <div class="impact-actions">
+        <a routerLink="/opportunities/create">Create an opportunity</a>
+        <a routerLink="/applications">Review applications</a>
+        <a routerLink="/schedule-pickup">Manage pickups</a>
+      </div>
+    }
+  }
+</section>
