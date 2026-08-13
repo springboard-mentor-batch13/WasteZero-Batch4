@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AdminService } from '../services/admin.service';
 import { AuthService } from '../services/auth.service';
@@ -26,11 +26,15 @@ export class AdminPanel implements OnInit {
   status = 'all';
   currentUser: any;
 
-  constructor(private admin: AdminService, auth: AuthService, private toast: ToastService) {
+  constructor(private admin: AdminService, auth: AuthService, private toast: ToastService, private route: ActivatedRoute) {
     this.currentUser = auth.getUser();
   }
 
-  ngOnInit(): void { this.loadAll(); }
+  ngOnInit(): void {
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'users' || tab === 'activity') this.activeTab = tab;
+    this.loadAll();
+  }
 
   loadAll(): void {
     this.loading = true;
