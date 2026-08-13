@@ -1,0 +1,22 @@
+.impact-page { display: grid; gap: 22px; max-width: 1180px; margin: 0 auto; }
+.impact-head { align-items: flex-start; display: flex; justify-content: space-between; gap: 20px; }
+.eyebrow { color: var(--green); font-size: .75rem; font-weight: 800; letter-spacing: .11em; margin: 0 0 7px; text-transform: uppercase; }
+.impact-head h1 { font-size: 2rem; margin: 0 0 8px; }
+.impact-head p { color: var(--muted); margin: 0; max-width: 680px; }
+.impact-head button { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: var(--ink); cursor: pointer; font: inherit; font-weight: 700; padding: 10px 16px; }
+.impact-grid { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+.impact-grid article, .progress-card, .impact-empty, .impact-error { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 20px; }
+.impact-grid article span { align-items: center; background: var(--green-light); border-radius: 10px; color: var(--green-dark); display: flex; font-size: .75rem; font-weight: 900; height: 38px; justify-content: center; width: 38px; }
+.impact-grid article strong { display: block; font-size: 2rem; margin-top: 18px; }
+.impact-grid article p { color: var(--muted); margin: 5px 0 0; }
+.progress-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+.progress-card > div:first-child { display: flex; justify-content: space-between; }
+.progress-card p { color: var(--muted); font-size: .85rem; margin: 10px 0 0; }
+.track { background: var(--input-muted); border-radius: 999px; height: 9px; margin-top: 16px; overflow: hidden; }
+.track i { background: linear-gradient(90deg, var(--green), var(--green-mid)); display: block; height: 100%; }
+.impact-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.impact-actions a { background: var(--green); border-radius: 10px; color: #fff; font-weight: 700; padding: 11px 16px; text-decoration: none; }
+.impact-error { color: var(--danger); }
+.impact-empty { color: var(--muted); text-align: center; }
+@media (max-width: 900px) { .impact-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .impact-head { flex-direction: column; } .impact-grid, .progress-grid { grid-template-columns: 1fr; } }

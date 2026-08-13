@@ -7,11 +7,11 @@
 }
 
 .sidebar {
-  width: 250px;
+  width: 286px;
   flex-shrink: 0;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  padding: 22px 16px;
+  padding: 22px 14px 16px;
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 8px 18px;
+  padding: 0 10px 18px;
 }
 .brand-logo {
   font-size: 0.75rem;
@@ -41,7 +41,7 @@
   padding: 12px;
   background: var(--green-light);
   border-radius: 12px;
-  margin-bottom: 20px;
+  margin: 0 2px 22px;
 }
 .user-meta {
   display: flex;
@@ -78,53 +78,82 @@
 }
 
 .menu-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 6px 10px;
+  margin: 8px 12px 7px;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 14px;
+  gap: 4px;
+  margin-bottom: 18px;
 }
 .menu a,
 .menu .item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  gap: 12px;
+  min-height: 54px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
   color: var(--ink);
   text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 .menu a:hover {
   background: var(--surface-hover);
+  border-color: var(--border);
+  transform: translateX(2px);
 }
 .menu a.active {
   background: var(--green-light);
+  border-color: rgba(39, 138, 73, 0.18);
   color: var(--green-dark);
-  font-weight: 600;
 }
 .menu .ic {
-  font-size: 0.68rem;
-  font-weight: 800;
-  width: 28px;
-  text-align: center;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  display: flex;
+  font-size: 1rem;
+  font-weight: 700;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
   flex-shrink: 0;
 }
-.menu .label {
+.menu a.active .ic {
+  background: var(--surface);
+  border-color: rgba(39, 138, 73, 0.28);
+  color: var(--green-dark);
+}
+.nav-copy {
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.nav-copy strong {
+  font-size: 0.88rem;
+  font-weight: 650;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-copy small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 450;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .menu .item.soon {
   color: #9aa8a0;
@@ -143,12 +172,12 @@
 
 .logout {
   margin-top: auto;
-  padding: 11px;
+  padding: 11px 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 650;
   cursor: pointer;
 }
 .logout:hover {
@@ -286,7 +315,7 @@
   .sidebar {
     position: fixed;
     z-index: 20;
-    left: -270px;
+    left: -306px;
     transition: left 0.25s ease;
   }
   .sidebar.open {

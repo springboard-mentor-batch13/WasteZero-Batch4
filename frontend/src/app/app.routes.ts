@@ -17,6 +17,7 @@ import { Notifications } from './notifications/notifications';
 import { SchedulePickup } from './schedule-pickup/schedule-pickup';
 import { Support } from './support/support';
 import { roleGuard } from './guards/role.guard';
+import { Impact } from './impact/impact';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -35,6 +36,7 @@ export const routes: Routes = [
       { path: 'notifications', component: Notifications },
       { path: 'schedule-pickup', component: SchedulePickup },
       { path: 'support', component: Support },
+      { path: 'impact', component: Impact },
 
   { path: 'opportunities', component: OpportunityList },
   { path: 'opportunities/create', component: CreateOpportunity, canActivate: [roleGuard(['ngo', 'admin'])] },
