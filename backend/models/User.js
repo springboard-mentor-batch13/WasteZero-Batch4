@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   coordinates: { type: String, default: '' },
   preferredWasteTypes: [{ type: String }],
   isAvailable: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

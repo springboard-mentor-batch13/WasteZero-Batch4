@@ -26,17 +26,15 @@
     }
   </div>
 
-  <div class="panels">
-    <div class="panel">
+  <div class="dashboard-section">
+    <div class="panel quick-panel">
       <div class="panel-head">
-        <h2>Quick actions</h2>
+        <div><p class="section-kicker">Shortcuts</p><h2>Quick actions</h2></div>
       </div>
       <div class="quick">
         @for (a of actions; track a.label) {
           @if (a.link) {
             <a [routerLink]="a.link" class="q"><span>{{ a.icon }}</span> {{ a.label }}</a>
-          } @else {
-            <span class="q soon"><span>{{ a.icon }}</span> {{ a.label }}</span>
           }
         }
       </div>
