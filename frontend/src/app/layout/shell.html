@@ -15,7 +15,7 @@
     <p class="menu-label">Overview</p>
     <nav class="menu">
       <a routerLink="/dashboard" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">DB</span>
+        <span class="ic" aria-hidden="true">⌂</span>
         <span class="label">Dashboard</span>
       </a>
 
@@ -24,26 +24,26 @@
     <p class="menu-label">{{ user?.role === 'admin' ? 'Administration' : 'Operations' }}</p>
     <nav class="menu">
       <a routerLink="/applications" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">AP</span>
+        <span class="ic" aria-hidden="true">▤</span>
         <span class="label">Applications</span>
       </a>
 
       <a routerLink="/schedule-pickup" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">PK</span>
+        <span class="ic" aria-hidden="true">♻</span>
         <span class="label">{{ user?.role === 'volunteer' ? 'Schedule Pickup' : 'Manage Pickups' }}</span>
       </a>
       
       <a routerLink="/opportunities" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">OP</span>
+        <span class="ic" aria-hidden="true">◎</span>
         <span class="label">Opportunities</span>
       </a>
       <a routerLink="/messages" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">MS</span>
+        <span class="ic" aria-hidden="true">✉</span>
         <span class="label">Messages</span>
       </a>
       @if (user?.role === 'admin') {
         <a routerLink="/admin" routerLinkActive="active" (click)="sidebarOpen = false">
-          <span class="ic">AD</span><span class="label">Admin Panel</span>
+          <span class="ic" aria-hidden="true">⚙</span><span class="label">Admin Panel</span>
         </a>
       }
     </nav>
@@ -51,12 +51,12 @@
     <p class="menu-label">Account</p>
     <nav class="menu">
       <a routerLink="/profile" routerLinkActive="active" (click)="sidebarOpen = false">
-        <span class="ic">PR</span>
+        <span class="ic" aria-hidden="true">●</span>
         <span class="label">My Profile</span>
       </a>
       @if (user?.role !== 'admin') {
         <a routerLink="/support" routerLinkActive="active" (click)="sidebarOpen = false">
-          <span class="ic">HP</span>
+          <span class="ic" aria-hidden="true">?</span>
           <span class="label">Help &amp; Support</span>
         </a>
       }
