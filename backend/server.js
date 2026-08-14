@@ -6,6 +6,8 @@ import http from 'http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import connectDB from './config/db.js';
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import otpRoutes from './routes/otpRoutes.js';
@@ -33,7 +35,11 @@ const app = express();
 const server = http.createServer(app);
 
 const corsOptions = {
-  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  origin: [
+    'http://localhost:4200',
+    'http://127.0.0.1:4200',
+    'https://waste-zero-self.vercel.app',
+  ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
   optionsSuccessStatus: 200,
