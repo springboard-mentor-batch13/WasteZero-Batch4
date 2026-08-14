@@ -1,12 +1,29 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+
+const SMTP_HOST = 'smtp.gmail.com';
+const resolve4 = dns.promises.resolve4;
+
+let cachedIp = null;
+
+const getSmtpIPv4 = async () => {
+  if (cachedIp) return cachedIp;
+  const addresses = await resolve4(SMTP_HOST);
+  if (!addresses.length) throw new Error(`No IPv4 address found for ${SMTP_HOST}`);
+  cachedIp = addresses[0];
+  return cachedIp;
+};
 
 const sendEmail = async ({ to, subject, text }) => {
+  const ip = await getSmtpIPv4();
+
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: ip,
     port: 587,
-    secure: false, // STARTTLS on 587, instead of implicit TLS on 465
-    family: 4, // force IPv4 - Render has no outbound IPv6 route, so Node trying
-    // Gmail's IPv6 address first fails with ENETUNREACH
+    secure: false, // STARTTLS on 587
+    tls: {
+      servername: SMTP_HOST,
+    },
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
