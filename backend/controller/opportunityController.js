@@ -5,22 +5,14 @@ import Application from "../models/Application.js";
 import User from "../models/User.js";
 import Pickup from "../models/Pickup.js";
 import { notifyAdmins, notifyUser, notifyUsers } from "../utils/notify.js";
+import { recordAdminAction } from "../utils/adminLog.js";
+import {
+  opportunityErrorResponse,
+  parseArrayField,
+  validateOpportunityPayload,
+} from "../utils/opportunityValidation.js";
 
 const escapeRegex = (value = '') => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const parseArrayField = (value, fieldName) => {
-  if (value === undefined || value === null || value === '') return [];
-  if (Array.isArray(value)) return value;
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) throw new Error();
-    return parsed;
-  } catch {
-    const error = new Error(`${fieldName} must be a valid JSON array.`);
-    error.statusCode = 400;
-    throw error;
-  }
-};
 
 const hasCloudinaryConfig = () =>
   Boolean(
@@ -88,6 +80,7 @@ const createOpportunity = async (req, res) => {
     req.body;
 
   try {
+    validateOpportunityPayload(req.body);
     const image_url = await getOpportunityImageUrl(req.file);
     const opportunity = await Opportunity.create({
       ngo_id: req.user._id,
@@ -136,9 +129,8 @@ const createOpportunity = async (req, res) => {
 
     res.status(201).json(opportunity);
   } catch (error) {
-    res.status(error.statusCode || 500).json({
-      message: error.statusCode ? error.message : 'Unable to create opportunity.',
-    });
+    const response = opportunityErrorResponse(error, 'Unable to create opportunity.');
+    res.status(response.status).json({ message: response.message });
   }
 };
 
@@ -205,6 +197,7 @@ const getOpportunityById = async (req, res) => {
 
 const updateOpportunity = async (req, res) => {
   try {
+    validateOpportunityPayload(req.body, { partial: true });
     const opportunity = await Opportunity.findById(req.params.id);
     if (!opportunity)
       return res.status(404).json({ message: "Opportunity not found" });
@@ -213,23 +206,23 @@ const updateOpportunity = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to modify this opportunity" });
     }
 
-    if (req.body.title) opportunity.title = req.body.title;
+    if (req.body.title !== undefined) opportunity.title = req.body.title.trim();
 
-    if (req.body.description) opportunity.description = req.body.description;
+    if (req.body.description !== undefined) opportunity.description = req.body.description.trim();
 
-    if (req.body.duration) opportunity.duration = req.body.duration;
+    if (req.body.duration !== undefined) opportunity.duration = req.body.duration;
 
-    if (req.body.location) opportunity.location = req.body.location;
+    if (req.body.location !== undefined) opportunity.location = req.body.location.trim();
 
-    if (req.body.date) opportunity.date = req.body.date;
+    if (req.body.date !== undefined) opportunity.date = req.body.date || null;
 
     if (req.body.status) opportunity.status = req.body.status;
 
-    if (req.body.required_skills) {
+    if (req.body.required_skills !== undefined) {
       opportunity.required_skills = parseArrayField(req.body.required_skills, 'required_skills');
     }
 
-    if (req.body.wasteTypes) {
+    if (req.body.wasteTypes !== undefined) {
       opportunity.wasteTypes = parseArrayField(req.body.wasteTypes, 'wasteTypes');
     }
 
@@ -239,9 +232,8 @@ const updateOpportunity = async (req, res) => {
     const updated = await opportunity.save();
     res.json(updated);
   } catch (error) {
-    res.status(error.statusCode || 500).json({
-      message: error.statusCode ? error.message : 'Unable to update opportunity.',
-    });
+    const response = opportunityErrorResponse(error, 'Unable to update opportunity.');
+    res.status(response.status).json({ message: response.message });
   }
 };
 
@@ -286,6 +278,13 @@ const deleteOpportunity = async (req, res) => {
       },
     );
     await opportunity.deleteOne();
+    await recordAdminAction({
+      adminUser: req.user,
+      action: 'opportunity_deleted',
+      targetType: 'Opportunity',
+      targetId: opportunity._id,
+      details: { title: opportunity.title, notifiedApplicants: affectedApplications.length },
+    });
     res.json({
       message: 'Opportunity deleted; related applications were archived and volunteers notified.',
       notifiedApplicants: affectedApplications.length,

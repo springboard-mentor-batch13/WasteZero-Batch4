@@ -16,6 +16,10 @@ const opportunitySchema = new mongoose.Schema(
       required: true
     },
     required_skills: [{ type: String }],
+    wasteTypes: [{
+      type: String,
+      enum: ['Plastic', 'Glass', 'Electronic Waste', 'Paper', 'Metal', 'Organic Waste', 'Other'],
+    }],
     duration: {
       type: String,
     },
@@ -43,6 +47,7 @@ const opportunitySchema = new mongoose.Schema(
 opportunitySchema.index({ ngo_id: 1 });
 opportunitySchema.index({ status: 1 });
 opportunitySchema.index({ location: 1 });
+opportunitySchema.index({ wasteTypes: 1 });
 opportunitySchema.index({ title: 'text', description: 'text', required_skills: 'text' }); 
 
 const Opportunity = mongoose.model('Opportunity', opportunitySchema);

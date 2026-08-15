@@ -21,6 +21,7 @@ export class AdminPanel implements OnInit {
   users: any[] = [];
   loading = true;
   updatingId = '';
+  downloading = false;
   search = '';
   role = 'all';
   status = 'all';
@@ -78,6 +79,30 @@ export class AdminPanel implements OnInit {
         this.admin.getOverview().subscribe(value => this.overview = value.data);
       },
       error: (err) => { this.updatingId = ''; this.toast.error(err.error?.message || 'Could not update user'); },
+    });
+  }
+
+  downloadReport(): void {
+    if (this.downloading) return;
+    this.downloading = true;
+    this.admin.downloadPerformanceReport().subscribe({
+      next: (response) => {
+        const disposition = response.headers.get('content-disposition') || '';
+        const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'wastezero-performance.csv';
+        const url = URL.createObjectURL(response.body!);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+        this.downloading = false;
+        this.toast.success('Performance report downloaded');
+        this.admin.getActivity().subscribe(value => this.activity = value.data);
+      },
+      error: (err) => {
+        this.downloading = false;
+        this.toast.error(err.error?.message || 'Could not download report');
+      },
     });
   }
 

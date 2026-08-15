@@ -1,7 +1,10 @@
 <section class="admin-page">
   <header class="admin-head">
     <div><p class="eyebrow">Administration</p><h1>Admin Panel</h1><p>Manage accounts and monitor platform operations.</p></div>
-    <button type="button" (click)="loadAll()">Refresh data</button>
+    <div class="head-actions">
+      <button type="button" class="secondary" [disabled]="downloading" (click)="downloadReport()">{{ downloading ? 'Preparing...' : 'Download CSV report' }}</button>
+      <button type="button" (click)="loadAll()">Refresh data</button>
+    </div>
   </header>
 
   <nav class="tabs" aria-label="Admin sections">
@@ -47,5 +50,11 @@
       <article class="panel"><h2>Pickup activity</h2>@for (item of activity.pickups; track item._id) { <div class="row"><span><b>{{ item.city }}</b><small>{{ item.requester_id?.name || 'Requester' }} · {{ item.pickupDate | date:'mediumDate' }}</small></span><em>{{ item.status }}</em></div> }</article>
       <article class="panel"><h2>Notification delivery</h2>@for (item of activity.notifications; track item._id) { <div class="row"><span><b>{{ item.user_id?.name || 'User' }}</b><small>{{ item.message }}</small></span><em>{{ item.readAt ? 'read' : 'unread' }}</em></div> }</article>
     </div>
+    <article class="panel audit-log">
+      <h2>Administrative audit log</h2>
+      @for (item of activity.adminLogs; track item._id) {
+        <div class="row"><span><b>{{ item.action }}</b><small>{{ item.user_id?.name || 'Administrator' }} · {{ item.createdAt | date:'medium' }}</small></span><em>{{ item.target_type || 'platform' }}</em></div>
+      } @empty { <p class="state">No administrative actions recorded yet.</p> }
+    </article>
   }
 </section>

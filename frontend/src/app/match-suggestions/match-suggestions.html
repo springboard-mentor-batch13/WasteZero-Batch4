@@ -10,7 +10,7 @@
 
     <div class="match-grid">
 
-        @for(match of matches; track match.title){
+        @for(match of matches; track match._id){
 
         <div class="match-card">
 
@@ -44,7 +44,7 @@
 
             </p>
 
-            <button routerLink="/opportunities">
+            <button [routerLink]="['/opportunities', match._id]">
 
                 View Opportunity
 
