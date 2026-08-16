@@ -55,6 +55,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('WasteZero API running...'));
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
