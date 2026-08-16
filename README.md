@@ -3,6 +3,9 @@
 WasteZero is a full-stack web application designed to connect NGOs, volunteers, and administrators to manage waste collection drives, recycling initiatives, and volunteer opportunities. The platform streamlines opportunity management, volunteer participation, user communication, and administrative monitoring through a secure and user-friendly interface.
 <hr>
 
+# Live Link
+https://waste-zero-self.vercel.app/
+
 # Tech Stack
 
 ### Frontend
