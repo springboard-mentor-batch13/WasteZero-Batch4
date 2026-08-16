@@ -19,8 +19,8 @@ const sendEmail = async ({ to, subject, text }) => {
 
   const transporter = nodemailer.createTransport({
     host: ip,
-    port: 587,
-    secure: false, // STARTTLS on 587
+    port: 465,
+    secure: true,
     tls: {
       servername: SMTP_HOST,
     },
