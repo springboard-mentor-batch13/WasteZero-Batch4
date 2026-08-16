@@ -42,11 +42,11 @@ const createOtpForEmail = async (email) => {
 };
 
 const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
-  const canSendEmail = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+  const canSendEmail = Boolean(process.env.RESEND_API_KEY);
   const genericMessage = 'If the request is valid, an OTP has been sent.';
 
   if (!canSendEmail) {
-    console.error('OTP email delivery is not configured. Set EMAIL_USER and EMAIL_PASS.');
+    console.error('OTP email delivery is not configured. Set RESEND_API_KEY.');
     await Otp.deleteMany({ email });
     return res.status(503).json({
       message: 'OTP email delivery is temporarily unavailable. Please contact support.',
@@ -64,6 +64,7 @@ const sendOtpResponse = async ({ res, email, otp, subject, text }) => {
     });
   }
 };
+
 
 // Reusable check used by authController.registerUser to confirm the email
 // was actually verified via OTP before the account is created.
