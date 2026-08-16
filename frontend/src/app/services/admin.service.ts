@@ -16,4 +16,10 @@ export class AdminService {
   updateUser(id: string, update: { role?: string; isActive?: boolean }) {
     return this.http.patch<any>(`${this.api}/users/${id}`, update);
   }
+  downloadPerformanceReport() {
+    return this.http.get(`${this.api}/reports/performance.csv`, {
+      observe: 'response',
+      responseType: 'blob',
+    });
+  }
 }

@@ -23,7 +23,14 @@ export class MatchSuggestions implements OnInit {
     if (this.auth.getUser()?.role !== 'volunteer') return;
 
     this.http.get<any>(`${API_BASE}/communication/matches`).subscribe({
-      next: (res) => { this.matches = res.data || []; this.loading = false; },
+      next: (res) => {
+        this.matches = (res.data || []).map((match: any) => ({
+          ...match,
+          percentage: match.matchScore ?? match.percentage ?? 0,
+          organization: match.ngo_id?.name ?? match.organization ?? 'WasteZero NGO',
+        }));
+        this.loading = false;
+      },
       error: (err) => { this.error = err.error?.message || 'Failed to load matches'; this.loading = false; }
     });
   }

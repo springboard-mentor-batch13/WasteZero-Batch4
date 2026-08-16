@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import { getAllowedContactIds, canCommunicateWith, getSupportAdmin } from '../utils/communicationAccess.js';
 
 import { decryptMessage, MessageDecryptionError } from '../utils/encryption.js';
+import { mapOpportunityMatch } from '../utils/matchOpportunity.js';
 
 const UNAVAILABLE_MESSAGE = 'Encrypted message unavailable';
 
@@ -25,42 +26,10 @@ export const getMatchedOpportunities = async (req, res) => {
     const volunteer = req.user; // Authenticated user attached by protect middleware
 
     // Fetch all active open opportunities
-    const opportunities = await Opportunity.find({ status: 'open' });
+    const opportunities = await Opportunity.find({ status: 'open' }).populate('ngo_id', 'name');
 
     // Calculate dynamic match scores using volunteer profile
-    const scoredOpportunities = opportunities.map((opp) => {
-      let score = 0;
-
-      // Factor 1: Waste Type Match (40% Weight)
-      const userWaste = volunteer.preferredWasteTypes || volunteer.wasteTypes || [];
-      const oppWaste = opp.wasteTypes || opp.waste_types || [];
-      const commonWaste = userWaste.filter((type) => oppWaste.includes(type));
-      if (commonWaste.length > 0) {
-        score += 40 * (commonWaste.length / Math.max(oppWaste.length, 1));
-      }
-
-      // Factor 2: Skills Match (40% Weight)
-      const userSkills = volunteer.skills || [];
-      const oppSkills = opp.required_skills || opp.requiredSkills || [];
-      const commonSkills = userSkills.filter((skill) => oppSkills.includes(skill));
-      if (commonSkills.length > 0) {
-        score += 40 * (commonSkills.length / Math.max(oppSkills.length, 1));
-      }
-
-      // Factor 3: Location Match (20% Weight)
-      if (
-        volunteer.location &&
-        opp.location &&
-        volunteer.location.toLowerCase().trim() === opp.location.toLowerCase().trim()
-      ) {
-        score += 20;
-      }
-
-      return {
-        ...opp._doc,
-        matchScore: Math.round(score),
-      };
-    });
+    const scoredOpportunities = opportunities.map((opp) => mapOpportunityMatch(opp, volunteer));
 
     // Sort opportunities by highest match score first
     scoredOpportunities.sort((a, b) => b.matchScore - a.matchScore);
