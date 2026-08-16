@@ -1,44 +1,27 @@
-import nodemailer from 'nodemailer';
-import dns from 'dns';
+import { Resend } from 'resend';
 
-const SMTP_HOST = 'smtp.gmail.com';
-const resolve4 = dns.promises.resolve4;
-
-let cachedIp = null;
-
-const getSmtpIPv4 = async () => {
-  if (cachedIp) return cachedIp;
-  const addresses = await resolve4(SMTP_HOST);
-  if (!addresses.length) throw new Error(`No IPv4 address found for ${SMTP_HOST}`);
-  cachedIp = addresses[0];
-  return cachedIp;
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async ({ to, subject, text }) => {
-  const ip = await getSmtpIPv4();
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'onboarding@resend.dev',
+      to: to,
+      subject: subject,
+      text: text, 
+    });
 
-  const transporter = nodemailer.createTransport({
-    host: ip,
-    port: 587,
-    secure: false, // STARTTLS on 587
-    tls: {
-      servername: SMTP_HOST,
-    },
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-  });
+    if (error) {
+      console.error('Resend API Error details:', error);
+      throw new Error(`Resend failed: ${error.message}`);
+    }
 
-  await transporter.sendMail({
-    from: `"WasteZero" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    text,
-  });
+    console.log('Email delivered successfully! ID:', data?.id);
+    return data;
+  } catch (err) {
+    console.error('Failed to send email via Resend Service:', err.message);
+    throw err;
+  }
 };
 
 export default sendEmail;
