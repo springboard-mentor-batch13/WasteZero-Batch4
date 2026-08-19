@@ -1,0 +1,13 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes
+  workflow_dispatch:          # lets you trigger it manually from the Actions tab too
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -sf https://wastezero-51x6.onrender.com/health || echo "Ping failed (server may be cold-starting, this is OK)"
