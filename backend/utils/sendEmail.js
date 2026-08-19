@@ -1,26 +1,24 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 const sendEmail = async ({ to, subject, text }) => {
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: to,
-      subject: subject,
-      text: text, 
-    });
+  const response = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': process.env.BREVO_API_KEY,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { email: process.env.EMAIL_USER, name: 'WasteZero' },
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+    }),
+  });
 
-    if (error) {
-      console.error('Resend API Error details:', error);
-      throw new Error(`Resend failed: ${error.message}`);
-    }
-
-    console.log('Email delivered successfully! ID:', data?.id);
-    return data;
-  } catch (err) {
-    console.error('Failed to send email via Resend Service:', err.message);
-    throw err;
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Brevo send failed (${response.status}): ${errorBody}`);
   }
 };
 
